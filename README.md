@@ -46,65 +46,131 @@ This project provides a comprehensive system for 3D printing quotes. Users can u
 │── wsl-backend.sh          # WSL-specific backend startup
 │── wsl-frontend.sh         # WSL-specific frontend startup
 ```
+## Supported Operating Systems
 
-## Prerequisites
-- Docker and Docker Compose
-- Node.js (v16+) & npm (for Next.js frontend)
+- Windows 10/11
+- Linux (Including WSL)
 
-## Installation
+*(Setup instructions are OS-specific below)*
 
-1. Clone the repository:
-   ```bash
-   git clone <repository-url>
-   cd 3DPrintInstantQuote
-   ```
+## Windows Installation & Usage
 
-2. Install dependencies (Docker, Python, Node.js):
-   ```bash
-   chmod +x install.sh
-   ./install.sh
-   ```
+### Prerequisites
 
-3. Set up Python virtual environment and install all dependencies:
-   ```bash
-   make install
-   ```
-   
-   This will:
-   - Create a Python virtual environment
-   - Install Python dependencies in the virtual environment
-   - Install Node.js dependencies for the frontend
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Make sure it's running)
+- [Node.js](https://nodejs.org/) (v16 or higher recommended)
+- [Python](https://www.python.org/downloads/) (v3.10 or higher recommended, ensure it's added to PATH)
+- [Git](https://git-scm.com/downloads/)
 
-4. Start the backend server:
-   ```bash
-   make backend
-   ```
+### Setup
 
-5. Start the frontend development server:
-   ```bash
-   make frontend
-   ```
-   
-   Alternatively, start both with a single command:
-   ```bash
-   make start
-   ```
+1.  **Clone the repository:**
+    ```powershell
+    git clone <your-repository-url>
+    cd 3DPrintInstantQuote
+    ```
+2.  **Run the Windows installation script:**
+    This script checks prerequisites, installs frontend dependencies, and pre-builds the backend Docker image.
+    ```powershell
+    .\install-windows.bat
+    ```
+    *(If you encounter issues, check the script's output for details.)*
 
-6. Open http://localhost:3000 to use the web interface.
+### Running the Application
 
-## Using the Makefile
+You have two options:
 
-The project includes a Makefile with several useful commands:
+**Option 1: Start Everything**
 
-- `make help` - Display available commands
-- `make install` - Install all dependencies
-- `make setup-venv` - Set up Python virtual environment
-- `make backend` - Start the backend server
-- `make frontend` - Start the frontend development server
-- `make start` - Start both backend and frontend
-- `make stop` - Stop all services
-- `make restart` - Restart all services
-- `make clean` - Remove virtual environment and temporary files
+Use the combined start script (requires two separate terminals/tabs):
+
+*   In your terminal:
+    ```powershell
+    .\start-all-windows.bat 
+    ```
+    *(This will attempt to launch both backend and frontend, but output might be interleaved. Running separately is often clearer.)*
+
+**Option 2: Start Backend and Frontend Separately (Recommended)**
+
+*   **Terminal 1: Start Backend**
+    ```powershell
+    .\scripts\windows\backend.bat
+    ```
+    *(Wait for the Docker container to build and start. Look for "Container started successfully!")*
+
+*   **Terminal 2: Start Frontend**
+    ```powershell
+    .\scripts\windows\frontend.bat
+    ```
+    *(Wait for the Next.js server to compile and start. Look for "ready started server on 0.0.0.0:3000")*
+
+### Accessing the App
+
+Once both backend and frontend are running, open your web browser to:
+`http://localhost:3000`
+
+## Linux/WSL Installation & Usage
+
+### Prerequisites (for WSL & Debian/Ubuntu-based Linux)
+
+- **WSL:** Ensure you have a WSL distribution installed (e.g., Ubuntu from Microsoft Store).
+- **Docker:** 
+    - **WSL:** Docker Desktop for Windows with WSL Integration enabled (Recommended) OR Docker installed natively within WSL (`sudo apt install docker.io docker-compose`).
+    - **Linux:** Docker Engine and Docker Compose (`sudo apt install docker.io docker-compose`).
+- **Node.js:** v18.x recommended (The install script will handle installation via NodeSource).
+- **Python:** v3.10+ recommended (`sudo apt install python3 python3-pip python3-venv`).
+- **Build Tools:** `sudo apt install build-essential`.
+- **Git:** `sudo apt install git`.
+- **dos2unix:** `sudo apt install dos2unix` (Needed to fix script line endings if cloned on Windows).
+
+### Setup
+
+1.  **Clone the repository (if not already done):**
+    ```bash
+    git clone <your-repository-url>
+    cd 3DPrintInstantQuote
+    ```
+2.  **(WSL Only) Navigate to the project directory:**
+    Find the path to your project, likely starting with `/mnt/c/` or similar.
+    ```bash
+    # Example: cd /mnt/c/Users/YourUser/path/to/3DPrintInstantQuote
+    cd /mnt/c/Users/Moi/Desktop/GitHub/3DPrintInstantQuote/3DPrintInstantQuote 
+    ```
+3.  **(If cloned on Windows) Fix script line endings:**
+    ```bash
+    dos2unix *.sh scripts/linux/*.sh
+    ```
+4.  **Make scripts executable:**
+    ```bash
+    chmod +x *.sh scripts/linux/*.sh
+    ```
+5.  **Run the Linux installation script:**
+    This script checks/installs prerequisites, installs frontend dependencies, and pre-builds the backend Docker image. It may ask for your `sudo` password.
+    ```bash
+    bash install-linux.sh
+    ```
+    *(If you encounter issues, check the script's output for details.)*
+
+### Running the Application (WSL/Linux)
+
+**Important:** Run the backend and frontend in **separate** WSL/Linux terminal windows/tabs.
+
+*   **Terminal 1: Start Backend**
+    ```bash
+    bash start-backend-linux.sh
+    ```
+    *(Wait for the Docker container to build/start. Look for "Container started successfully!")*
+
+*   **Terminal 2: Start Frontend**
+    ```bash
+    bash start-frontend-linux.sh
+    ```
+    *(Wait for the Next.js server to compile/start. It should detect WSL and run the appropriate commands. Look for "ready started server on 0.0.0.0:3000")*
+
+### Accessing the App
+
+Once both backend and frontend are running, open your web browser (on Windows) to:
+`http://localhost:3000`
 
 ## API Endpoints
 

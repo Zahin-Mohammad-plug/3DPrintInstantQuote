@@ -14,5 +14,5 @@ FRONTEND_PATH=$(wslpath -w "$(pwd)")
 echo "Windows path: $FRONTEND_PATH"
 
 # Use cmd.exe to run the Windows batch file
-echo "Running Windows batch file..."
-cmd.exe /c "cd $FRONTEND_PATH && npm install && npm install tailwindcss postcss autoprefixer && npx next dev"
+echo "Running Windows npm commands with --legacy-peer-deps..."
+cmd.exe /c "cd $FRONTEND_PATH && npm install --legacy-peer-deps && npm install tailwindcss postcss autoprefixer --legacy-peer-deps && npx next dev"

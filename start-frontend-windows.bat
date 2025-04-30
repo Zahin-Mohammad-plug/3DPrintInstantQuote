@@ -1,3 +1,0 @@
-@echo off
-echo Starting frontend (Windows)...
-call scripts\windows\frontend.bat
