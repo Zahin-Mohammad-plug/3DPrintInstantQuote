@@ -5,17 +5,18 @@ echo "🔹 Starting PrusaSlicer Docker container..."
 # Detect environment
 if grep -q Microsoft /proc/version 2>/dev/null || grep -q WSL /proc/version 2>/dev/null || [ -d /mnt/c ]; then
     echo "Detected WSL environment"
-    ./wsl-backend.sh
+    ./scripts/linux/wsl-backend.sh
     exit 0
 fi
 
-# Check if running on Windows
+# Check if running on Windows (This check might be less reliable in Git Bash/MSYS)
 if [ "$OS" = "Windows_NT" ]; then
-    echo "Detected Windows environment"
-    cmd.exe /c "windows-backend.bat"
+    echo "Detected Windows environment (via OS variable)"
+    # Assuming windows-backend.bat was moved and renamed
+    cmd.exe /c "scripts\windows\backend.bat"
     exit 0
 fi
 
 # Default to Linux
 echo "Detected Linux environment"
-./linux-backend.sh
+./scripts/linux/backend.sh

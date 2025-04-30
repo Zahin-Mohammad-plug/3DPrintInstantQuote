@@ -4,8 +4,8 @@ echo "🔹 Starting 3D Print Instant Quote System..."
 
 # Start the backend
 echo "Starting backend..."
-./start-backend.sh
+./start-backend-linux.sh
 
 # Start the frontend
 echo "Starting frontend..."
-./start-frontend.sh
+./start-frontend-linux.sh
