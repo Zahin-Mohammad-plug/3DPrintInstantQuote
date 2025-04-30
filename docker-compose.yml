@@ -3,7 +3,7 @@ version: '3.8'
 services:
   prusa-slicer:
     container_name: prusa-slicer-container
-    build: ./prusa-slicer-server
+    build: ./backend/prusa-slicer-server
     ports:
       - "5000:5000"
     volumes:

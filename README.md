@@ -16,12 +16,9 @@ This project provides a comprehensive system for 3D printing quotes. Users can u
 ## Project Structure
 ```
 3DPrintInstantQuote/
-│── prusa-slicer-server/    # Backend (Flask API + PrusaSlicer)
-│   ├── Dockerfile          # Docker configuration for the backend
-│   ├── server.py           # Flask API with enhanced features
-│   ├── slice_model.py      # Slicing logic and model processing
-│   ├── requirements.txt    # Python dependencies
-│── frontend/               # Frontend (Next.js)
+├── backend/
+│   └── prusa-slicer-server/    # Backend (Flask API + PrusaSlicer)
+├── frontend/
 │   ├── app/                # Next.js app directory
 │   │   ├── components/     # React components
 │   │   ├── services/       # API services for backend communication
@@ -258,6 +255,10 @@ Catalog page:
 
 Upload page:
 * Allow .3mf files to be uploaded and quoted
+* Allow oversize items with complex functionality:
+    * Save file
+    * inform user that this will require custom inquiry for this size of file.
+    * Direct to contact page.
 
 Customize page:
 * Should grey out unavailable material selection options 
@@ -265,7 +266,8 @@ Customize page:
 
 Quote Page:
 * In quote page, ensure the modifiers update the unit price
-   * If the quantity is adjusted so that the cost estimation exceeds the base price, ignore the base price. Basically creating a minimum order cost. 
+* If the quantity is adjusted so that the cost estimation exceeds the base price, (ignore the base price. Basically creating a minimum order cost) 
+* Save quote and share are missing fucntionality, will integrator save quote later.
 
 Cart Page:
 * Most Color's in cart is the hex code not the name. 
@@ -281,12 +283,13 @@ Functionality
 * Ensure models orders are stored and accessible through admin ui.
 
 Admin panel:
-* In admin panel, update the modifiers impacts
+* colors and their modifiers arent being updated/enforced 
 * Listings arent updating when adjusted in the admin panel, the colors arent accurate. 
 * Categories arent updated either, no ability to update the image through UI as well., 
 * Special filaments have no way to edit in the admin page and unable to adjust its properties.
 
-
+Features:
+* Update for SEO
 
 ## Troubleshooting
 
