@@ -201,6 +201,8 @@ Functionality
 * Customize page showing colors not available and not updating when colors are added
 * Special filaments have no way to edit in the admin page and unable to adjust its properties.
 
+* Ask perplexity  
+
 ## Troubleshooting
 
 ### Python Virtual Environment Issues
