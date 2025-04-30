@@ -284,8 +284,10 @@ Functionality
 
 Admin panel:
 * colors and their modifiers arent being updated/enforced 
+* Same goes with materials and their modifiers
 * Listings arent updating when adjusted in the admin panel, the colors arent accurate. 
-* Categories arent updated either, no ability to update the image through UI as well., 
+* Categories arent updated either, no ability to update the image through UI as well.
+* Same goes with products
 * Special filaments have no way to edit in the admin page and unable to adjust its properties.
 
 Features:

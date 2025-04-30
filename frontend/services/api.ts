@@ -76,6 +76,14 @@ interface Material {
   }[];
 }
 
+interface SpecialFilament {
+  id: string;
+  name: string;
+  description: string;
+  previewImg: string; // Path to the SVG
+  priceModifier: number;
+}
+
 /**
  * Interface for materials response
  */
@@ -96,6 +104,7 @@ interface MaterialsResponse {
     markup_percentage?: number;
     rush_order_fee?: number;
   };
+  special_filaments?: SpecialFilament[]; // Add optional special filaments array
 }
 
 /**

@@ -151,5 +151,28 @@
     "rush_order_fee": 15,
     "support_material_multiplier": 1.2,
     "volume_multiplier": 0.15
-  }
+  },
+  "special_filaments": [
+    {
+      "id": "rainbow-pla",
+      "name": "Rainbow PLA",
+      "description": "Multi-color filament that transitions through the rainbow spectrum.",
+      "previewImg": "/customTextures/placeHolder.svg",
+      "priceModifier": 12
+    },
+    {
+      "id": "galaxy-pla",
+      "name": "Galaxy PLA",
+      "description": "Black base with blue, purple, and white speckles for a cosmic effect.",
+      "previewImg": "/customTextures/placeHolder.svg",
+      "priceModifier": 15
+    },
+    {
+      "id": "marble-pla",
+      "name": "Marble PLA",
+      "description": "White base with black veins for a marble stone appearance.",
+      "previewImg": "/customTextures/placeHolder.svg",
+      "priceModifier": 12
+    }
+  ]
 }

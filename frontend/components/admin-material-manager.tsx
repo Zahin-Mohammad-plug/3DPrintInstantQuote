@@ -17,53 +17,21 @@ interface MaterialItem {
   description: string
   priceModifier: number
   availableColors: string[] // hex codes
+  base_cost_per_gram?: number
+  hourly_rate?: number
+  properties?: string[]
 }
 
-interface ColorItem {
+interface BackendColorItem {
   id: string
   name: string
   hex: string
+  addon_price: number
 }
 
-// In a real app, this would come from your backend API
-const INITIAL_MATERIALS: MaterialItem[] = [
-  {
-    id: "PLA",
-    name: "PLA (Decorative)",
-    description: "Standard material for decorative prints. Good detail, limited durability.",
-    priceModifier: 0,
-    availableColors: ["#ffffff", "#000000", "#ff0000", "#0000ff", "#00ff00", "#ffff00", "#ff9900", "#800080"],
-  },
-  {
-    id: "PETG",
-    name: "PETG (Outdoor Use)",
-    description: "Weather-resistant material for outdoor applications. Good strength and UV resistance.",
-    priceModifier: 15,
-    availableColors: ["#ffffff", "#000000", "#ff0000", "#0000ff", "#00ff00", "#ffff00"],
-  },
-  {
-    id: "ABS",
-    name: "ABS (Commercial Grade)",
-    description: "Durable, impact-resistant material for structural components and commercial applications.",
-    priceModifier: 25,
-    availableColors: ["#ffffff", "#000000", "#ff0000", "#0000ff"],
-  },
-]
-
-// In a real app, this would come from your backend API
-const AVAILABLE_COLORS: ColorItem[] = [
-  { id: "white", name: "White", hex: "#ffffff" },
-  { id: "black", name: "Black", hex: "#000000" },
-  { id: "red", name: "Red", hex: "#ff0000" },
-  { id: "blue", name: "Blue", hex: "#0000ff" },
-  { id: "green", name: "Green", hex: "#00ff00" },
-  { id: "yellow", name: "Yellow", hex: "#ffff00" },
-  { id: "orange", name: "Orange", hex: "#ff9900" },
-  { id: "purple", name: "Purple", hex: "#800080" },
-]
-
 export function AdminMaterialManager() {
-  const [materials, setMaterials] = useState<MaterialItem[]>(INITIAL_MATERIALS)
+  const [materials, setMaterials] = useState<MaterialItem[]>([])
+  const [allColors, setAllColors] = useState<BackendColorItem[]>([])
   const [editingId, setEditingId] = useState<string | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [newMaterial, setNewMaterial] = useState<Partial<MaterialItem>>({
@@ -73,6 +41,49 @@ export function AdminMaterialManager() {
     availableColors: [],
   })
 
+  const loadData = async () => {
+    try {
+      const data = await getMaterials();
+      if (data && data.materials) {
+        const mappedMaterials = data.materials.map((material: any) => ({
+          id: material.id,
+          name: material.name,
+          description: material.description || "",
+          priceModifier: material.priceModifier || 0,
+          availableColors: material.colors ? material.colors.map((color: any) => color.hex) : [],
+          base_cost_per_gram: material.base_cost_per_gram,
+          hourly_rate: material.hourly_rate,
+          properties: material.properties,
+        }));
+        setMaterials(mappedMaterials);
+
+        const uniqueColors = new Map<string, BackendColorItem>();
+        data.materials.forEach((material: any) => {
+          if (material.colors) {
+            material.colors.forEach((color: any) => {
+              if (!uniqueColors.has(color.id)) {
+                uniqueColors.set(color.id, {
+                  id: color.id,
+                  name: color.name,
+                  hex: color.hex,
+                  addon_price: color.addon_price || 0
+                });
+              }
+            });
+          }
+        });
+        setAllColors(Array.from(uniqueColors.values()));
+      }
+    } catch (error) {
+      console.error("Error loading materials/colors:", error);
+      alert("Failed to load materials or colors from the backend.");
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
   const handleEdit = (id: string) => {
     setEditingId(id)
     setExpandedId(id)
@@ -80,40 +91,45 @@ export function AdminMaterialManager() {
 
   const handleSave = async (id: string) => {
     try {
-      // Get current materials data
       const currentData = await getMaterials();
-      
-      // Find the material to update
-      const updatedMaterials = currentData.materials.map((material: any) => {
+      if (!currentData || !currentData.materials) {
+        alert("Failed to fetch current materials data from backend.");
+        return;
+      }
+
+      const editedMaterialState = materials.find(m => m.id === id);
+      if (!editedMaterialState) {
+        alert("Could not find the material being edited in local state.");
+        return;
+      }
+
+      const updatedMaterialsBackend = currentData.materials.map((material: any) => {
         if (material.id === id) {
-          // Find the material in our local state
-          const updatedMaterial = materials.find(m => m.id === id);
-          if (!updatedMaterial) return material;
-          
-          // Update the material properties
+          const updatedMaterialColors = allColors
+            .filter(color => editedMaterialState.availableColors.includes(color.hex))
+            .map(color => ({
+              id: color.id,
+              name: color.name,
+              hex: color.hex,
+              addon_price: color.addon_price
+            }));
+
           return {
             ...material,
-            name: updatedMaterial.name,
-            description: updatedMaterial.description,
-            priceModifier: updatedMaterial.priceModifier,
-            // Keep other properties that might exist in the backend
-            base_cost_per_gram: material.base_cost_per_gram,
-            hourly_rate: material.hourly_rate,
-            properties: material.properties,
-            colors: material.colors,
-            // Update available colors based on our local state
-            availableColors: updatedMaterial.availableColors
+            name: editedMaterialState.name,
+            description: editedMaterialState.description,
+            priceModifier: editedMaterialState.priceModifier,
+            colors: updatedMaterialColors
           };
         }
         return material;
       });
-      
-      // Update the materials in the backend
+
       const result = await updateMaterials({
         ...currentData,
-        materials: updatedMaterials
+        materials: updatedMaterialsBackend
       });
-      
+
       if (result.success) {
         alert("Material updated successfully!");
         setEditingId(null);
@@ -132,20 +148,18 @@ export function AdminMaterialManager() {
 
   const handleDelete = async (id: string) => {
     try {
-      // Get current materials data
       const currentData = await getMaterials();
-      
-      // Filter out the material to delete
-      const updatedMaterials = currentData.materials.filter((material: any) => material.id !== id);
-      
-      // Update the materials in the backend
+      if (!currentData || !currentData.materials) {
+        alert("Failed to fetch current materials data from backend.");
+        return;
+      }
+      const updatedMaterialsBackend = currentData.materials.filter((material: any) => material.id !== id);
       const result = await updateMaterials({
         ...currentData,
-        materials: updatedMaterials
+        materials: updatedMaterialsBackend
       });
-      
+
       if (result.success) {
-        // Update local state
         setMaterials(materials.filter((material) => material.id !== id));
         alert("Material deleted successfully!");
       } else {
@@ -168,7 +182,7 @@ export function AdminMaterialManager() {
     )
   }
 
-  const handleNewMaterialChange = (field: keyof MaterialItem, value: string | number | string[]) => {
+  const handleNewMaterialChange = (field: keyof Omit<MaterialItem, 'id'>, value: string | number | string[]) => {
     setNewMaterial({ ...newMaterial, [field]: value })
   }
 
@@ -176,51 +190,59 @@ export function AdminMaterialManager() {
     if (!newMaterial.name) return
 
     try {
-      // Generate ID from name
-      const id = newMaterial.name.split("(")[0].trim().toUpperCase();
-      
-      // Create new material item
-      const newMaterialItem: MaterialItem = {
+      const id = newMaterial.name.split("(")[0].trim().toUpperCase().replace(/\s+/g, '_');
+
+      const currentData = await getMaterials();
+      if (!currentData || !currentData.materials) {
+        alert("Failed to fetch current materials data from backend.");
+        return;
+      }
+
+      if (currentData.materials.some((m: any) => m.id === id)) {
+        alert(`Material with ID ${id} already exists. Please choose a different name.`);
+        return;
+      }
+
+      const newMaterialBackend = {
         id,
         name: newMaterial.name,
         description: newMaterial.description || "",
         priceModifier: newMaterial.priceModifier || 0,
-        availableColors: newMaterial.availableColors || [],
-      };
-      
-      // Get current materials data
-      const currentData = await getMaterials();
-      
-      // Add the new material
-      const updatedMaterials = [
-        ...currentData.materials,
-        {
-          id,
-          name: newMaterial.name,
-          description: newMaterial.description || "",
-          base_cost_per_gram: 0.05, // Default value
-          hourly_rate: 2.0, // Default value
-          properties: ["New material"],
-          colors: AVAILABLE_COLORS.filter(color => 
-            (newMaterial.availableColors || []).includes(color.hex)
-          ).map(color => ({
+        base_cost_per_gram: 0.05,
+        hourly_rate: 2.0,
+        properties: ["New material"],
+        colors: allColors
+          .filter(color => (newMaterial.availableColors || []).includes(color.hex))
+          .map(color => ({
             id: color.id,
             name: color.name,
             hex: color.hex,
-            addon_price: 0.0 // Default value
+            addon_price: color.addon_price
           }))
-        }
+      };
+
+      const updatedMaterialsBackend = [
+        ...currentData.materials,
+        newMaterialBackend
       ];
-      
-      // Update the materials in the backend
+
       const result = await updateMaterials({
         ...currentData,
-        materials: updatedMaterials
+        materials: updatedMaterialsBackend
       });
-      
+
       if (result.success) {
-        // Update local state
-        setMaterials([...materials, newMaterialItem]);
+        const newMaterialState: MaterialItem = {
+          id: newMaterialBackend.id,
+          name: newMaterialBackend.name,
+          description: newMaterialBackend.description,
+          priceModifier: newMaterialBackend.priceModifier,
+          availableColors: newMaterialBackend.colors.map(c => c.hex),
+          base_cost_per_gram: newMaterialBackend.base_cost_per_gram,
+          hourly_rate: newMaterialBackend.hourly_rate,
+          properties: newMaterialBackend.properties,
+        };
+        setMaterials([...materials, newMaterialState]);
         setNewMaterial({ name: "", description: "", priceModifier: 0, availableColors: [] });
         alert("Material added successfully!");
       } else {
@@ -269,33 +291,6 @@ export function AdminMaterialManager() {
   const toggleExpand = (id: string) => {
     setExpandedId(expandedId === id ? null : id)
   }
-  
-  // Load materials from the backend
-  useEffect(() => {
-    const loadMaterials = async () => {
-      try {
-        const data = await getMaterials();
-        
-        if (data && data.materials) {
-          // Map backend materials to our component's format
-          const mappedMaterials = data.materials.map((material: any) => ({
-            id: material.id,
-            name: material.name,
-            description: material.description || "",
-            priceModifier: material.priceModifier || 0,
-            availableColors: material.colors ? material.colors.map((color: any) => color.hex) : []
-          }));
-          
-          setMaterials(mappedMaterials);
-        }
-      } catch (error) {
-        console.error("Error loading materials:", error);
-        alert("Failed to load materials from the backend.");
-      }
-    };
-    
-    loadMaterials();
-  }, []);
 
   return (
     <div className="space-y-6">
@@ -341,7 +336,7 @@ export function AdminMaterialManager() {
           <div className="space-y-2">
             <Label>Available Colors</Label>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {AVAILABLE_COLORS.map((color) => (
+              {allColors.map((color) => (
                 <div key={color.id} className="flex items-center space-x-2">
                   <Checkbox
                     id={`new-color-${color.id}`}
@@ -465,7 +460,7 @@ export function AdminMaterialManager() {
                               <div className="space-y-2">
                                 <Label>Available Colors</Label>
                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                                  {AVAILABLE_COLORS.map((color) => (
+                                  {allColors.map((color) => (
                                     <div key={color.id} className="flex items-center space-x-2">
                                       <Checkbox
                                         id={`edit-color-${material.id}-${color.id}`}
@@ -504,7 +499,7 @@ export function AdminMaterialManager() {
                                 <h4 className="text-sm font-medium">Available Colors:</h4>
                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                                   {material.availableColors.map((colorHex) => {
-                                    const colorInfo = AVAILABLE_COLORS.find((c) => c.hex === colorHex)
+                                    const colorInfo = allColors.find((c) => c.hex === colorHex)
                                     return (
                                       <div key={colorHex} className="flex items-center gap-2">
                                         <div
