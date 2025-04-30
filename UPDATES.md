@@ -1,5 +1,19 @@
 # Updates and Integration Guide
 
+## April 30, 2025
+
+- **Refactored Startup & Installation Scripts:**
+    - Consolidated Linux and WSL scripts.
+    - Created separate, robust installation scripts for Windows (`install-windows.bat`) and Linux/WSL (`install.sh`).
+    - Organized OS-specific implementation scripts into `scripts/windows/` and `scripts/linux/`.
+    - Removed outdated `Makefile` and redundant scripts.
+    - Ensured frontend dependencies are installed using `--legacy-peer-deps` to resolve conflicts.
+    - Added `dos2unix` step to Linux/WSL setup for compatibility when cloning on Windows.
+- **Updated README:**
+    - Added clear, separate instructions for Windows and Linux/WSL setup and execution.
+    - Updated the project structure documentation.
+    - Removed references to outdated scripts and `Makefile`.
+
 ## March 2025 Updates
 
 ### Client-Side 3D Model Rendering

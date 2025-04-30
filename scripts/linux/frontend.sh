@@ -7,7 +7,7 @@ cd frontend
 
 # Ensure dependencies are installed
 echo "Checking dependencies..."
-npm install
+npm install --legacy-peer-deps
 
 # Ensure Tailwind CSS is installed
 echo "Checking Tailwind CSS..."
