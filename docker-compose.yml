@@ -7,5 +7,6 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - ./userModels:/app/shared
+      - ./userModels:/app/shared # Keep shared models
+      - ./backend/adminConfig:/app/config # Mount config directory
     restart: unless-stopped

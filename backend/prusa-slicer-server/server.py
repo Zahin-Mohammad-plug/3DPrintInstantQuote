@@ -9,15 +9,19 @@ import threading
 import re
 from werkzeug.utils import secure_filename
 import queue
+from functools import wraps
+import base64
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
 # Configuration
 UPLOAD_FOLDER = "/app/shared"  # This should match the UserModels/ directory in Docker
+CONFIG_FOLDER = "/app/config" # Mounted config directory
 ALLOWED_EXTENSIONS = {'stl', '3mf', 'obj'}
 MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB max file size
-MATERIALS_FILE = os.path.join(UPLOAD_FOLDER, "materials.json")
+MATERIALS_FILE = os.path.join(CONFIG_FOLDER, "materials.json") # Updated path
+AUTH_FILE = os.path.join(CONFIG_FOLDER, "auth.json") # New path for auth
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # Temporary directory for file conversions
@@ -124,6 +128,28 @@ DEFAULT_MATERIALS = {
         "default_fill_density": 0.15         # Default fill density (15%)
     }
 }
+
+# Load admin credentials
+def load_credentials():
+    if os.path.exists(AUTH_FILE):
+        try:
+            with open(AUTH_FILE, 'r') as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"Error loading auth file: {e}")
+            return {"username": "admin", "password": "password"} # Fallback
+    else:
+        # Create default auth file if it doesn't exist
+        default_creds = {"username": "admin", "password": "password"}
+        try:
+            with open(AUTH_FILE, 'w') as f:
+                json.dump(default_creds, f, indent=2)
+            return default_creds
+        except Exception as e:
+            print(f"Error creating default auth file: {e}")
+            return default_creds # Fallback
+
+ADMIN_CREDENTIALS = load_credentials()
 
 # Job queue
 job_queue = queue.Queue()
@@ -253,19 +279,29 @@ def get_materials():
         try:
             with open(MATERIALS_FILE, 'r') as f:
                 return json.load(f)
-        except:
-            return DEFAULT_MATERIALS
+        except Exception as e: # Catch specific exceptions if possible
+            print(f"Error reading materials file {MATERIALS_FILE}: {e}")
+            return DEFAULT_MATERIALS # Fallback to defaults on error
     else:
-        # Create the default materials file
-        with open(MATERIALS_FILE, 'w') as f:
-            json.dump(DEFAULT_MATERIALS, f, indent=2)
-        return DEFAULT_MATERIALS
+        # Create the default materials file if it doesn't exist in the config volume
+        print(f"Materials file not found at {MATERIALS_FILE}, creating default.")
+        try:
+            with open(MATERIALS_FILE, 'w') as f:
+                json.dump(DEFAULT_MATERIALS, f, indent=2)
+            return DEFAULT_MATERIALS
+        except Exception as e:
+            print(f"Error creating default materials file {MATERIALS_FILE}: {e}")
+            return DEFAULT_MATERIALS # Fallback
 
 def save_materials(materials_data):
     """Save materials to file"""
-    with open(MATERIALS_FILE, 'w') as f:
-        json.dump(materials_data, f, indent=2)
-    return True
+    try:
+        with open(MATERIALS_FILE, 'w') as f:
+            json.dump(materials_data, f, indent=2)
+        return True
+    except Exception as e:
+        print(f"Error saving materials file {MATERIALS_FILE}: {e}")
+        return False
 
 def process_jobs():
     """Background thread to process jobs from the queue"""
@@ -334,6 +370,25 @@ def ensure_processing_thread():
         if processing_thread is None or not processing_thread.is_alive():
             processing_thread = threading.Thread(target=process_jobs, daemon=True)
             processing_thread.start()
+
+# --- Authentication Decorator ---
+def check_auth(username, password):
+    """Check if a username/password combination is valid."""
+    return username == ADMIN_CREDENTIALS["username"] and password == ADMIN_CREDENTIALS["password"]
+
+def authenticate():
+    """Sends a 401 response that enables basic auth."""
+    return jsonify({"error": "Authentication required"}), 401, {'WWW-Authenticate': 'Basic realm="Login Required"'}
+
+def requires_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth = request.authorization
+        if not auth or not check_auth(auth.username, auth.password):
+            return authenticate()
+        return f(*args, **kwargs)
+    return decorated
+# --- End Authentication ---
 
 @app.route("/api/upload", methods=["POST"])
 def upload_file():
@@ -416,14 +471,17 @@ def get_materials_endpoint():
     return jsonify(get_materials())
 
 @app.route("/api/materials", methods=["POST"])
+@requires_auth # Add authentication
 def update_materials():
     """Update materials (admin only)"""
     try:
         materials_data = request.json
-        save_materials(materials_data)
-        return jsonify({"success": True, "message": "Materials updated successfully"})
+        if save_materials(materials_data):
+             return jsonify({"success": True, "message": "Materials updated successfully"})
+        else:
+             return jsonify({"success": False, "message": "Failed to save materials file"}), 500
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"success": False, "message": str(e)}), 500
 
 @app.route("/api/file/<filename>", methods=["GET"])
 def get_file(filename):
@@ -435,12 +493,13 @@ def get_file(filename):
     return send_file(file_path)
 
 @app.route("/api/jobs", methods=["GET"])
+@requires_auth # Add authentication
 def get_all_jobs():
     """Get all jobs (admin only)"""
-    # In a real app, you'd add authentication here
     return jsonify(list(jobs.values()))
 
 @app.route("/api/job/<job_id>/approve", methods=["POST"])
+@requires_auth # Add authentication
 def approve_job(job_id):
     """Approve a job for printing (admin only)"""
     if job_id not in jobs:
@@ -460,6 +519,7 @@ def approve_job(job_id):
     })
 
 @app.route("/api/job/<job_id>/reject", methods=["POST"])
+@requires_auth # Add authentication
 def reject_job(job_id):
     """Reject a job (admin only)"""
     if job_id not in jobs:
@@ -476,9 +536,16 @@ def reject_job(job_id):
     })
 
 if __name__ == "__main__":
-    # Initialize materials if needed
+    # Initialize materials if needed (now checks config path)
     if not os.path.exists(MATERIALS_FILE):
-        with open(MATERIALS_FILE, 'w') as f:
-            json.dump(DEFAULT_MATERIALS, f, indent=2)
-    
+        print(f"Materials file not found at {MATERIALS_FILE}, creating default.")
+        try:
+            with open(MATERIALS_FILE, 'w') as f:
+                json.dump(DEFAULT_MATERIALS, f, indent=2)
+        except Exception as e:
+            print(f"Error creating default materials file on startup: {e}")
+
+    # Initialize auth file if needed
+    load_credentials() # This will create it if it doesn't exist
+
     app.run(host="0.0.0.0", port=5000)
