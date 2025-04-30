@@ -84,8 +84,8 @@ export function SiteHeader() {
           <span className="bg-primary text-primary-foreground p-1 rounded flex items-center justify-center group-hover:scale-110 transition-transform">
             <Printer3d className="h-5 w-5" />
           </span>
-          <span className="text-primary group-hover:text-primary/80 transition-colors">3D</span>
-          <span className="group-hover:text-primary transition-colors">PrintQuote</span>
+          <span className="text-primary group-hover:text-primary/80 transition-colors">Print3D</span>
+          <span className="group-hover:text-primary transition-colors">Ottawa</span>
         </Link>
 
         {/* Desktop Navigation */}

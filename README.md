@@ -250,24 +250,43 @@ For production deployment, you can host the application on a Linode server:
 - Improved error handling throughout the application
 
 <!-- TODO! -->
-Stlying
-* Change icon (in top left of page) to frontend\public\placeholder-logo.png
-* Color in cart is the hex code not the name. 
+Styling
+* Change Printer3d icon (in top left of page) to frontend\public\logo.png with same size, formatting and styling
+
+Catalog page:
+* Showing products that arent available
+
+Upload page:
+* Allow .3mf files to be uploaded and quoted
+
+Customize page:
+* Should grey out unavailable material selection options 
+* Customize page showing colors not available and not updating when colors are added
+
+Quote Page:
+* In quote page, ensure the modifiers update the unit price
+   * If the quantity is adjusted so that the cost estimation exceeds the base price, ignore the base price. Basically creating a minimum order cost. 
+
+Cart Page:
+* Most Color's in cart is the hex code not the name. 
+* Should havbe a small preview image of the model / the product photo
+
+Checkout page:
+* Should hide navbar
+* The navBar will reappear on thank you page
+* Fix the checkout page to actually email me
 
 Functionality
-*Fix the error model not loading for STL 
-* Properly connect backend and front end
-   In quote page, ensure the modifiers update the unit price
-   * If the quantity is adjusted so that the cost estimation exceeds the base price, ignore the base price. Basically creating a minimum order cost. 
-   * In admin panel, update the modifiers impacts
-* Fix the checkout page to actually email me
+* Allow larger files
+* Ensure models orders are stored and accessible through admin ui.
+
+Admin panel:
+* In admin panel, update the modifiers impacts
 * Listings arent updating when adjusted in the admin panel, the colors arent accurate. 
 * Categories arent updated either, no ability to update the image through UI as well., 
-* Allow .3mf files to be uploaded and quoted
-* Customize page showing colors not available and not updating when colors are added
 * Special filaments have no way to edit in the admin page and unable to adjust its properties.
 
-* Ask perplexity  
+
 
 ## Troubleshooting
 
