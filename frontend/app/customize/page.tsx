@@ -19,11 +19,13 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 
 // Define API base URL for model files
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const MAX_FILE_CHECK_RETRIES = 5; // Number of times to retry the HEAD request
+const FILE_CHECK_RETRY_DELAY = 2000; // Delay between retries in milliseconds
 
 export default function CustomizePage() {
   const router = useRouter()
   const [modelName, setModelName] = useState<string | null>(null)
-  const [modelUrl, setModelUrl] = useState<string | null>(null)
+  const [modelUrl, setModelUrl] = useState<string | null>(null) // State for the confirmed model URL
   const [jobId, setJobId] = useState<string | null>(null)
   const [selectedColor, setSelectedColor] = useState<string | null>(null)
   const [selectedSpecialFilament, setSelectedSpecialFilament] = useState<string | null>(null)
@@ -33,13 +35,11 @@ export default function CustomizePage() {
   const [isMultiColor, setIsMultiColor] = useState(false)
   const [multiColorDetails, setMultiColorDetails] = useState("")
   const [isClient, setIsClient] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoadingJob, setIsLoadingJob] = useState(true) // State for job fetching/polling
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     setIsClient(true)
-    
-    // Check if we have a model in session storage
     const storedModel = sessionStorage.getItem("uploadedModel")
     const storedJobId = sessionStorage.getItem("uploadedModelJobId")
 
@@ -50,103 +50,152 @@ export default function CustomizePage() {
 
     setModelName(storedModel)
     setJobId(storedJobId)
-    
-    // Fetch job status from the backend
-    const fetchJobStatus = async () => {
-      try {
-        setIsLoading(true)
-        setError(null)
-        
-        const jobStatus = await getJobStatus(storedJobId)
-        
-        // If the job is still processing, poll for updates
-        if (jobStatus.status === 'pending' || jobStatus.status === 'processing') {
-          // Poll every 3 seconds until the job is complete
-          const pollingInterval = setInterval(async () => {
-            try {
-              const updatedStatus = await getJobStatus(storedJobId)
-              
-              if (updatedStatus.status === 'completed' || updatedStatus.status === 'failed') {
-                clearInterval(pollingInterval)
-                
-                if (updatedStatus.status === 'failed') {
-                  setError(updatedStatus.error || 'Failed to process model')
-                } else {
-                  // Set material and color from the job if available
-                  if (updatedStatus.material_id) {
-                    setSelectedMaterial(updatedStatus.material_id)
-                  }
-                  
-                  if (updatedStatus.color_id) {
-                    setSelectedColor(`#${updatedStatus.color_id}`)
-                  }
-                }
-              }
-            } catch (err: any) {
-              clearInterval(pollingInterval)
-              setError(err.message || 'Failed to get job status')
-            }
-          }, 3000)
-          
-          // Clean up interval on component unmount
-          return () => clearInterval(pollingInterval)
-        } else if (jobStatus.status === 'failed') {
-          setError(jobStatus.error || 'Failed to process model')
-        } else {
-          // Set material and color from the job if available
-          if (jobStatus.material_id) {
-            setSelectedMaterial(jobStatus.material_id)
-          }
-          
-          if (jobStatus.color_id) {
-            setSelectedColor(`#${jobStatus.color_id}`)
-          }
-        }
-        
-        // Set model URL for the viewer
-        if (jobStatus.filename) {
-          const modelUrlPath = `${API_BASE_URL}/api/file/${jobStatus.filename}`;
-          
-          // Check if the file exists before setting the URL
-          try {
-            const fileCheck = await fetch(modelUrlPath, { method: 'HEAD' });
-            if (fileCheck.ok) {
-              setModelUrl(modelUrlPath);
-            } else {
-              console.log("Model file not available yet");
-              
-              // Check if this is a 3MF file that might have been converted to STL
-              if (jobStatus.filename.toLowerCase().endsWith('.3mf')) {
-                const stlFilename = jobStatus.filename.replace(/\.3mf$/i, '.stl');
-                const stlUrlPath = `${API_BASE_URL}/api/file/${stlFilename}`;
-                
-                try {
-                  const stlCheck = await fetch(stlUrlPath, { method: 'HEAD' });
-                  if (stlCheck.ok) {
-                    console.log("Found converted STL file");
-                    setModelUrl(stlUrlPath);
-                  }
-                } catch (stlErr) {
-                  console.error("Error checking STL version:", stlErr);
-                  // Don't set error yet
-                }
-              }
-            }
-          } catch (err) {
-            console.error("Error checking model file:", err);
-            // Don't set error yet
-          }
-        }
-        
-      } catch (err: any) {
-        setError(err.message || 'Failed to get job status')
-      } finally {
-        setIsLoading(false)
+
+    let isMounted = true;
+    let pollingIntervalId: NodeJS.Timeout | null = null;
+
+    const cleanup = () => {
+      isMounted = false;
+      if (pollingIntervalId) {
+        clearInterval(pollingIntervalId);
       }
-    }
-    
-    fetchJobStatus()
-  }, [router])
+    };
+
+    // Helper to check file availability with retries
+    const checkFileWithRetries = async (url: string): Promise<boolean> => {
+      for (let i = 0; i < MAX_FILE_CHECK_RETRIES; i++) {
+        if (!isMounted) return false; // Stop if component unmounted
+        try {
+          console.log(`Checking file (attempt ${i + 1}/${MAX_FILE_CHECK_RETRIES}): ${url}`);
+          // Add cache-busting query param
+          const response = await fetch(`${url}?t=${Date.now()}`, { method: 'HEAD' });
+          if (response.ok) {
+            console.log(`File found: ${url}`);
+            return true; // File found
+          }
+          console.log(`File not found (attempt ${i + 1}), status: ${response.status}`);
+        } catch (err) {
+          console.error(`Error checking file (attempt ${i + 1}):`, err);
+          // Log error but continue retrying
+        }
+        // Wait before next retry, unless it's the last attempt
+        if (i < MAX_FILE_CHECK_RETRIES - 1) {
+          await new Promise(resolve => setTimeout(resolve, FILE_CHECK_RETRY_DELAY));
+        }
+      }
+      return false; // File not found after all retries
+    };
+
+
+    // Updated Helper to check file and set URL using retry logic
+    const determineAndSetModelUrl = async (filename: string | null): Promise<string | null> => {
+      if (!isMounted || !filename) {
+        if (isMounted && !filename) setError("Processing completed but model filename is missing.");
+        setIsLoadingJob(false); // Stop loading if no filename
+        return null;
+      }
+
+      let determinedUrl: string | null = null;
+      const modelUrlPath = `${API_BASE_URL}/api/file/${filename}`;
+
+      if (await checkFileWithRetries(modelUrlPath)) {
+        determinedUrl = modelUrlPath;
+      } else {
+        console.log(`Original file not found after retries: ${modelUrlPath}. Checking for STL conversion...`);
+        if (filename.toLowerCase().endsWith('.3mf')) {
+          const stlFilename = filename.replace(/\\.3mf$/i, '.stl');
+          const stlUrlPath = `${API_BASE_URL}/api/file/${stlFilename}`;
+          if (await checkFileWithRetries(stlUrlPath)) {
+            console.log(`Converted STL found after retries: ${stlUrlPath}`);
+            determinedUrl = stlUrlPath;
+          } else {
+            console.error("Neither original nor STL file found after retries.");
+            if (isMounted) setError("Model file could not be located after processing, even after retries. Please try uploading again.");
+          }
+        } else {
+          console.error("Model file not found after retries (not 3MF).");
+          if (isMounted) setError("Model file could not be located after processing, even after retries. Please try uploading again.");
+        }
+      }
+
+      if (isMounted) {
+         setModelUrl(determinedUrl); // Set the state with determined URL (or null)
+         setIsLoadingJob(false); // Stop loading *after* check completes (success or fail)
+      }
+      return determinedUrl;
+    };
+
+
+    const fetchJobStatus = async () => {
+       if (!isMounted) return;
+
+       setIsLoadingJob(true); // Start loading
+       setError(null);
+       setModelUrl(null); // Reset model URL at the start
+
+      try {
+        let currentJobStatus = await getJobStatus(storedJobId);
+
+        // --- Polling Logic ---
+        if (currentJobStatus.status === 'pending' || currentJobStatus.status === 'processing') {
+          pollingIntervalId = setInterval(async () => {
+            // ... (polling interval logic remains similar) ...
+             if (!isMounted) { /* ... cleanup ... */ return; }
+             try {
+               const updatedStatus = await getJobStatus(storedJobId);
+               if (updatedStatus.status === 'completed' || updatedStatus.status === 'failed') {
+                 if (pollingIntervalId) clearInterval(pollingIntervalId);
+                 pollingIntervalId = null;
+                 if (!isMounted) return;
+
+                 if (updatedStatus.status === 'failed') {
+                   setError(updatedStatus.error || 'Failed to process model');
+                   setIsLoadingJob(false); // Stop loading on failure
+                 } else { // Completed
+                   if (updatedStatus.material_id) setSelectedMaterial(updatedStatus.material_id);
+                   if (updatedStatus.color_id) setSelectedColor(`#${updatedStatus.color_id}`);
+                   // Determine and set Model URL (this now handles setting isLoadingJob to false)
+                   await determineAndSetModelUrl(updatedStatus.filename);
+                 }
+                 // Removed setIsLoadingJob(false) from here; it's now in determineAndSetModelUrl
+               }
+             } catch (err: any) {
+                // ... (error handling for poll) ...
+                if (pollingIntervalId) clearInterval(pollingIntervalId);
+                pollingIntervalId = null;
+                if (isMounted) {
+                    setError(err.message || 'Failed to get job status during poll');
+                    setIsLoadingJob(false); // Stop loading on poll error
+                }
+             }
+          }, 3000);
+        }
+        // --- Initial Status Check ---
+        else { // Already completed or failed
+            if (currentJobStatus.status === 'failed') {
+                setError(currentJobStatus.error || 'Failed to process model');
+                setIsLoadingJob(false); // Stop loading on initial failure
+            } else { // Completed
+                if (currentJobStatus.material_id) setSelectedMaterial(currentJobStatus.material_id);
+                if (currentJobStatus.color_id) setSelectedColor(`#${currentJobStatus.color_id}`);
+                // Determine and set Model URL (this now handles setting isLoadingJob to false)
+                await determineAndSetModelUrl(currentJobStatus.filename);
+            }
+            // Removed setIsLoadingJob(false) from here; it's now in determineAndSetModelUrl
+        }
+      } catch (err: any) {
+         if (isMounted) {
+             setError(err.message || 'Initial job status fetch failed');
+             setIsLoadingJob(false); // Stop loading on initial fetch error
+         }
+      }
+    };
+
+    fetchJobStatus();
+
+    return cleanup;
+
+  }, [router]); // Keep dependency array minimal
 
   const handleColorSelect = (color: string, isSpecial?: boolean, specialId?: string) => {
     if (isSpecial) {
@@ -221,40 +270,39 @@ export default function CustomizePage() {
     }
   }
 
-  if (!isClient || !modelName) {
-    return <div className="container py-12 text-center">Loading...</div>
+  // --- Rendering ---
+  if (!isClient) {
+     return <div className="container py-12 text-center">Initializing...</div>
   }
-  
-  if (isLoading) {
-    return (
-      <div className="container py-12 flex flex-col items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin mb-4 text-primary" />
-        <h2 className="text-xl font-medium mb-2">Processing Your Model</h2>
-        <p className="text-muted-foreground text-center max-w-md">
-          We're preparing your 3D model for customization. This may take a few moments depending on the complexity of your model.
-        </p>
-      </div>
-    )
-  }
-  
+
+  // Display error first
   if (error) {
     return (
-      <div className="container py-12">
-        <Alert variant="destructive" className="mb-6">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-        
-        <div className="flex justify-center">
-          <Button onClick={() => router.push("/upload")} variant="default">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Upload
-          </Button>
-        </div>
+      <div className="flex flex-col min-h-screen">
+        <SiteHeader />
+        <main className="flex-1 py-8">
+          <div className="container py-12">
+            <Alert variant="destructive" className="mb-6">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+            
+            <div className="flex justify-center">
+              <Button onClick={() => router.push("/upload")} variant="default">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Upload
+              </Button>
+            </div>
+          </div>
+        </main>
+        <SiteFooter />
       </div>
     )
   }
 
+  // If no error, render the page
+  // ModelViewer will use its 'isLoading' prop (which is isLoadingJob)
+  // and its internal logic based on modelUrl
   return (
     <div className="flex flex-col min-h-screen">
       <SiteHeader />
@@ -284,11 +332,11 @@ export default function CustomizePage() {
                 </CardHeader>
                 <CardContent className="aspect-square p-0">
                   <ModelViewer
-                    modelPath={modelUrl || "fallback"}
+                    modelPath={modelUrl || "fallback"} // Pass determined URL or fallback
                     color={selectedColor || "#cccccc"}
                     material={selectedMaterial || "PLA"}
                     jobId={jobId || undefined}
-                    isLoading={isLoading}
+                    isLoading={isLoadingJob} // Pass the job loading state
                   />
                 </CardContent>
               </Card>
@@ -360,6 +408,8 @@ export default function CustomizePage() {
                   <Button
                     onClick={handleNext}
                     disabled={
+                      isLoadingJob || // Disable if job is still loading
+                      !modelUrl || // Also disable if model URL couldn't be determined
                       (activeTab === "color" && !selectedColor && !selectedSpecialFilament && !isMultiColor) ||
                       (activeTab === "material" && !selectedMaterial)
                     }
