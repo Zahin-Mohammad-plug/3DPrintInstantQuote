@@ -7,6 +7,9 @@
 // Base API URL - configurable for different environments
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
+// Use API_BASE_URL for catalog functions as well
+const CATALOG_API_BASE_URL = API_BASE_URL; // Use the same base URL
+
 /**
  * Interface for upload parameters
  */
@@ -409,49 +412,119 @@ interface CatalogData {
   products: any[];   // Replace 'any' with your Product interface
 }
 
+// Updated function to fetch from the backend API
 export const getCatalogData = async (): Promise<CatalogData> => {
-  // In a real app, you would fetch from your backend API
-  // Example:
-  // const response = await fetch(`${API_BASE_URL}/api/catalog`);
-  // if (!response.ok) {
-  //   throw new Error('Failed to fetch catalog data');
-  // }
-  // const data = await response.json();
-  // return data;
-
-  // For now, let's simulate fetching the data from the JSON file we created
-  // This is NOT how it should work in production, but helps for frontend dev
-  console.warn("Using simulated API call for getCatalogData");
+  console.log(`Fetching catalog data from ${CATALOG_API_BASE_URL}/api/catalog`);
   try {
-    // This dynamic import might only work in some environments or need specific config
-    // A proper API call is the correct approach.
-    const catalogModule = await import('@/../backend/adminConfig/catalog.json');
-    return catalogModule.default || catalogModule;
+    const response = await fetch(`${CATALOG_API_BASE_URL}/api/catalog`, { cache: 'no-store' });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Failed to fetch catalog data: ${response.status} ${response.statusText}`, errorText);
+      throw new Error(`API Error: ${response.status} ${response.statusText} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log("Successfully fetched catalog data:", data);
+
+    if (!data || typeof data !== 'object' || !Array.isArray(data.categories) || !Array.isArray(data.products)) {
+        console.error("Invalid data structure received from API:", data);
+        throw new Error("Invalid data structure received from catalog API.");
+    }
+
+    return {
+        categories: data.categories,
+        products: data.products
+    };
   } catch (error) {
-     console.error("Simulated fetch failed:", error);
-     // Fallback to empty data if simulation fails
-     return { categories: [], products: [] };
+      console.error("Error in getCatalogData:", error);
+      throw error; // Re-throw
   }
 };
 
+// Updated function to save catalog data with Basic Auth
 export const saveCatalogData = async (data: CatalogData): Promise<void> => {
-  // In a real app, you would send a POST/PUT request to your backend API
-  // Example:
-  // const response = await fetch(`${API_BASE_URL}/api/catalog`, {
-  //   method: 'POST', // or 'PUT'
-  //   headers: {
-  //     'Content-Type': 'application/json',
-  //   },
-  //   body: JSON.stringify(data),
-  // });
-  // if (!response.ok) {
-  //   throw new Error('Failed to save catalog data');
-  // }
+  console.log(`Saving catalog data to ${CATALOG_API_BASE_URL}/api/catalog`);
+  try {
+      // Retrieve the stored Basic Auth string from sessionStorage
+      const authString = sessionStorage.getItem('adminAuth');
+      const headers: HeadersInit = {
+          'Content-Type': 'application/json',
+      };
 
-  // Simulate saving (just log for now)
-  console.warn("Simulating API call for saveCatalogData");
-  console.log("Data to save:", data);
-  // In a real backend, this would write to backend/adminConfig/catalog.json
+      if (authString) {
+          headers['Authorization'] = authString;
+      } else {
+          // If no auth string is found, throw an error immediately
+          console.error("Admin auth credentials not found for saving catalog data.");
+          throw new Error("Authentication required. Please log in as admin.");
+      }
+
+      const response = await fetch(`${CATALOG_API_BASE_URL}/api/catalog`, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Failed to save catalog data: ${response.status} ${response.statusText}`, errorText);
+        if (response.status === 401) {
+             // Clear potentially invalid stored credentials on 401
+             sessionStorage.removeItem('adminAuth');
+             throw new Error(`Authentication failed. Please log in again.`);
+        }
+        throw new Error(`API Error: ${response.status} ${response.statusText} - ${errorText}`);
+      }
+
+      const result = await response.json();
+      console.log("Save successful:", result);
+
+  } catch (error) {
+      console.error("Error in saveCatalogData:", error);
+      // Re-throw the error to be handled by the calling component (e.g., show an error message)
+      throw error;
+  }
+};
+
+// Add a similar update for saveMaterials if it exists and requires auth
+export const saveMaterials = async (materialsData: any): Promise<void> => { // Replace 'any' with actual type
+    console.log(`Saving materials data to ${API_BASE_URL}/api/materials`);
+    try {
+        const authString = sessionStorage.getItem('adminAuth');
+        const headers: HeadersInit = {
+            'Content-Type': 'application/json',
+        };
+        if (authString) {
+            headers['Authorization'] = authString;
+        } else {
+            console.error("Admin auth credentials not found for saving materials data.");
+            throw new Error("Authentication required. Please log in as admin.");
+        }
+
+        const response = await fetch(`${API_BASE_URL}/api/materials`, {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify(materialsData),
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`Failed to save materials data: ${response.status} ${response.statusText}`, errorText);
+            if (response.status === 401) {
+                sessionStorage.removeItem('adminAuth');
+                throw new Error(`Authentication failed. Please log in again.`);
+            }
+            throw new Error(`API Error: ${response.status} ${response.statusText} - ${errorText}`);
+        }
+
+        const result = await response.json();
+        console.log("Materials save successful:", result);
+
+    } catch (error) {
+        console.error("Error in saveMaterials:", error);
+        throw error;
+    }
 };
 
 // Add other API functions as needed (e.g., for materials, colors, pricing)

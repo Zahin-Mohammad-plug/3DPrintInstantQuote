@@ -1,248 +1,450 @@
 {
   "categories": [
     {
-      "id": "event-planning",
-      "name": "Event Planning",
       "description": "Custom 3D printed items for weddings, parties, and corporate events",
-      "image": "/placeholder.svg?height=300&width=500"
+      "id": "event-planning",
+      "image": "/placeholder.svg?height=300&width=500",
+      "name": "Event Planning 2"
     },
     {
-      "id": "home-decor",
-      "name": "Home Decor",
       "description": "Decorative items to enhance your living space",
-      "image": "/placeholder.svg?height=300&width=500"
+      "id": "home-decor",
+      "image": "/placeholder.svg?height=300&width=500",
+      "name": "Home Decor"
     },
     {
-      "id": "tools-accessories",
-      "name": "Tools & Accessories",
       "description": "Practical tools and accessories for everyday use",
-      "image": "/placeholder.svg?height=300&width=500"
+      "id": "tools-accessories",
+      "image": "/placeholder.svg?height=300&width=500",
+      "name": "Tools & Accessories"
     },
     {
-      "id": "novelty-items",
-      "name": "Novelty Items",
       "description": "Fun and unique 3D printed creations",
-      "image": "/placeholder.svg?height=300&width=500"
+      "id": "novelty-items",
+      "image": "/placeholder.svg?height=300&width=500",
+      "name": "Novelty Items"
     },
     {
-      "id": "office-addons",
-      "name": "Office Add-ons",
       "description": "Enhance your workspace with custom 3D printed items",
-      "image": "/placeholder.svg?height=300&width=500"
+      "id": "office-addons",
+      "image": "/placeholder.svg?height=300&width=500",
+      "name": "Office Add-ons"
     },
     {
-      "id": "tcg-accessories",
-      "name": "TCG Accessories",
       "description": "Custom accessories for trading card games",
-      "image": "/placeholder.svg?height=300&width=500"
+      "id": "tcg-accessories",
+      "image": "/placeholder.svg?height=300&width=500",
+      "name": "TCG Accessories"
     }
   ],
   "products": [
     {
-      "id": "1",
-      "name": "Custom Card Holder",
       "category": "tcg-accessories",
-      "price": 24.99,
+      "colors": [
+        "White",
+        "Black",
+        "Red",
+        "Blue"
+      ],
       "description": "A customizable card holder for your favorite trading card games.",
+      "features": [
+        "Holds up to 100 sleeved cards",
+        "Customizable text/logo",
+        "Durable design",
+        "Multiple color options"
+      ],
+      "id": "1",
+      "images": [
+        "/placeholder.svg?height=300&width=300",
+        "/placeholder.svg?height=300&width=300"
+      ],
+      "materials": [
+        "PLA",
+        "PETG"
+      ],
       "modelPath": "/assets/3d/duck.glb",
-      "images": ["/placeholder.svg?height=300&width=300", "/placeholder.svg?height=300&width=300"],
-      "colors": ["White", "Black", "Red", "Blue"],
-      "materials": ["PLA", "PETG"],
-      "features": ["Holds up to 100 sleeved cards", "Customizable text/logo", "Durable design", "Multiple color options"],
+      "name": "Custom Card Holder",
+      "price": 24.99,
+      "relatedProducts": [
+        "2",
+        "3"
+      ],
       "reviews": [
         {
+          "comment": "Perfect fit for my cards. The quality is excellent and it looks great on my shelf.",
+          "date": "2023-10-15",
           "id": "r1",
           "name": "John D.",
-          "rating": 5,
-          "date": "2023-10-15",
-          "comment": "Perfect fit for my cards. The quality is excellent and it looks great on my shelf."
+          "rating": 5
         },
         {
+          "comment": "Good quality and design. Would be perfect if it had a locking mechanism.",
+          "date": "2023-09-22",
           "id": "r2",
           "name": "Sarah M.",
-          "rating": 4,
-          "date": "2023-09-22",
-          "comment": "Good quality and design. Would be perfect if it had a locking mechanism."
+          "rating": 4
         }
-      ],
-      "relatedProducts": ["2", "3"]
+      ]
     },
     {
-      "id": "2",
-      "name": "Desk Organizer",
       "category": "office-addons",
-      "price": 29.99,
+      "colors": [
+        "White",
+        "Black",
+        "Blue",
+        "Red"
+      ],
       "description": "Keep your desk tidy with this customizable organizer.",
+      "features": [
+        "Multiple compartments",
+        "Customizable layout",
+        "Space-saving design",
+        "Durable construction"
+      ],
+      "id": "2",
+      "images": [
+        "/placeholder.svg?height=300&width=300",
+        "/placeholder.svg?height=300&width=300"
+      ],
+      "materials": [
+        "PLA",
+        "PETG"
+      ],
       "modelPath": "/assets/3d/duck.glb",
-      "images": ["/placeholder.svg?height=300&width=300", "/placeholder.svg?height=300&width=300"],
-      "colors": ["White", "Black", "Blue", "Red"],
-      "materials": ["PLA", "PETG"],
-      "features": ["Multiple compartments", "Customizable layout", "Space-saving design", "Durable construction"],
+      "name": "Desk Organizer",
+      "price": 29.99,
+      "relatedProducts": [
+        "1",
+        "3"
+      ],
       "reviews": [
         {
+          "comment": "Perfect for organizing my small office supplies. Sturdy and well-designed.",
+          "date": "2023-10-28",
           "id": "r1",
           "name": "Emily R.",
-          "rating": 4,
-          "date": "2023-10-28",
-          "comment": "Perfect for organizing my small office supplies. Sturdy and well-designed."
+          "rating": 4
         }
-      ],
-      "relatedProducts": ["1", "3"]
+      ]
     },
     {
-      "id": "3",
-      "name": "Decorative Vase",
       "category": "home-decor",
-      "price": 39.99,
+      "colors": [
+        "White",
+        "Black",
+        "Gold",
+        "Silver"
+      ],
       "description": "A beautiful decorative vase for your home.",
+      "features": [
+        "Unique geometric design",
+        "Watertight construction",
+        "Elegant finish",
+        "Multiple size options"
+      ],
+      "id": "3",
+      "images": [
+        "/placeholder.svg?height=300&width=300"
+      ],
+      "materials": [
+        "PLA",
+        "PETG"
+      ],
       "modelPath": "/assets/3d/duck.glb",
-      "images": ["/placeholder.svg?height=300&width=300"],
-      "colors": ["White", "Black", "Gold", "Silver"],
-      "materials": ["PLA", "PETG"],
-      "features": ["Unique geometric design", "Watertight construction", "Elegant finish", "Multiple size options"],
-      "reviews": [],
-      "relatedProducts": ["2", "1"]
+      "name": "Decorative Vase",
+      "price": 39.99,
+      "relatedProducts": [
+        "2",
+        "1"
+      ],
+      "reviews": []
     },
     {
-      "id": "4",
-      "name": "Phone Stand",
       "category": "office-addons",
-      "price": 14.99,
+      "colors": [
+        "White",
+        "Black",
+        "Red",
+        "Blue",
+        "Green"
+      ],
       "description": "A simple and sturdy phone stand for your desk.",
-      "features": ["Adjustable angle", "Cable management slot", "Non-slip base", "Universal compatibility"],
+      "features": [
+        "Adjustable angle",
+        "Cable management slot",
+        "Non-slip base",
+        "Universal compatibility"
+      ],
+      "id": "4",
+      "images": [
+        "/placeholder.svg?height=600&width=600",
+        "/placeholder.svg?height=600&width=600"
+      ],
+      "materials": [
+        "PLA",
+        "PETG",
+        "ABS"
+      ],
       "modelPath": "/assets/3d/duck.glb",
-      "images": ["/placeholder.svg?height=600&width=600", "/placeholder.svg?height=600&width=600"],
-      "colors": ["White", "Black", "Red", "Blue", "Green"],
-      "materials": ["PLA", "PETG", "ABS"],
+      "name": "Phone Stand",
+      "price": 14.99,
+      "relatedProducts": [
+        "3",
+        "5"
+      ],
       "reviews": [
         {
+          "comment": "Works great! Holds my phone securely. Wish it came in more colors.",
+          "date": "2023-12-01",
           "id": "r1",
           "name": "Alex P.",
-          "rating": 4,
-          "date": "2023-12-01",
-          "comment": "Works great! Holds my phone securely. Wish it came in more colors."
+          "rating": 4
         },
         {
+          "comment": "Simple but effective. Holds my phone at the perfect angle for video calls.",
+          "date": "2023-11-10",
           "id": "r2",
           "name": "David K.",
-          "rating": 5,
-          "date": "2023-11-10",
-          "comment": "Simple but effective. Holds my phone at the perfect angle for video calls."
+          "rating": 5
         }
+      ]
+    },
+    {
+      "category": "home-decor",
+      "colors": [
+        "White",
+        "Black",
+        "Gold",
+        "Silver"
       ],
-      "relatedProducts": ["3", "5"]
-    },
-    {
-      "id": "5",
-      "name": "Decorative Vase",
-      "category": "home-decor",
-      "price": 39.99,
       "description": "A beautiful decorative vase for your home.",
-      "features": ["Unique geometric design", "Watertight construction", "Elegant finish", "Multiple size options"],
+      "features": [
+        "Unique geometric design",
+        "Watertight construction",
+        "Elegant finish",
+        "Multiple size options"
+      ],
+      "id": "5",
+      "images": [
+        "/placeholder.svg?height=600&width=600",
+        "/placeholder.svg?height=600&width=600"
+      ],
+      "materials": [
+        "PLA",
+        "PETG"
+      ],
       "modelPath": "/assets/3d/duck.glb",
-      "images": ["/placeholder.svg?height=600&width=600", "/placeholder.svg?height=600&width=600"],
-      "colors": ["White", "Black", "Gold", "Silver"],
-      "materials": ["PLA", "PETG"],
-      "reviews": [],
-      "relatedProducts": ["6", "4"]
+      "name": "Decorative Vase",
+      "price": 39.99,
+      "relatedProducts": [
+        "6",
+        "4"
+      ],
+      "reviews": []
     },
     {
-      "id": "6",
-      "name": "Wall Planter",
       "category": "home-decor",
-      "price": 19.99,
+      "colors": [
+        "White",
+        "Black",
+        "Green",
+        "Blue"
+      ],
       "description": "A stylish wall planter for small succulents or herbs.",
-      "features": ["Easy wall mounting", "Drainage hole option", "Modern design"],
+      "features": [
+        "Easy wall mounting",
+        "Drainage hole option",
+        "Modern design"
+      ],
+      "id": "6",
+      "images": [
+        "/placeholder.svg?height=300&width=300"
+      ],
+      "materials": [
+        "PLA",
+        "PETG"
+      ],
       "modelPath": "/assets/3d/duck.glb",
-      "images": ["/placeholder.svg?height=300&width=300"],
-      "colors": ["White", "Black", "Green", "Blue"],
-      "materials": ["PLA", "PETG"],
-      "reviews": [],
-      "relatedProducts": ["5"]
-    },
-    {
-      "id": "7",
-      "name": "Custom Cake Topper",
-      "category": "event-planning",
-      "price": 29.99,
-      "description": "Personalized cake topper for special occasions.",
-      "modelPath": "/assets/3d/duck.glb",
-      "images": ["/placeholder.svg?height=300&width=300"],
-      "colors": ["White", "Gold", "Silver", "Pink"],
-      "materials": ["PLA"],
-      "features": ["Custom text", "Food-safe material option"],
-      "reviews": [],
-      "relatedProducts": ["8"]
-    },
-    {
-      "id": "8",
-      "name": "Place Card Holders",
-      "category": "event-planning",
-      "price": 12.99,
-      "description": "Set of elegant place card holders for events.",
-      "modelPath": "/assets/3d/duck.glb",
-      "images": ["/placeholder.svg?height=300&width=300"],
-      "colors": ["White", "Gold", "Silver", "Black"],
-      "materials": ["PLA", "PETG"],
-      "features": ["Set of 6", "Stable base"],
-      "reviews": [],
-      "relatedProducts": ["7"]
-    },
-    {
-      "id": "9",
-      "name": "Bottle Opener",
-      "category": "tools-accessories",
-      "price": 9.99,
-      "description": "Durable 3D printed bottle opener.",
-      "modelPath": "/assets/3d/duck.glb",
-      "images": ["/placeholder.svg?height=300&width=300"],
-      "colors": ["White", "Black", "Red", "Blue"],
-      "materials": ["PLA", "PETG", "ABS"],
-      "features": ["Ergonomic grip", "Strong construction"],
-      "reviews": [],
-      "relatedProducts": ["10"]
-    },
-    {
-      "id": "10",
-      "name": "Cable Organizer",
-      "category": "tools-accessories",
-      "price": 7.99,
-      "description": "Simple organizer to keep cables tidy.",
-      "modelPath": "/assets/3d/duck.glb",
-      "images": ["/placeholder.svg?height=300&width=300"],
-      "colors": ["White", "Black", "Clear"],
-      "materials": ["PLA", "PETG"],
-      "features": ["Multiple cable slots", "Adhesive backing option"],
-      "reviews": [],
-      "relatedProducts": ["9"]
-    },
-    {
-      "id": "11",
-      "name": "Miniature Figurine",
-      "category": "novelty-items",
+      "name": "Wall Planter",
       "price": 19.99,
-      "description": "Customizable miniature figurine.",
-      "modelPath": "/assets/3d/duck.glb",
-      "images": ["/placeholder.svg?height=300&width=300"],
-      "colors": ["White", "Black", "Red", "Blue", "Green", "Yellow"],
-      "materials": ["PLA", "PETG"],
-      "features": ["Detailed design", "Paintable surface"],
-      "reviews": [],
-      "relatedProducts": ["12"]
+      "relatedProducts": [
+        "5"
+      ],
+      "reviews": []
     },
     {
-      "id": "12",
-      "name": "Desk Toy",
-      "category": "novelty-items",
-      "price": 14.99,
-      "description": "Fun fidget or desk toy.",
+      "category": "event-planning",
+      "colors": [
+        "White",
+        "Gold",
+        "Silver",
+        "Pink"
+      ],
+      "description": "Personalized cake topper for special occasions.",
+      "features": [
+        "Custom text",
+        "Food-safe material option"
+      ],
+      "id": "7",
+      "images": [
+        "/placeholder.svg?height=300&width=300"
+      ],
+      "materials": [
+        "PLA"
+      ],
       "modelPath": "/assets/3d/duck.glb",
-      "images": ["/placeholder.svg?height=300&width=300"],
-      "colors": ["White", "Black", "Red", "Blue"],
-      "materials": ["PLA"],
-      "features": ["Spinning/moving parts", "Stress relief"],
-      "reviews": [],
-      "relatedProducts": ["11"]
+      "name": "Custom Cake Topper",
+      "price": 29.99,
+      "relatedProducts": [
+        "8"
+      ],
+      "reviews": []
+    },
+    {
+      "category": "event-planning",
+      "colors": [
+        "White",
+        "Gold",
+        "Silver",
+        "Black"
+      ],
+      "description": "Set of elegant place card holders for events.",
+      "features": [
+        "Set of 6",
+        "Stable base"
+      ],
+      "id": "8",
+      "images": [
+        "/placeholder.svg?height=300&width=300"
+      ],
+      "materials": [
+        "PLA",
+        "PETG"
+      ],
+      "modelPath": "/assets/3d/duck.glb",
+      "name": "Place Card Holders",
+      "price": 12.99,
+      "relatedProducts": [
+        "7"
+      ],
+      "reviews": []
+    },
+    {
+      "category": "tools-accessories",
+      "colors": [
+        "White",
+        "Black",
+        "Red",
+        "Blue"
+      ],
+      "description": "Durable 3D printed bottle opener.",
+      "features": [
+        "Ergonomic grip",
+        "Strong construction"
+      ],
+      "id": "9",
+      "images": [
+        "/placeholder.svg?height=300&width=300"
+      ],
+      "materials": [
+        "PLA",
+        "PETG",
+        "ABS"
+      ],
+      "modelPath": "/assets/3d/duck.glb",
+      "name": "Bottle Opener",
+      "price": 9.99,
+      "relatedProducts": [
+        "10"
+      ],
+      "reviews": []
+    },
+    {
+      "category": "tools-accessories",
+      "colors": [
+        "White",
+        "Black",
+        "Clear"
+      ],
+      "description": "Simple organizer to keep cables tidy.",
+      "features": [
+        "Multiple cable slots",
+        "Adhesive backing option"
+      ],
+      "id": "10",
+      "images": [
+        "/placeholder.svg?height=300&width=300"
+      ],
+      "materials": [
+        "PLA",
+        "PETG"
+      ],
+      "modelPath": "/assets/3d/duck.glb",
+      "name": "Cable Organizer",
+      "price": 7.99,
+      "relatedProducts": [
+        "9"
+      ],
+      "reviews": []
+    },
+    {
+      "category": "novelty-items",
+      "colors": [
+        "White",
+        "Black",
+        "Red",
+        "Blue",
+        "Green",
+        "Yellow"
+      ],
+      "description": "Customizable miniature figurine.",
+      "features": [
+        "Detailed design",
+        "Paintable surface"
+      ],
+      "id": "11",
+      "images": [
+        "/placeholder.svg?height=300&width=300"
+      ],
+      "materials": [
+        "PLA",
+        "PETG"
+      ],
+      "modelPath": "/assets/3d/duck.glb",
+      "name": "Miniature Figurine",
+      "price": 19.99,
+      "relatedProducts": [
+        "12"
+      ],
+      "reviews": []
+    },
+    {
+      "category": "novelty-items",
+      "colors": [
+        "White",
+        "Black",
+        "Red",
+        "Blue"
+      ],
+      "description": "Fun fidget or desk toy.",
+      "features": [
+        "Spinning/moving parts",
+        "Stress relief"
+      ],
+      "id": "12",
+      "images": [
+        "/placeholder.svg?height=300&width=300"
+      ],
+      "materials": [
+        "PLA"
+      ],
+      "modelPath": "/assets/3d/duck.glb",
+      "name": "Desk Toy",
+      "price": 14.99,
+      "relatedProducts": [
+        "11"
+      ],
+      "reviews": []
     }
   ]
 }

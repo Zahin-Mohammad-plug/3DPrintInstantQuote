@@ -27,6 +27,7 @@ ALLOWED_EXTENSIONS = {'stl', '3mf', 'obj'}
 MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB max file size
 MATERIALS_FILE = os.path.join(CONFIG_FOLDER, "materials.json") # Updated path
 AUTH_FILE = os.path.join(CONFIG_FOLDER, "auth.json") # New path for auth
+CATALOG_FILE = os.path.join(CONFIG_FOLDER, "catalog.json") # Path for catalog data
 
 # Create necessary directories
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -132,6 +133,19 @@ DEFAULT_MATERIALS = {
         "minimum_price": 5.0,                # Minimum price for any print
         "default_fill_density": 0.15         # Default fill density (15%)
     }
+}
+
+# Default catalog data if no file exists
+DEFAULT_CATALOG = {
+  "categories": [
+    {
+      "id": "uncategorized",
+      "name": "Uncategorized",
+      "description": "Products without a specific category",
+      "image": "/placeholder.svg?height=300&width=500"
+    }
+  ],
+  "products": []
 }
 
 # Load admin credentials
@@ -310,6 +324,56 @@ def save_materials(materials_data):
         return True
     except Exception as e:
         print(f"Error saving materials file {MATERIALS_FILE}: {e}")
+        return False
+
+# --- Catalog Data Handling (NEW) ---
+def get_catalog():
+    """Get catalog data from file or return defaults if file doesn't exist"""
+    if os.path.exists(CATALOG_FILE):
+        try:
+            with open(CATALOG_FILE, 'r', encoding='utf-8') as f:
+                content = f.read()
+                if not content:
+                    print(f"Catalog file is empty at {CATALOG_FILE}, returning default.")
+                    return DEFAULT_CATALOG
+                return json.loads(content)
+        except json.JSONDecodeError:
+            print(f"Error decoding JSON from {CATALOG_FILE}. File might be corrupted. Returning default.")
+            return DEFAULT_CATALOG
+        except Exception as e:
+            print(f"Error reading catalog file {CATALOG_FILE}: {e}. Returning default.")
+            return DEFAULT_CATALOG
+    else:
+        # Create the default catalog file if it doesn't exist in the config volume
+        print(f"Catalog file not found at {CATALOG_FILE}, creating default.")
+        try:
+            with open(CATALOG_FILE, 'w', encoding='utf-8') as f:
+                json.dump(DEFAULT_CATALOG, f, indent=2)
+            return DEFAULT_CATALOG
+        except Exception as e:
+            print(f"Error creating default catalog file {CATALOG_FILE}: {e}")
+            return DEFAULT_CATALOG # Fallback
+
+def save_catalog(catalog_data):
+    """Save catalog data to file"""
+    try:
+        # Basic validation
+        if not isinstance(catalog_data, dict) or 'categories' not in catalog_data or 'products' not in catalog_data:
+             print(f"Invalid catalog data format received for saving: {catalog_data}")
+             return False
+        if not isinstance(catalog_data['categories'], list) or not isinstance(catalog_data['products'], list):
+             print(f"Invalid data type for categories or products in catalog data: {type(catalog_data.get('categories'))}, {type(catalog_data.get('products'))}")
+             return False
+
+        # Ensure the directory exists (though it should due to volume mount)
+        os.makedirs(os.path.dirname(CATALOG_FILE), exist_ok=True)
+        with open(CATALOG_FILE, 'w', encoding='utf-8') as f:
+            json.dump(catalog_data, f, indent=2)
+        print(f"Successfully wrote updated catalog data to {CATALOG_FILE} inside container.")
+        return True
+    except Exception as e:
+        print(f"Error saving catalog file {CATALOG_FILE}: {e}")
+        traceback.print_exc() # Print full traceback for debugging
         return False
 
 def process_jobs():
@@ -541,6 +605,29 @@ def update_materials():
              return jsonify({"success": False, "message": "Failed to save materials file"}), 500
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
+
+# --- Catalog API Endpoints (NEW) ---
+@app.route("/api/catalog", methods=["GET"])
+def get_catalog_endpoint():
+    """Get all catalog data (categories and products)"""
+    return jsonify(get_catalog())
+
+@app.route("/api/catalog", methods=["POST"])
+@requires_auth # Protect this endpoint
+def update_catalog():
+    """Update catalog data (admin only)"""
+    try:
+        catalog_data = request.json
+        if save_catalog(catalog_data):
+             return jsonify({"success": True, "message": "Catalog updated successfully."})
+        else:
+             # save_catalog prints the error, return a generic server error
+             return jsonify({"success": False, "message": "Failed to save catalog file on server."}), 500
+    except Exception as e:
+        # Catch potential errors during request processing
+        print(f"Error processing update_catalog request: {e}")
+        traceback.print_exc()
+        return jsonify({"success": False, "message": f"An unexpected error occurred: {str(e)}"}), 500
 
 @app.route("/api/file/<job_id>/<file_type>", methods=["GET"])
 # Potentially add @requires_auth depending on access needs
@@ -779,6 +866,9 @@ if __name__ == "__main__":
                 json.dump(DEFAULT_MATERIALS, f, indent=2)
         except Exception as e:
             print(f"Error creating default materials file on startup: {e}")
+
+    # Initialize catalog if needed (NEW)
+    get_catalog() # This function now handles creation/defaults
 
     # Initialize auth file if needed
     load_credentials() # This will create it if it doesn't exist
