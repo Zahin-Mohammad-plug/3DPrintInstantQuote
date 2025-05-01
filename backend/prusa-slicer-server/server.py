@@ -1,3 +1,4 @@
+import shutil # Import shutil for file operations
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 import subprocess
@@ -16,17 +17,20 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
 # Configuration
-UPLOAD_FOLDER = "/app/shared"  # This should match the UserModels/ directory in Docker
+SHARED_FOLDER = "/app/shared" # Base shared folder mapped to userModels
+UPLOAD_FOLDER = os.path.join(SHARED_FOLDER, "temp", "uploaded") # Initial uploads
+QUOTED_FOLDER = os.path.join(SHARED_FOLDER, "temp", "quoted") # Files for completed quotes
+ORDERS_FOLDER = os.path.join(SHARED_FOLDER, "orders") # Files for approved orders
 CONFIG_FOLDER = "/app/config" # Mounted config directory
 ALLOWED_EXTENSIONS = {'stl', '3mf', 'obj'}
 MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB max file size
 MATERIALS_FILE = os.path.join(CONFIG_FOLDER, "materials.json") # Updated path
 AUTH_FILE = os.path.join(CONFIG_FOLDER, "auth.json") # New path for auth
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# Temporary directory for file conversions
-TEMP_DIR = os.path.join(UPLOAD_FOLDER, "temp")
-os.makedirs(TEMP_DIR, exist_ok=True)
+# Create necessary directories
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(QUOTED_FOLDER, exist_ok=True)
+os.makedirs(ORDERS_FOLDER, exist_ok=True)
 
 # Default materials and pricing if no file exists
 DEFAULT_MATERIALS = {
@@ -313,33 +317,65 @@ def process_jobs():
         try:
             job_id = job_queue.get(timeout=1)
             job = jobs[job_id]
-            
+
             if job["status"] == "pending":
-                # Update job status
                 jobs[job_id]["status"] = "processing"
-                
                 try:
-                    # Run slicing script
+                    # Construct full path to the uploaded file
+                    uploaded_file_path = os.path.join(UPLOAD_FOLDER, job["filename"])
+                    if not os.path.exists(uploaded_file_path):
+                        raise FileNotFoundError(f"Uploaded file not found: {uploaded_file_path}")
+
+                    # Run slicing script using the full path
                     fill_density = job.get("fill_density", get_materials()["global_settings"]["default_fill_density"])
                     enable_supports = "1" if job.get("enable_supports", True) else "0"
-                    
+
+                    # Assuming slice_model.py handles paths correctly and potentially outputs gcode
+                    # We need the path to the generated gcode if applicable
+                    # For now, let's assume slice_model.py outputs gcode next to the input
+                    gcode_filename = os.path.splitext(job["filename"])[0] + ".gcode"
+                    gcode_output_path = os.path.join(UPLOAD_FOLDER, gcode_filename) # Expected output path
+
                     result = subprocess.run(
-                        ["python3", "/app/slice_model.py", job["filename"], str(fill_density), enable_supports],
+                        ["python3", "/app/slice_model.py", uploaded_file_path, str(fill_density), enable_supports],
                         capture_output=True,
                         text=True,
-                        cwd="/app"
+                        cwd="/app" # Keep cwd as /app if slice_model.py expects it
                     )
-                    
+
                     if result.returncode != 0:
                         jobs[job_id]["status"] = "failed"
                         jobs[job_id]["error"] = result.stderr
                     else:
                         slice_result = json.loads(result.stdout)
-                        
                         if "error" in slice_result:
                             jobs[job_id]["status"] = "failed"
                             jobs[job_id]["error"] = slice_result["error"]
                         else:
+                            # --- Move file to quoted folder on successful slicing --- START
+                            quoted_file_path = os.path.join(QUOTED_FOLDER, job["filename"])
+                            gcode_quoted_path = os.path.join(QUOTED_FOLDER, gcode_filename)
+                            try:
+                                shutil.move(uploaded_file_path, quoted_file_path)
+                                print(f"Moved {job['filename']} to quoted folder.")
+                                # Try moving gcode if it exists
+                                if os.path.exists(gcode_output_path):
+                                     shutil.move(gcode_output_path, gcode_quoted_path)
+                                     print(f"Moved {gcode_filename} to quoted folder.")
+                                     job["gcode_filename"] = gcode_filename # Store gcode filename
+                                else:
+                                     print(f"Gcode file {gcode_output_path} not found after slicing, not moving.")
+
+                                job["filepath"] = quoted_file_path # Update job filepath
+                            except Exception as move_err:
+                                print(f"Error moving file {job['filename']} to quoted folder: {move_err}")
+                                # Decide how to handle: fail job? log only?
+                                jobs[job_id]["status"] = "failed"
+                                jobs[job_id]["error"] = f"Slicing ok, but failed to move file: {move_err}"
+                                job_queue.task_done()
+                                continue # Skip rest of processing for this job
+                            # --- Move file to quoted folder on successful slicing --- END
+
                             # Calculate price
                             price_info = calculate_price(
                                 job["material_id"],
@@ -350,21 +386,24 @@ def process_jobs():
                                 job.get("quality_id", "standard"),
                                 slice_result.get("volume_cm3")
                             )
-                            
+
                             jobs[job_id]["status"] = "completed"
                             jobs[job_id]["result"] = {
                                 **slice_result,
                                 "price_info": price_info
                             }
+                            # Remove old filename, keep filepath
+                            # jobs[job_id].pop("filename", None)
+
                 except Exception as e:
                     jobs[job_id]["status"] = "failed"
                     jobs[job_id]["error"] = str(e)
-            
+
             job_queue.task_done()
         except queue.Empty:
             pass
         except Exception as e:
-            print(f"Error in job processing: {str(e)}")
+            print(f"Error in job processing loop: {str(e)}")
             time.sleep(1)
 
 # Start the background processing thread
@@ -411,23 +450,47 @@ def upload_file():
         return jsonify({"error": f"File too large. Maximum size: {MAX_FILE_SIZE / (1024 * 1024)}MB"}), 400
     
     # Generate a unique filename
-    filename = secure_filename(file.filename)
-    unique_filename = f"{uuid.uuid4()}_{filename}"
+    original_filename = secure_filename(file.filename)
+    unique_suffix = uuid.uuid4()
+    base, ext = os.path.splitext(original_filename)
+    # Keep unique id separate for easier association later if needed
+    unique_filename = f"{unique_suffix}_{original_filename}"
     file_path = os.path.join(UPLOAD_FOLDER, unique_filename)
-    
-    # Save the file
+
+    # Save the file to the UPLOAD_FOLDER
     file.save(file_path)
-    
-    # If the file is a 3MF, convert it to STL
-    converted_file_path = None
-    if file_path.lower().endswith('.3mf'):
-        converted_file_path = convert_3mf_to_stl(file_path)
-        if converted_file_path:
-            # Update the filename to use the converted STL file
-            unique_filename = os.path.basename(converted_file_path)
-        else:
+    print(f"File saved to: {file_path}") # Log save location
+
+    # Handle 3MF conversion if necessary (outputting STL to UPLOAD_FOLDER)
+    converted_stl_filename = None
+    if unique_filename.lower().endswith('.3mf'):
+        # Modify convert_3mf_to_stl to save STL in UPLOAD_FOLDER
+        # For now, assume it saves next to the 3mf, then move it
+        temp_stl_path = os.path.splitext(file_path)[0] + ".stl"
+        converted_stl_filename_base = f"{unique_suffix}_{base}.stl"
+        final_stl_path = os.path.join(UPLOAD_FOLDER, converted_stl_filename_base)
+
+        # Call PrusaSlicer for conversion
+        try:
+            result = subprocess.run(
+                ["prusa-slicer", "--export-stl", file_path, "--output", final_stl_path],
+                capture_output=True, text=True, check=True
+            )
+            print(f"Successfully converted {unique_filename} to {converted_stl_filename_base}")
+            # Update filename to use the converted STL for slicing job
+            unique_filename = converted_stl_filename_base
+            # Optionally remove the original 3MF from UPLOAD_FOLDER
+            # os.remove(file_path)
+        except subprocess.CalledProcessError as e:
+            print(f"Error converting 3MF to STL: {e.stderr}", file=sys.stderr)
+            # Clean up original upload if conversion fails
+            # os.remove(file_path)
             return jsonify({"error": "Failed to convert 3MF file to STL"}), 500
-    
+        except Exception as e:
+            print(f"Exception during 3MF conversion: {str(e)}", file=sys.stderr)
+            # os.remove(file_path)
+            return jsonify({"error": "Failed to convert 3MF file to STL"}), 500
+
     # Create a job
     job_id = str(uuid.uuid4())
     material_id = request.form.get("material_id", "pla")
@@ -438,8 +501,9 @@ def upload_file():
     
     job = {
         "id": job_id,
-        "filename": unique_filename,
-        "original_filename": filename,
+        "filename": unique_filename, # The file to be processed (STL or original)
+        "original_upload_filename": original_filename, # User's original file name
+        "filepath": os.path.join(UPLOAD_FOLDER, unique_filename), # Initial path
         "status": "pending",
         "created_at": time.time(),
         "material_id": material_id,
@@ -448,13 +512,12 @@ def upload_file():
         "fill_density": fill_density,
         "enable_supports": enable_supports
     }
-    
+
     jobs[job_id] = job
     job_queue.put(job_id)
-    
-    # Ensure the processing thread is running
+
     ensure_processing_thread()
-    
+
     return jsonify({
         "job_id": job_id,
         "status": "pending",
@@ -487,14 +550,52 @@ def update_materials():
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
 
-@app.route("/api/file/<filename>", methods=["GET"])
-def get_file(filename):
-    """Get a file by filename"""
-    file_path = os.path.join(UPLOAD_FOLDER, filename)
+@app.route("/api/file/<job_id>/<file_type>", methods=["GET"])
+# Potentially add @requires_auth depending on access needs
+def get_file_for_job(job_id, file_type):
+    """Get a specific file type (model, gcode) for a given job"""
+    if job_id not in jobs:
+        return jsonify({"error": "Job not found"}), 404
+
+    job = jobs[job_id]
+    file_path = None
+    filename_to_serve = None
+
+    # Determine the correct folder based on job status
+    current_folder = UPLOAD_FOLDER
+    if job["status"] == "approved" or job["status"] == "ordered": # Assuming 'ordered' is a potential status
+        current_folder = ORDERS_FOLDER
+    elif job["status"] == "completed" or job["status"] == "rejected": # Completed but not approved stays in quoted
+        current_folder = QUOTED_FOLDER
+    # else: stays in UPLOAD_FOLDER (pending, processing, failed)
+
+    if file_type == "model":
+        # Serve the file that was processed (could be original or converted STL)
+        filename_to_serve = job.get("filename")
+        if filename_to_serve:
+             file_path = os.path.join(current_folder, filename_to_serve)
+    elif file_type == "gcode":
+        # Serve the gcode file if it exists for the job
+        filename_to_serve = job.get("gcode_filename")
+        if filename_to_serve:
+            file_path = os.path.join(current_folder, filename_to_serve)
+    # Add other file types if needed (e.g., 'original_upload')
+
+    if not file_path or not filename_to_serve:
+        return jsonify({"error": f"File type '{file_type}' not available for this job"}), 404
+
     if not os.path.exists(file_path):
-        return jsonify({"error": "File not found"}), 404
-    
-    return send_file(file_path)
+        # Fallback check in case status/location mismatch (shouldn't happen ideally)
+        print(f"Warning: File {file_path} not found in expected location for job {job_id} status {job['status']}. Searching other locations.")
+        # Add fallback search logic if necessary, e.g., check all potential folders
+        return jsonify({"error": "File not found in expected location"}), 404
+
+    # Serve the file with its original upload name for user convenience
+    download_name = job.get("original_upload_filename")
+    if file_type == "gcode" and filename_to_serve:
+        download_name = filename_to_serve # Serve gcode with its actual name
+
+    return send_file(file_path, as_attachment=True, download_name=download_name)
 
 @app.route("/api/jobs", methods=["GET"])
 @requires_auth # Add authentication
@@ -505,20 +606,52 @@ def get_all_jobs():
 @app.route("/api/job/<job_id>/approve", methods=["POST"])
 @requires_auth # Add authentication
 def approve_job(job_id):
-    """Approve a job for printing (admin only)"""
+    """Approve a job for printing (admin only), move files to orders folder"""
     if job_id not in jobs:
         return jsonify({"error": "Job not found"}), 404
-    
-    if jobs[job_id]["status"] != "completed":
-        return jsonify({"error": "Job is not ready for approval"}), 400
-    
+
+    job = jobs[job_id]
+    if job["status"] != "completed":
+        return jsonify({"error": "Job is not ready for approval (must be 'completed')"}), 400
+
+    # --- Move files from quoted to orders --- START
+    current_model_path = os.path.join(QUOTED_FOLDER, job["filename"])
+    ordered_model_path = os.path.join(ORDERS_FOLDER, job["filename"])
+    current_gcode_path = None
+    ordered_gcode_path = None
+    gcode_filename = job.get("gcode_filename")
+    if gcode_filename:
+        current_gcode_path = os.path.join(QUOTED_FOLDER, gcode_filename)
+        ordered_gcode_path = os.path.join(ORDERS_FOLDER, gcode_filename)
+
+    try:
+        if os.path.exists(current_model_path):
+            shutil.move(current_model_path, ordered_model_path)
+            print(f"Moved {job['filename']} to orders folder.")
+            job["filepath"] = ordered_model_path # Update filepath
+        else:
+             print(f"Warning: Model file {current_model_path} not found in quoted folder during approval.")
+             # Decide if this is critical - should approval fail?
+
+        if gcode_filename and current_gcode_path and os.path.exists(current_gcode_path):
+            shutil.move(current_gcode_path, ordered_gcode_path)
+            print(f"Moved {gcode_filename} to orders folder.")
+        elif gcode_filename:
+            print(f"Warning: Gcode file {current_gcode_path} not found in quoted folder during approval.")
+
+    except Exception as move_err:
+        print(f"Error moving files for job {job_id} to orders folder: {move_err}")
+        # Potentially revert any partial moves or just log the error
+        return jsonify({"error": f"Failed to move files to orders folder: {move_err}"}), 500
+    # --- Move files from quoted to orders --- END
+
     # Update job status
     jobs[job_id]["status"] = "approved"
     jobs[job_id]["approved_at"] = time.time()
-    
+
     return jsonify({
         "success": True,
-        "message": "Job approved for printing",
+        "message": "Job approved for printing, files moved to orders folder.",
         "job": jobs[job_id]
     })
 
