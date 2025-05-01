@@ -167,6 +167,17 @@ export default function CategoryPage() {
 
   const [products, setProducts] = useState([])
 
+  // Effect to update document title
+  useEffect(() => {
+    if (category) {
+      document.title = `${category.name} - Catalog`;
+    } else {
+      document.title = 'Category Not Found - Catalog';
+    }
+    // Cleanup function to reset title if needed when component unmounts
+    // return () => { document.title = 'Default Title'; };
+  }, [category]); // Dependency array ensures this runs when category changes
+
   useEffect(() => {
     // Filter products by category
     let filtered = allProducts.filter((product) => product.category === categoryId)
@@ -211,24 +222,6 @@ export default function CategoryPage() {
     setSelectedColors((prev) => (prev.includes(color) ? prev.filter((c) => c !== color) : [...prev, color]))
   }
 
-  if (!category) {
-    return (
-      <div className="flex flex-col min-h-screen">
-        <SiteHeader />
-        <main className="flex-1 container py-12">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4">Category Not Found</h1>
-            <p className="mb-6">The category you're looking for doesn't exist.</p>
-            <Button asChild>
-              <Link href="/catalog">Back to Catalog</Link>
-            </Button>
-          </div>
-        </main>
-        <SiteFooter />
-      </div>
-    )
-  }
-
   return (
     <div className="flex flex-col min-h-screen">
       <SiteHeader />
@@ -241,174 +234,187 @@ export default function CategoryPage() {
             </Link>
           </div>
 
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">{category.name}</h1>
-            <p className="text-muted-foreground">{category.description}</p>
-          </div>
-
-          <div className="flex flex-col lg:flex-row gap-8">
-            {/* Filters - Desktop */}
-            <div className="hidden lg:block w-64 space-y-6">
-              <div>
-                <h3 className="font-medium mb-3">Materials</h3>
-                <div className="space-y-2">
-                  {["PLA", "PETG", "ABS"].map((material) => (
-                    <div key={material} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`material-${material}`}
-                        checked={selectedMaterials.includes(material)}
-                        onCheckedChange={() => toggleMaterial(material)}
-                      />
-                      <Label htmlFor={`material-${material}`}>{material}</Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h3 className="font-medium mb-3">Colors</h3>
-                <div className="space-y-2">
-                  {["White", "Black", "Red", "Blue", "Green", "Gold", "Silver"].map((color) => (
-                    <div key={color} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`color-${color}`}
-                        checked={selectedColors.includes(color)}
-                        onCheckedChange={() => toggleColor(color)}
-                      />
-                      <Label htmlFor={`color-${color}`}>{color}</Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
+          {category && (
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold mb-2">{category.name}</h1>
+              <p className="text-muted-foreground">{category.description}</p>
             </div>
+          )}
+          {!category && (
+             <div className="text-center">
+               <h1 className="text-2xl font-bold mb-4">Category Not Found</h1>
+               <p className="mb-6">The category you're looking for doesn't exist.</p>
+               <Button asChild>
+                 <Link href="/catalog">Back to Catalog</Link>
+               </Button>
+             </div>
+          )}
 
-            <div className="flex-1">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                <div className="relative w-full md:w-64">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                  <Input
-                    placeholder="Search products..."
-                    className="pl-10"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                </div>
-
-                <div className="flex items-center gap-4 w-full md:w-auto">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="lg:hidden"
-                    onClick={() => setShowFilters(!showFilters)}
-                  >
-                    <Filter className="h-4 w-4 mr-2" />
-                    Filters
-                  </Button>
-
-                  <Select value={sortOption} onValueChange={setSortOption}>
-                    <SelectTrigger className="w-full md:w-[180px]">
-                      <SelectValue placeholder="Sort by" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="featured">Featured</SelectItem>
-                      <SelectItem value="price-low">Price: Low to High</SelectItem>
-                      <SelectItem value="price-high">Price: High to Low</SelectItem>
-                      <SelectItem value="name">Name</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {/* Filters - Mobile */}
-              {showFilters && (
-                <div className="lg:hidden mb-6 p-4 border rounded-md space-y-4">
-                  <div>
-                    <h3 className="font-medium mb-2">Materials</h3>
-                    <div className="grid grid-cols-2 gap-2">
-                      {["PLA", "PETG", "ABS"].map((material) => (
-                        <div key={material} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`mobile-material-${material}`}
-                            checked={selectedMaterials.includes(material)}
-                            onCheckedChange={() => toggleMaterial(material)}
-                          />
-                          <Label htmlFor={`mobile-material-${material}`}>{material}</Label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <h3 className="font-medium mb-2">Colors</h3>
-                    <div className="grid grid-cols-2 gap-2">
-                      {["White", "Black", "Red", "Blue", "Green", "Gold", "Silver"].map((color) => (
-                        <div key={color} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`mobile-color-${color}`}
-                            checked={selectedColors.includes(color)}
-                            onCheckedChange={() => toggleColor(color)}
-                          />
-                          <Label htmlFor={`mobile-color-${color}`}>{color}</Label>
-                        </div>
-                      ))}
-                    </div>
+          {category && (
+            <div className="flex flex-col lg:flex-row gap-8">
+              {/* Filters - Desktop */}
+              <div className="hidden lg:block w-64 space-y-6">
+                <div>
+                  <h3 className="font-medium mb-3">Materials</h3>
+                  <div className="space-y-2">
+                    {["PLA", "PETG", "ABS"].map((material) => (
+                      <div key={material} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`material-${material}`}
+                          checked={selectedMaterials.includes(material)}
+                          onCheckedChange={() => toggleMaterial(material)}
+                        />
+                        <Label htmlFor={`material-${material}`}>{material}</Label>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              )}
 
-              {products.length === 0 ? (
-                <div className="text-center py-12">
-                  <p className="text-muted-foreground mb-4">No products found matching your criteria.</p>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setSearchQuery("")
-                      setSelectedMaterials([])
-                      setSelectedColors([])
-                      setPriceRange([0, 100])
-                    }}
-                  >
-                    Clear Filters
-                  </Button>
+                <div>
+                  <h3 className="font-medium mb-3">Colors</h3>
+                  <div className="space-y-2">
+                    {["White", "Black", "Red", "Blue", "Green", "Gold", "Silver"].map((color) => (
+                      <div key={color} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`color-${color}`}
+                          checked={selectedColors.includes(color)}
+                          onCheckedChange={() => toggleColor(color)}
+                        />
+                        <Label htmlFor={`color-${color}`}>{color}</Label>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {products.map((product) => (
-                    <Link key={product.id} href={`/catalog/product/${product.id}`}>
-                      <Card className="overflow-hidden h-full transition-all hover:shadow-md">
-                        <div className="h-48 w-full overflow-hidden">
-                          <img
-                            src={product.image || "/placeholder.svg"}
-                            alt={product.name}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <CardContent className="p-4">
-                          <h3 className="font-medium mb-1">{product.name}</h3>
-                          <p className="text-primary font-bold mb-2">${product.price.toFixed(2)}</p>
-                          <div className="flex flex-wrap gap-1 mb-2">
-                            {product.colors.slice(0, 3).map((color) => (
-                              <span key={color} className="text-xs bg-muted px-2 py-1 rounded">
-                                {color}
-                              </span>
-                            ))}
-                            {product.colors.length > 3 && (
-                              <span className="text-xs bg-muted px-2 py-1 rounded">
-                                +{product.colors.length - 3} more
-                              </span>
-                            )}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            Available in: {product.materials.join(", ")}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  ))}
+              </div>
+
+              <div className="flex-1">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                  <div className="relative w-full md:w-64">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                    <Input
+                      placeholder="Search products..."
+                      className="pl-10"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-4 w-full md:w-auto">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="lg:hidden"
+                      onClick={() => setShowFilters(!showFilters)}
+                    >
+                      <Filter className="h-4 w-4 mr-2" />
+                      Filters
+                    </Button>
+
+                    <Select value={sortOption} onValueChange={setSortOption}>
+                      <SelectTrigger className="w-full md:w-[180px]">
+                        <SelectValue placeholder="Sort by" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="featured">Featured</SelectItem>
+                        <SelectItem value="price-low">Price: Low to High</SelectItem>
+                        <SelectItem value="price-high">Price: High to Low</SelectItem>
+                        <SelectItem value="name">Name</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-              )}
+
+                {/* Filters - Mobile */}
+                {showFilters && (
+                  <div className="lg:hidden mb-6 p-4 border rounded-md space-y-4">
+                    <div>
+                      <h3 className="font-medium mb-2">Materials</h3>
+                      <div className="grid grid-cols-2 gap-2">
+                        {["PLA", "PETG", "ABS"].map((material) => (
+                          <div key={material} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`mobile-material-${material}`}
+                              checked={selectedMaterials.includes(material)}
+                              onCheckedChange={() => toggleMaterial(material)}
+                            />
+                            <Label htmlFor={`mobile-material-${material}`}>{material}</Label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="font-medium mb-2">Colors</h3>
+                      <div className="grid grid-cols-2 gap-2">
+                        {["White", "Black", "Red", "Blue", "Green", "Gold", "Silver"].map((color) => (
+                          <div key={color} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`mobile-color-${color}`}
+                              checked={selectedColors.includes(color)}
+                              onCheckedChange={() => toggleColor(color)}
+                            />
+                            <Label htmlFor={`mobile-color-${color}`}>{color}</Label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {products.length === 0 ? (
+                  <div className="text-center py-12">
+                    <p className="text-muted-foreground mb-4">No products found matching your criteria.</p>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setSearchQuery("")
+                        setSelectedMaterials([])
+                        setSelectedColors([])
+                        setPriceRange([0, 100])
+                      }}
+                    >
+                      Clear Filters
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {products.map((product) => (
+                      <Link key={product.id} href={`/catalog/product/${product.id}`}>
+                        <Card className="overflow-hidden h-full transition-all hover:shadow-md">
+                          <div className="h-48 w-full overflow-hidden">
+                            <img
+                              src={product.image || "/placeholder.svg"}
+                              alt={product.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <CardContent className="p-4">
+                            <h3 className="font-medium mb-1">{product.name}</h3>
+                            <p className="text-primary font-bold mb-2">${product.price.toFixed(2)}</p>
+                            <div className="flex flex-wrap gap-1 mb-2">
+                              {product.colors.slice(0, 3).map((color) => (
+                                <span key={color} className="text-xs bg-muted px-2 py-1 rounded">
+                                  {color}
+                                </span>
+                              ))}
+                              {product.colors.length > 3 && (
+                                <span className="text-xs bg-muted px-2 py-1 rounded">
+                                  +{product.colors.length - 3} more
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              Available in: {product.materials.join(", ")}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </main>
       <SiteFooter />

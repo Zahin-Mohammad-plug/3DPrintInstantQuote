@@ -13,6 +13,7 @@ import { useTheme } from "@/components/theme-provider"
 import { STLLoader } from "three/examples/jsm/loaders/STLLoader.js"
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js"
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js"
+import { Text } from "@react-three/drei"; // Import Text
 
 interface ModelViewerProps {
   modelPath: string
@@ -20,6 +21,7 @@ interface ModelViewerProps {
   material: string
   jobId?: string | undefined
   isLoading?: boolean
+  viewerTheme?: 'light' | 'dark'; // Add viewerTheme prop
 }
 
 // Helper function to determine file type
@@ -181,10 +183,12 @@ function Model({ modelPath, color, onError }: { modelPath: string; color: string
 }
 
 
-export function ModelViewer({ modelPath, color, material, jobId, isLoading = false }: ModelViewerProps) {
+export function ModelViewer({ modelPath, color, material, jobId, isLoading = false, viewerTheme = 'light' }: ModelViewerProps) {
   const actualModelPath = modelPath || 'fallback';
   const router = useRouter();
   const [loadError, setLoadError] = useState<boolean>(false);
+  const [dimensions, setDimensions] = useState<{ x: number; y: number; z: number } | null>(null);
+  const modelRef = useRef<THREE.Group | THREE.Mesh>(null); // Ref to access the loaded model
   const { theme } = useTheme();
 
   // Reset error state when model path changes or becomes valid
@@ -198,6 +202,22 @@ export function ModelViewer({ modelPath, color, material, jobId, isLoading = fal
        setLoadError(false); // Reset if not loading and path is bad/null
     }
   }, [modelPath, isLoading]); // Add isLoading dependency
+
+  // Effect to calculate dimensions after model loads
+  useEffect(() => {
+    if (modelRef.current && !isLoading && !loadError) {
+      const box = new THREE.Box3().setFromObject(modelRef.current);
+      const size = box.getSize(new THREE.Vector3());
+      // Assuming the backend provides dimensions in mm
+      setDimensions({
+        x: parseFloat(size.x.toFixed(1)),
+        y: parseFloat(size.y.toFixed(1)),
+        z: parseFloat(size.z.toFixed(1)),
+      });
+    } else {
+      setDimensions(null); // Reset if loading or error
+    }
+  }, [modelRef.current, isLoading, loadError]); // Re-run when modelRef changes or loading/error state changes
 
   // Callback for Model component to signal an error
   const handleModelError = () => {
@@ -244,17 +264,22 @@ export function ModelViewer({ modelPath, color, material, jobId, isLoading = fal
     )
   }
 
+  // Determine background color based on viewerTheme prop
+  const backgroundColor = viewerTheme === 'dark' ? '#1a1a1a' : '#f5f5f5';
+
   // Render the model viewer
   return (
     <div className="w-full h-full rounded-md overflow-hidden border bg-muted/20 relative model-viewer-container">
       <Canvas camera={{ position: [0, 0, 10], fov: 50 }}>
-        <color attach="background" args={[theme === "dark" ? "#1a1a1a" : "#f5f5f5"]} />
+        <color attach="background" args={[backgroundColor]} /> {/* Use dynamic background color */}
         <ambientLight intensity={0.5} />
         <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} />
         <pointLight position={[-10, -10, -10]} />
         {/* Suspense wraps the Model component which uses useLoader */}
         <Center>
-           <Model modelPath={actualModelPath} color={color} onError={handleModelError} />
+           <group ref={modelRef}> {/* Wrap Model in a group to ensure ref is captured */} 
+              <Model modelPath={actualModelPath} color={color} onError={handleModelError} />
+            </group>
         </Center>
         <Environment preset="studio" />
         <OrbitControls enablePan={true} enableZoom={true} enableRotate={true} autoRotate={true} autoRotateSpeed={1} />
@@ -263,6 +288,12 @@ export function ModelViewer({ modelPath, color, material, jobId, isLoading = fal
         {/* Ensure material and color display correctly */}
         {material || 'N/A'} • {color ? (color === "#ffffff" ? "White" : color === "#000000" ? "Black" : color) : 'N/A'}
       </div>
+      {/* Dimensions Display (Bottom Left) */}
+      {dimensions && (
+        <div className="absolute bottom-2 left-2 bg-background/80 text-xs px-2 py-1 rounded">
+          {`Dim: ${dimensions.x} x ${dimensions.y} x ${dimensions.z} mm`}
+        </div>
+      )}
     </div>
   )
 }

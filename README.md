@@ -249,15 +249,19 @@ For production deployment, you can host the application on a Linode server:
 <!-- TODO! -->
 I am working on my 3d printing service website, this codebase has both the frontend and backend
 Styling
-* Change Printer3d icon (in top left of page) to frontend\public\logo.png with same size, formatting and styling
+* Ensure footer matches content (name wise) as the header does. 
 
 Catalog page:
-* Showing products that arent available
-* category page titls should reflect current category
+* Should have "use client" but need to fix error of: 
+async/await is not yet supported in Client Components, only Server Components. This error is often caused by accidentally adding `'use client'` to a module that was originally written for the server.
+* category page title should reflect its on the category
+* Should show some recommend products under the categories. A search bar between allowing you to search across all items (can borrow styling from the [category]/page.tsx)
  
 Product page
 * Tab title should match the product name
-* URL should be the product id
+* URL should be the product id (not just a number)
+* finish review submission by adding backend support.
+* review shoud allow you to enter name.
 
 
 Upload page:
@@ -265,17 +269,25 @@ Upload page:
 * Allow oversize items with complex functionality:
     * Save file
     * inform user that this will require custom inquiry for this size of file.
-    * Direct to contact page.
+    * Direct to contact page with file attached.
 * Allow larger files
 
+Customize page:
+* padding from toggle (color and materials), 
+* toggle model viewer background light or dark
+* Include dimensions in bottom left of the model viewer (same formatting as how the material and color is in the bottom right)
+
+* loses config when going back between quote and customize,
 
 Quote Page:
-* In quote page, ensure the modifiers update the unit price
+* Ensure that the modifiers and notes for the multi-color print is preserved and saved to be submitted when checking out
+* adding padding between Model: and box above
 * If cart local + total is below the minimum order price, inform the user. 
 * Save quote and share are missing fucntionality, will integrator save quote later.
 
 Cart Page:
 * Most Color's in cart is the hex code not the name. 
+* Material name should always be capitalized
 * Should havbe a small preview image of the model / the product photo
 
 Checkout page:
@@ -286,7 +298,7 @@ Checkout page:
 Admin panel: 
 * Add submitted orders (stored in order.json)
 * Pricing: 
-    * Add abaility to adjust time_cost
+    * Add ability to adjust time_cost
     * A minimum order price So when user checksout, this price is automatically applied if quote is below
     * A rush order fee setting
     * Does support material even do an

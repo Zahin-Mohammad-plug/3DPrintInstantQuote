@@ -3,10 +3,11 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import Image from "next/image"; // Import Image component
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Menu, X, ChevronDown, PrinterIcon as Printer3d } from "lucide-react"
+import { Menu, X, ChevronDown } from "lucide-react" // Removed Printer3d import
 import { CartIcon } from "@/components/cart-icon"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { motion } from "framer-motion"
@@ -81,8 +82,9 @@ export function SiteHeader() {
     >
       <div className="container flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center gap-2 font-bold text-xl group">
+          {/* Replace Printer3d icon with Image component */}
           <span className="bg-primary text-primary-foreground p-1 rounded flex items-center justify-center group-hover:scale-110 transition-transform">
-            <Printer3d className="h-5 w-5" />
+            <Image src="/logo.png" alt="Print3D Ottawa Logo" width={20} height={20} className="h-5 w-5" />
           </span>
           <span className="text-primary group-hover:text-primary/80 transition-colors">Print3D</span>
           <span className="group-hover:text-primary transition-colors">Ottawa</span>

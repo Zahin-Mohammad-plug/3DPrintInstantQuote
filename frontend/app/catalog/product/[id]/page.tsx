@@ -5,10 +5,11 @@ import { useParams, useRouter } from "next/navigation"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card" // Added CardHeader, Title, Description, Footer
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea" // Added Textarea
 import { ModelViewer } from "@/components/model-viewer"
 import { ArrowLeft, ShoppingCart, Share2, Heart, Star, StarHalf } from "lucide-react"
 import Link from "next/link"
@@ -157,35 +158,74 @@ const allProducts = [
   },
 ]
 
+// Interface for Review (good practice)
+interface Review {
+  id: string;
+  name: string;
+  rating: number;
+  date: string;
+  comment: string;
+}
+
+// Interface for Product (good practice)
+interface Product {
+  id: string;
+  name: string;
+  category: string;
+  price: number;
+  description: string;
+  features: string[];
+  modelPath: string;
+  images: string[];
+  colors: string[];
+  materials: string[];
+  reviews: Review[];
+  relatedProducts: string[];
+}
+
 export default function ProductPage() {
   const params = useParams()
   const router = useRouter()
   const productId = params.id as string
 
-  const [product, setProduct] = useState<any>(null)
-  const [relatedProducts, setRelatedProducts] = useState<any[]>([])
+  const [product, setProduct] = useState<Product | null>(null)
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([])
   const [selectedColor, setSelectedColor] = useState<string>("")
   const [selectedMaterial, setSelectedMaterial] = useState<string>("")
   const [activeImage, setActiveImage] = useState(0)
   const [activeTab, setActiveTab] = useState("photos")
   const [quantity, setQuantity] = useState(1)
 
+  // State for new review form
+  const [newReviewRating, setNewReviewRating] = useState<number>(0)
+  const [newReviewComment, setNewReviewComment] = useState<string>("")
+  const [isSubmittingReview, setIsSubmittingReview] = useState<boolean>(false)
+
   useEffect(() => {
     // In a real app, you would fetch the product from an API
-    const foundProduct = allProducts.find((p) => p.id === productId)
+    const foundProduct = allProducts.find((p) => p.id === productId) as Product | undefined;
     if (foundProduct) {
       setProduct(foundProduct)
       setSelectedColor(foundProduct.colors[0])
       setSelectedMaterial(foundProduct.materials[0])
 
+      // Update document title
+      document.title = `${foundProduct.name} - Product Details`;
+
       // Get related products
       if (foundProduct.relatedProducts && foundProduct.relatedProducts.length > 0) {
         const related = allProducts
           .filter((p) => foundProduct.relatedProducts.includes(p.id) && p.id !== foundProduct.id)
-          .slice(0, 3)
+          .slice(0, 3) as Product[];
         setRelatedProducts(related)
       }
+    } else {
+      // Handle product not found - set title
+      document.title = 'Product Not Found';
     }
+
+    // Cleanup function to reset title (optional)
+    // return () => { document.title = 'Default Title'; };
   }, [productId])
 
   const handleAddToCart = () => {
@@ -252,6 +292,42 @@ export default function ProductPage() {
     const sum = reviews.reduce((total, review) => total + review.rating, 0)
     return sum / reviews.length
   }
+
+  const handleReviewRatingChange = (rating: number) => {
+    setNewReviewRating(rating);
+  };
+
+  const handleSubmitReview = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!product || newReviewRating === 0 || !newReviewComment.trim()) {
+      alert("Please provide a rating and comment.");
+      return;
+    }
+    setIsSubmittingReview(true);
+
+    // Simulate API call
+    console.log("Submitting review:", { productId: product.id, rating: newReviewRating, comment: newReviewComment });
+    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+
+    // In a real app, you would send this data to your backend API
+    // and likely refresh the reviews or add the new one optimistically.
+
+    // For now, just log and reset the form
+    alert("Review submitted (logged to console)!");
+    setNewReviewRating(0);
+    setNewReviewComment("");
+    setIsSubmittingReview(false);
+
+    // Add the new review to the state locally (for demo purposes)
+    const newReview: Review = {
+        id: `r${Date.now()}`, // Temporary unique ID
+        name: "You", // Placeholder name
+        rating: newReviewRating,
+        date: new Date().toISOString().split('T')[0], // Current date
+        comment: newReviewComment,
+    };
+    setProduct(prevProduct => prevProduct ? { ...prevProduct, reviews: [...prevProduct.reviews, newReview] } : null);
+  };
 
   if (!product) {
     return (
@@ -469,18 +545,18 @@ export default function ProductPage() {
                     </Button>
                   </div>
                 </div>
-              </div>
 
-              <Card className="mt-6 p-4">
-                <h3 className="font-medium mb-2">Features</h3>
-                <ul className="list-disc pl-5 space-y-1">
-                  {product.features.map((feature, index) => (
-                    <li key={index} className="text-sm text-muted-foreground">
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-              </Card>
+                <Card className="mt-6 p-4">
+                  <h3 className="font-medium mb-2">Features</h3>
+                  <ul className="list-disc pl-5 space-y-1">
+                    {product.features.map((feature, index) => (
+                      <li key={index} className="text-sm text-muted-foreground">
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                </Card>
+              </div>
             </div>
           </div>
 
@@ -489,11 +565,11 @@ export default function ProductPage() {
             <h2 className="text-2xl font-bold mb-6">Customer Reviews</h2>
 
             {product.reviews.length === 0 ? (
-              <div className="text-center py-8 bg-muted/20 rounded-lg">
+              <div className="text-center py-8 bg-muted/20 rounded-lg mb-8"> {/* Added mb-8 */}
                 <p className="text-muted-foreground">No reviews yet. Be the first to review this product!</p>
               </div>
             ) : (
-              <div className="space-y-6">
+              <div className="space-y-6 mb-8"> {/* Added mb-8 */}
                 <div className="flex items-center gap-4 mb-8">
                   <div className="flex flex-col items-center">
                     <div className="text-4xl font-bold">{getAverageRating(product.reviews).toFixed(1)}</div>
@@ -520,6 +596,46 @@ export default function ProductPage() {
                 </div>
               </div>
             )}
+
+            {/* Add Review Form */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Write a Review</CardTitle>
+                <CardDescription>Share your thoughts about this product.</CardDescription>
+              </CardHeader>
+              <form onSubmit={handleSubmitReview}>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Rating</Label>
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className={`h-6 w-6 cursor-pointer ${newReviewRating >= star ? 'fill-primary text-primary' : 'text-muted-foreground'}`}
+                          onClick={() => handleReviewRatingChange(star)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="review-comment">Comment</Label>
+                    <Textarea
+                      id="review-comment"
+                      placeholder="Tell us what you think..."
+                      value={newReviewComment}
+                      onChange={(e) => setNewReviewComment(e.target.value)}
+                      rows={4}
+                      required
+                    />
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <Button type="submit" disabled={isSubmittingReview || newReviewRating === 0 || !newReviewComment.trim()}>
+                    {isSubmittingReview ? "Submitting..." : "Submit Review"}
+                  </Button>
+                </CardFooter>
+              </form>
+            </Card>
           </div>
 
           {/* Related Products */}

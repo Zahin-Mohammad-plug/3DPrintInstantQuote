@@ -12,6 +12,12 @@ import Link from "next/link"
 import { uploadModel } from "@/services/api"
 import { Progress } from "@/components/ui/progress"
 
+// Define size limits
+const MAX_FILE_SIZE_MB = 200;
+const OVERSIZE_THRESHOLD_MB = 100;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+const OVERSIZE_THRESHOLD_BYTES = OVERSIZE_THRESHOLD_MB * 1024 * 1024;
+
 export function FileUploader() {
   const router = useRouter()
   const [isDragging, setIsDragging] = useState(false)
@@ -19,6 +25,7 @@ export function FileUploader() {
   const [error, setError] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
+  const [isOversize, setIsOversize] = useState(false); // State to track oversize file
 
   const allowedFileTypes = [".stl", ".3mf", ".step", ".obj"]
 
@@ -31,20 +38,30 @@ export function FileUploader() {
     setIsDragging(false)
   }
 
-  const validateFile = (file: File) => {
+  const validateFile = (file: File): boolean => {
+    setError(null); // Clear previous errors
+    setIsOversize(false); // Reset oversize state
+
     const extension = "." + file.name.split(".").pop()?.toLowerCase()
     if (!allowedFileTypes.includes(extension)) {
       setError(`Invalid file type. Please upload ${allowedFileTypes.join(", ")} files.`)
       return false
     }
 
-    // 50MB max file size
-    if (file.size > 50 * 1024 * 1024) {
-      setError("File is too large. Maximum size is 50MB.")
+    // Check total file size limit
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      setError(`File is too large. Maximum size is ${MAX_FILE_SIZE_MB}MB.`)
       return false
     }
 
-    setError(null)
+    // Check if file is oversize for custom inquiry
+    if (file.size > OVERSIZE_THRESHOLD_BYTES) {
+      setError(`This file exceeds ${OVERSIZE_THRESHOLD_MB}MB and requires a custom inquiry. Please proceed to contact us.`);
+      setIsOversize(true); // Mark as oversize
+      // Still return true because we want to keep the file selected
+      return true;
+    }
+
     return true
   }
 
@@ -71,6 +88,15 @@ export function FileUploader() {
 
   const handleSubmit = async () => {
     if (!file) return
+
+    // If the file is marked as oversize, redirect to contact page
+    if (isOversize) {
+      // Store file info for the contact page (optional, but helpful)
+      sessionStorage.setItem("oversizeFileName", file.name);
+      sessionStorage.setItem("oversizeFileSize", (file.size / (1024 * 1024)).toFixed(2) + "MB");
+      router.push("/contact?reason=oversize_quote");
+      return; // Stop the regular upload process
+    }
 
     try {
       setIsUploading(true)
@@ -149,7 +175,10 @@ export function FileUploader() {
       </Card>
 
       {error && (
-        <div className="flex items-center gap-2 text-destructive text-sm">
+        <div className={cn(
+          "flex items-center gap-2 text-sm",
+          isOversize ? "text-orange-600" : "text-destructive" // Use a different color for oversize warning
+        )}>
           <AlertCircle className="h-4 w-4" />
           <span>{error}</span>
         </div>
@@ -175,6 +204,11 @@ export function FileUploader() {
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             Uploading...
+          </>
+        ) : isOversize ? (
+          <>
+            <FileUp className="mr-2 h-4 w-4" />
+            Proceed to Custom Inquiry
           </>
         ) : (
           <>

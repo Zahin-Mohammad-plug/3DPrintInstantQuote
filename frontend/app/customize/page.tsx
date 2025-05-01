@@ -16,6 +16,9 @@ import { SiteFooter } from "@/components/site-footer"
 import { motion } from "framer-motion"
 import { getJobStatus } from "@/services/api"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Switch } from "@/components/ui/switch"; // Import Switch
+import { Label } from "@/components/ui/label"; // Import Label
+import { useTheme } from "@/components/theme-provider"; // Import useTheme
 
 // Define API base URL for model files
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
@@ -37,11 +40,27 @@ export default function CustomizePage() {
   const [isClient, setIsClient] = useState(false)
   const [isLoadingJob, setIsLoadingJob] = useState(true) // State for job fetching/polling
   const [error, setError] = useState<string | null>(null)
+  const [viewerTheme, setViewerTheme] = useState<'light' | 'dark'>('light'); // State for viewer background
+  const { theme: appTheme } = useTheme(); // Get app theme
+
+  useEffect(() => {
+    // Set initial viewer theme based on app theme
+    setViewerTheme(appTheme === 'dark' ? 'dark' : 'light');
+  }, [appTheme]);
 
   useEffect(() => {
     setIsClient(true)
     const storedModel = sessionStorage.getItem("uploadedModel")
     const storedJobId = sessionStorage.getItem("uploadedModelJobId")
+
+    // --- Restore previous selections --- START
+    const storedColor = sessionStorage.getItem("selectedColor");
+    const storedSpecial = sessionStorage.getItem("selectedSpecialFilament");
+    const storedMaterial = sessionStorage.getItem("selectedMaterial");
+    const storedQuality = sessionStorage.getItem("selectedQuality");
+    const storedIsMulti = sessionStorage.getItem("isMultiColor") === "true";
+    const storedMultiDetails = sessionStorage.getItem("multiColorDetails");
+    // --- Restore previous selections --- END
 
     if (!storedModel || !storedJobId) {
       router.push("/upload")
@@ -228,37 +247,21 @@ export default function CustomizePage() {
   }
 
   const handleNext = async () => {
+    // --- Save selections to sessionStorage --- START
+    sessionStorage.setItem("selectedColor", selectedColor || "")
+    sessionStorage.setItem("selectedSpecialFilament", selectedSpecialFilament || "")
+    sessionStorage.setItem("selectedMaterial", selectedMaterial || "") // Ensure material is saved
+    sessionStorage.setItem("selectedQuality", selectedQuality)
+    sessionStorage.setItem("isMultiColor", isMultiColor.toString())
+    sessionStorage.setItem("multiColorDetails", multiColorDetails)
+    sessionStorage.setItem("jobId", jobId || "")
+    // --- Save selections to sessionStorage --- END
+
     if (activeTab === "color" && (selectedColor || selectedSpecialFilament || isMultiColor)) {
       setActiveTab("material")
     } else if (activeTab === "material" && selectedMaterial) {
-      try {
-        // Update the job with the selected quality
-        if (jobId) {
-          // Get the current job status
-          const jobStatus = await getJobStatus(jobId);
-          
-          // If the job is completed, we can update the quality
-          if (jobStatus.status === 'completed') {
-            // In a real app, you would have an API endpoint to update the job
-            // For now, we'll just store it in session storage
-            console.log(`Updating job ${jobId} with quality: ${selectedQuality}`);
-          }
-        }
-        
-        // Store selections in session storage for the quote page
-        sessionStorage.setItem("selectedColor", selectedColor || "")
-        sessionStorage.setItem("selectedSpecialFilament", selectedSpecialFilament || "")
-        sessionStorage.setItem("selectedMaterial", selectedMaterial)
-        sessionStorage.setItem("selectedQuality", selectedQuality)
-        sessionStorage.setItem("isMultiColor", isMultiColor.toString())
-        sessionStorage.setItem("multiColorDetails", multiColorDetails)
-        sessionStorage.setItem("jobId", jobId || "")
-        router.push("/quote")
-      } catch (err) {
-        console.error("Error updating job:", err);
-        // Continue to quote page even if update fails
-        router.push("/quote")
-      }
+      // No need to update job here, just navigate
+      router.push("/quote")
     }
   }
 
@@ -330,14 +333,25 @@ export default function CustomizePage() {
                     {isMultiColor && " (Preview shows base color only)"}
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="aspect-square p-0">
+                <CardContent className="aspect-square p-0 relative"> {/* Added relative positioning */}
                   <ModelViewer
                     modelPath={modelUrl || "fallback"} // Pass determined URL or fallback
                     color={selectedColor || "#cccccc"}
                     material={selectedMaterial || "PLA"}
                     jobId={jobId || undefined}
                     isLoading={isLoadingJob} // Pass the job loading state
+                    viewerTheme={viewerTheme} // Pass viewer theme
                   />
+                  {/* Viewer Theme Toggle */}
+                  <div className="absolute top-4 right-3 flex items-center space-x-4 bg-background/80 px-3 py-2 rounded">
+                    <Label htmlFor="viewer-theme" className="text-s">Dark Background</Label>
+                    <Switch
+                      id="viewer-theme"
+                      checked={viewerTheme === 'dark'}
+                      onCheckedChange={(checked) => setViewerTheme(checked ? 'dark' : 'light')}
+                      className="h-4 w-7 data-[state=checked]:bg-primary data-[state=unchecked]:bg-gray-300"
+                    />
+                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -350,7 +364,7 @@ export default function CustomizePage() {
                 </CardHeader>
                 <CardContent>
                   <Tabs value={activeTab} onValueChange={setActiveTab}>
-                    <TabsList className="grid w-full grid-cols-2 mb-6">
+                    <TabsList className="grid w-full grid-cols-2 mt-6">
                       <TabsTrigger value="color" className="flex items-center gap-2">
                         <Palette className="h-4 w-4" />
                         <span>Color</span>
@@ -376,7 +390,7 @@ export default function CustomizePage() {
                       </div>
                     </TabsContent>
 
-                    <TabsContent value="material" className="pt-4">
+                    <TabsContent value="material" className="pt-4 space-y-1"> {/* Added space-y-6 for padding */}
                       <div className="selection-container">
                         <h3 className="selection-title flex items-center gap-2">
                           <Layers className="h-5 w-5 text-primary" />
