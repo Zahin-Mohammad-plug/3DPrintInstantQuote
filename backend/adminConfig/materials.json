@@ -72,14 +72,15 @@
           "name": "Truffle Butter"
         }
       ],
-      "description": "Standard material, good for most prints",
+      "description": "Standard material for decorative prints. Good detail, limited durability.",
       "hourly_rate": 2,
       "id": "pla",
-      "name": "PLA",
+      "name": "PLA (Decorative)",
       "properties": [
         "Simple",
         "Indoor use"
-      ]
+      ],
+      "supportsMultiColor": true
     },
     {
       "base_cost_per_gram": 0.07,
@@ -103,16 +104,17 @@
           "name": "Clear"
         }
       ],
-      "description": "Durable material, suitable for outdoor use",
+      "description": "Weather-resistant material for outdoor applications. Good strength and UV resistance.",
       "hourly_rate": 2.5,
       "id": "petg",
-      "name": "PETG",
-      "priceModifier": 0,
+      "name": "PETG (Outdoor Use)",
+      "priceModifier": 15,
       "properties": [
         "Durable",
         "Outdoor",
         "Water-resistant"
-      ]
+      ],
+      "supportsMultiColor": true
     },
     {
       "base_cost_per_gram": 0.08,
@@ -130,16 +132,17 @@
           "addon_price": 2.69
         }
       ],
-      "description": "Rigid material, good for mechanical parts",
+      "description": "Durable, impact-resistant material for structural components and commercial applications.",
       "hourly_rate": 3,
       "id": "abs",
-      "name": "ABS",
-      "priceModifier": 0,
+      "name": "ABS (Commercial Grade)",
+      "priceModifier": 25,
       "properties": [
         "Rigid",
         "Heat-resistant",
         "Durable"
-      ]
+      ],
+      "supportsMultiColor": false
     }
   ],
   "special_filaments": [

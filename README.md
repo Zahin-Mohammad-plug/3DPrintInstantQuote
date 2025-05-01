@@ -268,8 +268,6 @@ Upload page:
     * Direct to contact page.
 * Allow larger files
 
-Customize page:
-* Should grey out unavailable material selection options 
 
 Quote Page:
 * In quote page, ensure the modifiers update the unit price
@@ -285,8 +283,7 @@ Checkout page:
 * The navBar will reappear on thank you page
 * Fix the checkout page to actually email me
 
-Admin panel:
-* Front end customize page has extra description beside material type (like:  (Outdoor Use),(Decorative) and so on ), should be stored in backend as well 
+Admin panel: 
 * Add submitted orders (stored in order.json)
 * Add upload images for categories and products (mapped to new dirs)
 

@@ -5,6 +5,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Check, AlertCircle } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { getMaterials } from "@/services/api" // Assuming you have an API function to fetch materials
 
 interface MaterialOption {
   id: string
@@ -22,67 +23,49 @@ interface MaterialSelectorProps {
   isMultiColor?: boolean
 }
 
-// In a real app, this would come from your backend API
-const MOCK_MATERIALS: MaterialOption[] = [
-  {
-    id: "PLA",
-    name: "PLA (Decorative)",
-    description: "Standard material for decorative prints. Good detail, limited durability.",
-    priceModifier: 0,
-    availableColors: [
-      "#ffffff",
-      "#000000",
-      "#ff0000",
-      "#0000ff",
-      "#00ff00",
-      "#ffff00",
-      "#ff9900",
-      "#800080",
-      "#ff69b4",
-      "#008080",
-      "#ffd700",
-      "#c0c0c0",
-    ],
-    supportsMultiColor: true,
-  },
-  {
-    id: "PETG",
-    name: "PETG (Outdoor Use)",
-    description: "Weather-resistant material for outdoor applications. Good strength and UV resistance.",
-    priceModifier: 15,
-    availableColors: ["#ffffff", "#000000", "#ff0000", "#0000ff", "#00ff00", "#ffff00", "#ff9900"],
-    supportsMultiColor: true,
-  },
-  {
-    id: "ABS",
-    name: "ABS (Commercial Grade)",
-    description: "Durable, impact-resistant material for structural components and commercial applications.",
-    priceModifier: 25,
-    availableColors: ["#ffffff", "#000000", "#ff0000", "#0000ff"],
-    supportsMultiColor: false,
-  },
-]
-
 export function MaterialSelector({
   onSelect,
   selectedMaterial,
   selectedColor,
   isMultiColor = false,
 }: MaterialSelectorProps) {
-  const [materials, setMaterials] = useState<MaterialOption[]>(MOCK_MATERIALS)
+  const [materials, setMaterials] = useState<MaterialOption[]>([]) // Initialize with empty array
   const [colorWarning, setColorWarning] = useState<string | null>(null)
   const [multiColorWarning, setMultiColorWarning] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true); // Add loading state
+  const [error, setError] = useState<string | null>(null); // Add error state
 
-  // In a real app, you would fetch materials from your API
+  // Fetch materials from the API
   useEffect(() => {
-    // Example API call:
-    // const fetchMaterials = async () => {
-    //   const response = await fetch('/api/materials')
-    //   const data = await response.json()
-    //   setMaterials(data)
-    // }
-    // fetchMaterials()
-  }, [])
+    const fetchMaterials = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        // Assuming getMaterials fetches the structure from materials.json
+        const response = await getMaterials(); 
+        if (response && response.materials) {
+          // Map backend data to frontend MaterialOption interface
+          const fetchedMaterials = response.materials.map((mat: any) => ({
+            id: mat.id,
+            name: mat.name, // Use the name directly from backend
+            description: mat.description,
+            priceModifier: mat.priceModifier || 0, // Use priceModifier if available, else 0
+            availableColors: mat.colors ? mat.colors.map((c: any) => c.hex) : [],
+            supportsMultiColor: mat.supportsMultiColor !== undefined ? mat.supportsMultiColor : true, // Use backend value or default to true
+          }));
+          setMaterials(fetchedMaterials);
+        } else {
+          setError("Failed to load material data format.");
+        }
+      } catch (err) {
+        console.error("Error fetching materials:", err);
+        setError("Failed to load materials. Please try again later.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchMaterials();
+  }, []);
 
   // Check if the selected color is available for the selected material
   useEffect(() => {
@@ -142,6 +125,16 @@ export function MaterialSelector({
         setMultiColorWarning(null)
       }
     }
+  }
+
+  // Render Loading State
+  if (isLoading) {
+    return <div className="p-4 text-center">Loading materials...</div>;
+  }
+
+  // Render Error State
+  if (error) {
+    return <div className="p-4 text-center text-red-600">{error}</div>;
   }
 
   return (

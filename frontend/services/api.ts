@@ -224,28 +224,41 @@ export async function getMaterials(): Promise<MaterialsResponse> {
  */
 export async function updateMaterials(materialsData: MaterialsResponse): Promise<{ success: boolean; message: string }> {
   try {
-    // Basic Auth credentials (replace with a more secure method if needed)
-    const username = "admin";
-    const password = "password"; // Use the actual password from auth.json or default
-    const credentials = btoa(`${username}:${password}`); // Base64 encode
+    // Retrieve the stored Basic Auth string from sessionStorage
+    const authString = sessionStorage.getItem('adminAuth');
+    const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+    };
+
+    if (authString) {
+        headers['Authorization'] = authString;
+    } else {
+        // If no auth string is found, throw an error immediately
+        console.error("Admin auth credentials not found for updating materials data.");
+        throw new Error("Authentication required. Please log in as admin.");
+    }
 
     const response = await fetch(`${API_BASE_URL}/api/materials`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Basic ${credentials}` // Add Basic Auth header
-      },
+      headers: headers, // Use the headers with Authorization
       body: JSON.stringify(materialsData),
     });
     
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to update materials');
+      console.error(`Failed to update materials: ${response.status} ${response.statusText}`, errorData);
+      if (response.status === 401) {
+           // Clear potentially invalid stored credentials on 401
+           sessionStorage.removeItem('adminAuth');
+           throw new Error(`Authentication failed. Please log in again.`);
+      }
+      throw new Error(errorData.message || errorData.error || 'Failed to update materials'); // Use message from backend if available
     }
     
     return await response.json();
   } catch (error) {
     console.error('Error updating materials:', error);
+    // Re-throw the error to be handled by the calling component
     throw error;
   }
 }
