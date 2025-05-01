@@ -599,3 +599,27 @@ export async function calculateJobPrice(jobId: string, params: PriceCalculationP
     throw error; // Re-throw to be handled by the caller
   }
 }
+
+// Export Category and Product types
+export interface Category {
+  id: string;
+  name: string;
+  description: string;
+  image?: string;
+}
+
+export interface Product {
+  id: string;
+  name: string;
+  category?: string;
+  price?: number;
+  image?: string;
+  colors?: string[];
+  materials?: string[];
+  description?: string;
+  features?: string[];
+  modelPath?: string;
+  images?: string[];
+  relatedProducts?: string[];
+  reviews?: any[];
+}

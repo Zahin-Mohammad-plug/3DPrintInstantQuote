@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card" // Added CardHeader, Title, Description, Footer
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
@@ -13,175 +13,8 @@ import { Textarea } from "@/components/ui/textarea" // Added Textarea
 import { ModelViewer } from "@/components/model-viewer"
 import { ArrowLeft, ShoppingCart, Share2, Heart, Star, StarHalf } from "lucide-react"
 import Link from "next/link"
-
-// Mock data for products
-const allProducts = [
-  {
-    id: "1",
-    name: "Custom Card Holder",
-    category: "tcg-accessories",
-    price: 24.99,
-    description: "A customizable card holder perfect for trading card games. Holds up to 60 sleeved cards securely.",
-    features: [
-      "Holds up to 60 sleeved cards",
-      "Customizable design",
-      "Durable construction",
-      "Available in multiple colors",
-    ],
-    modelPath: "/assets/3d/duck.glb", // In a real app, this would be the path to the actual 3D model
-    images: [
-      "/placeholder.svg?height=600&width=600",
-      "/placeholder.svg?height=600&width=600",
-      "/placeholder.svg?height=600&width=600",
-      "/placeholder.svg?height=600&width=600",
-    ],
-    colors: ["White", "Black", "Red", "Blue"],
-    materials: ["PLA", "PETG"],
-    reviews: [
-      {
-        id: "r1",
-        name: "John D.",
-        rating: 5,
-        date: "2023-10-15",
-        comment: "Perfect fit for my cards. The quality is excellent and it looks great on my shelf.",
-      },
-      {
-        id: "r2",
-        name: "Sarah M.",
-        rating: 4,
-        date: "2023-09-22",
-        comment: "Good quality and design. Would be perfect if it had a locking mechanism.",
-      },
-      {
-        id: "r3",
-        name: "Mike T.",
-        rating: 5,
-        date: "2023-08-30",
-        comment: "Exactly what I needed for my TCG collection. Highly recommended!",
-      },
-    ],
-    relatedProducts: ["2", "3", "4"],
-  },
-  {
-    id: "2",
-    name: "Dice Tower",
-    category: "tcg-accessories",
-    price: 34.99,
-    description: "An elegant dice tower for tabletop gaming with a smooth rolling surface.",
-    features: ["Smooth dice rolling", "Compact design", "Noise reduction", "Non-slip base"],
-    modelPath: "/assets/3d/duck.glb",
-    images: ["/placeholder.svg?height=600&width=600", "/placeholder.svg?height=600&width=600"],
-    colors: ["White", "Black", "Green", "Purple"],
-    materials: ["PLA", "PETG", "ABS"],
-    reviews: [
-      {
-        id: "r1",
-        name: "Alex P.",
-        rating: 5,
-        date: "2023-11-05",
-        comment: "Great dice tower! Rolls are truly random and it looks fantastic.",
-      },
-    ],
-    relatedProducts: ["1", "3"],
-  },
-  {
-    id: "3",
-    name: "Desk Organizer",
-    category: "office-addons",
-    price: 29.99,
-    description: "Keep your desk tidy with this customizable organizer.",
-    features: ["Multiple compartments", "Customizable layout", "Space-saving design", "Durable construction"],
-    modelPath: "/assets/3d/duck.glb",
-    images: ["/placeholder.svg?height=600&width=600", "/placeholder.svg?height=600&width=600"],
-    colors: ["White", "Black", "Blue", "Red"],
-    materials: ["PLA", "PETG"],
-    reviews: [
-      {
-        id: "r1",
-        name: "Emily R.",
-        rating: 4,
-        date: "2023-10-28",
-        comment: "Perfect for organizing my small office supplies. Sturdy and well-designed.",
-      },
-    ],
-    relatedProducts: ["4", "1"],
-  },
-  {
-    id: "4",
-    name: "Phone Stand",
-    category: "office-addons",
-    price: 14.99,
-    description: "A sleek and adjustable phone stand for your desk.",
-    features: ["Adjustable viewing angle", "Compatible with most phones", "Stable base", "Cable management"],
-    modelPath: "/assets/3d/duck.glb",
-    images: ["/placeholder.svg?height=600&width=600"],
-    colors: ["White", "Black", "Red", "Blue", "Green"],
-    materials: ["PLA", "PETG", "ABS"],
-    reviews: [
-      {
-        id: "r1",
-        name: "David K.",
-        rating: 5,
-        date: "2023-11-10",
-        comment: "Simple but effective. Holds my phone at the perfect angle for video calls.",
-      },
-    ],
-    relatedProducts: ["3", "5"],
-  },
-  {
-    id: "5",
-    name: "Decorative Vase",
-    category: "home-decor",
-    price: 39.99,
-    description: "A beautiful decorative vase for your home.",
-    features: ["Unique geometric design", "Watertight construction", "Elegant finish", "Multiple size options"],
-    modelPath: "/assets/3d/duck.glb",
-    images: ["/placeholder.svg?height=600&width=600", "/placeholder.svg?height=600&width=600"],
-    colors: ["White", "Black", "Gold", "Silver"],
-    materials: ["PLA", "PETG"],
-    reviews: [],
-    relatedProducts: ["6", "4"],
-  },
-  {
-    id: "6",
-    name: "Wall Planter",
-    category: "home-decor",
-    price: 19.99,
-    description: "A modern wall-mounted planter for small plants and succulents.",
-    features: ["Wall-mounting hardware included", "Drainage system", "UV-resistant materials", "Indoor/outdoor use"],
-    modelPath: "/assets/3d/duck.glb",
-    images: ["/placeholder.svg?height=600&width=600"],
-    colors: ["White", "Black", "Green", "Blue"],
-    materials: ["PLA", "PETG"],
-    reviews: [],
-    relatedProducts: ["5", "3"],
-  },
-]
-
-// Interface for Review (good practice)
-interface Review {
-  id: string;
-  name: string;
-  rating: number;
-  date: string;
-  comment: string;
-}
-
-// Interface for Product (good practice)
-interface Product {
-  id: string;
-  name: string;
-  category: string;
-  price: number;
-  description: string;
-  features: string[];
-  modelPath: string;
-  images: string[];
-  colors: string[];
-  materials: string[];
-  reviews: Review[];
-  relatedProducts: string[];
-}
+import { getCatalogData } from "@/services/api"
+import type { Product, Review } from "@/services/api"
 
 export default function ProductPage() {
   const params = useParams()
@@ -197,49 +30,54 @@ export default function ProductPage() {
   const [quantity, setQuantity] = useState(1)
 
   // State for new review form
+  const [newReviewName, setNewReviewName] = useState<string>("")
   const [newReviewRating, setNewReviewRating] = useState<number>(0)
   const [newReviewComment, setNewReviewComment] = useState<string>("")
   const [isSubmittingReview, setIsSubmittingReview] = useState<boolean>(false)
+  const [reviews, setReviews] = useState<Review[]>([])
+
+  // Load product and reviews
+  useEffect(() => {
+    async function loadProduct() {
+      const { products } = await getCatalogData()
+      const found = products.find(p => p.id === productId)
+      if (found) {
+        setProduct(found)
+        setSelectedColor(found.colors[0]||"")
+        setSelectedMaterial(found.materials[0]||"")
+        // fetch reviews
+        const resp = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/product/${productId}/reviews`)
+        if (resp.ok) setReviews(await resp.json())
+        // related products
+        if (found.relatedProducts) {
+          const related = products.filter(p => found.relatedProducts.includes(p.id) && p.id!==found.id).slice(0,3)
+          setRelatedProducts(related)
+        }
+      } else {
+        document.title = 'Product Not Found'
+      }
+    }
+    loadProduct()
+  }, [productId])
 
   useEffect(() => {
-    // In a real app, you would fetch the product from an API
-    const foundProduct = allProducts.find((p) => p.id === productId) as Product | undefined;
-    if (foundProduct) {
-      setProduct(foundProduct)
-      setSelectedColor(foundProduct.colors[0])
-      setSelectedMaterial(foundProduct.materials[0])
-
-      // Update document title
-      document.title = `${foundProduct.name} - Product Details`;
-
-      // Get related products
-      if (foundProduct.relatedProducts && foundProduct.relatedProducts.length > 0) {
-        const related = allProducts
-          .filter((p) => foundProduct.relatedProducts.includes(p.id) && p.id !== foundProduct.id)
-          .slice(0, 3) as Product[];
-        setRelatedProducts(related)
-      }
-    } else {
-      // Handle product not found - set title
-      document.title = 'Product Not Found';
-    }
-
+    if (product) document.title = `${product.name} - Product Details`;
     // Cleanup function to reset title (optional)
     // return () => { document.title = 'Default Title'; };
-  }, [productId])
+  }, [product])
 
   const handleAddToCart = () => {
     if (!product) return
 
     // Create cart item
     const cartItem = {
-      id: product.id, // This will be the lowercase-with-dashes format
+      id: product.id,
       name: product.name,
       price: product.price * quantity,
-      quantity: quantity,
+      quantity,
       color: selectedColor,
       material: selectedMaterial,
-      image: product.images[0],
+      image: product.images[0]
     }
 
     // Add to cart in session storage
@@ -287,47 +125,29 @@ export default function ProductPage() {
   }
 
   // Calculate average rating
-  const getAverageRating = (reviews: any[]) => {
-    if (!reviews || reviews.length === 0) return 0
-    const sum = reviews.reduce((total, review) => total + review.rating, 0)
-    return sum / reviews.length
-  }
+  const getAverageRating = (rs: Review[]) => rs.length ? rs.reduce((sum,r)=>sum+r.rating,0)/rs.length : 0
 
-  const handleReviewRatingChange = (rating: number) => {
-    setNewReviewRating(rating);
-  };
+  const handleReviewRatingChange = (rating: number) => setNewReviewRating(rating)
 
-  const handleSubmitReview = async (event: React.FormEvent) => {
-    event.preventDefault();
-    if (!product || newReviewRating === 0 || !newReviewComment.trim()) {
-      alert("Please provide a rating and comment.");
-      return;
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!product || !newReviewName.trim() || newReviewRating===0 || !newReviewComment.trim()) {
+      return
     }
     setIsSubmittingReview(true);
 
-    // Simulate API call
-    console.log("Submitting review:", { productId: product.id, rating: newReviewRating, comment: newReviewComment });
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+    try {
+      const resp = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/product/${productId}/reviews`,{
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({name:newReviewName,rating:newReviewRating,comment:newReviewComment})
+      })
+      const newRev = await resp.json()
+      if (resp.ok) setReviews(prev=>[...prev,newRev])
+    } catch(err){ console.error(err) }
 
-    // In a real app, you would send this data to your backend API
-    // and likely refresh the reviews or add the new one optimistically.
-
-    // For now, just log and reset the form
-    alert("Review submitted (logged to console)!");
-    setNewReviewRating(0);
-    setNewReviewComment("");
+    setNewReviewName(''); setNewReviewRating(0); setNewReviewComment('')
     setIsSubmittingReview(false);
-
-    // Add the new review to the state locally (for demo purposes)
-    const newReview: Review = {
-        id: `r${Date.now()}`, // Temporary unique ID
-        name: "You", // Placeholder name
-        rating: newReviewRating,
-        date: new Date().toISOString().split('T')[0], // Current date
-        comment: newReviewComment,
-    };
-    setProduct(prevProduct => prevProduct ? { ...prevProduct, reviews: [...prevProduct.reviews, newReview] } : null);
-  };
+  }
 
   if (!product) {
     return (
@@ -430,9 +250,9 @@ export default function ProductPage() {
               <div className="mb-6">
                 <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="flex">{renderStars(getAverageRating(product.reviews))}</div>
+                  <div className="flex">{renderStars(getAverageRating(reviews))}</div>
                   <span className="text-sm text-muted-foreground">
-                    {product.reviews.length} {product.reviews.length === 1 ? "review" : "reviews"}
+                    {reviews.length} {reviews.length === 1 ? "review" : "reviews"}
                   </span>
                 </div>
                 <p className="text-2xl font-bold text-primary mb-4">${product.price.toFixed(2)}</p>
@@ -564,7 +384,7 @@ export default function ProductPage() {
           <div className="mt-12">
             <h2 className="text-2xl font-bold mb-6">Customer Reviews</h2>
 
-            {product.reviews.length === 0 ? (
+            {reviews.length === 0 ? (
               <div className="text-center py-8 bg-muted/20 rounded-lg mb-8"> {/* Added mb-8 */}
                 <p className="text-muted-foreground">No reviews yet. Be the first to review this product!</p>
               </div>
@@ -572,16 +392,16 @@ export default function ProductPage() {
               <div className="space-y-6 mb-8"> {/* Added mb-8 */}
                 <div className="flex items-center gap-4 mb-8">
                   <div className="flex flex-col items-center">
-                    <div className="text-4xl font-bold">{getAverageRating(product.reviews).toFixed(1)}</div>
-                    <div className="flex mt-1">{renderStars(getAverageRating(product.reviews))}</div>
+                    <div className="text-4xl font-bold">{getAverageRating(reviews).toFixed(1)}</div>
+                    <div className="flex mt-1">{renderStars(getAverageRating(reviews))}</div>
                     <div className="text-sm text-muted-foreground mt-1">
-                      Based on {product.reviews.length} {product.reviews.length === 1 ? "review" : "reviews"}
+                      Based on {reviews.length} {reviews.length === 1 ? "review" : "reviews"}
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-6">
-                  {product.reviews.map((review) => (
+                  {reviews.map((review) => (
                     <div key={review.id} className="border-b pb-6">
                       <div className="flex justify-between mb-2">
                         <div className="font-medium">{review.name}</div>
@@ -605,6 +425,17 @@ export default function ProductPage() {
               </CardHeader>
               <form onSubmit={handleSubmitReview}>
                 <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="review-name">Name</Label>
+                    <input
+                      id="review-name"
+                      type="text"
+                      className="w-full p-2 border rounded"
+                      value={newReviewName}
+                      onChange={(e) => setNewReviewName(e.target.value)}
+                      required
+                    />
+                  </div>
                   <div className="space-y-2">
                     <Label>Rating</Label>
                     <div className="flex gap-1">

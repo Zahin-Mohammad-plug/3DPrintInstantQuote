@@ -273,21 +273,20 @@ Upload page:
 * Allow larger files
 
 Customize page:
-* padding from toggle (color and materials), 
-* toggle model viewer background light or dark
-* Include dimensions in bottom left of the model viewer (same formatting as how the material and color is in the bottom right)
-
-* loses config when going back between quote and customize,
+-dimesnsions arent accurate and dont appear until toggling background
 
 Quote Page:
 * Ensure that the modifiers and notes for the multi-color print is preserved and saved to be submitted when checking out
 * adding padding between Model: and box above
-* If cart local + total is below the minimum order price, inform the user. 
+* Include dimensions in bottom left of the model viewer (same formatting as the customize page, should use the same viewer)
+
 * Save quote and share are missing fucntionality, will integrator save quote later.
+* If cart local + total is below the minimum order price, inform the user. 
+
 
 Cart Page:
 * Most Color's in cart is the hex code not the name. 
-* Material name should always be capitalized
+* Material name should always be all caps
 * Should havbe a small preview image of the model / the product photo
 
 Checkout page:

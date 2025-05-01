@@ -15,7 +15,7 @@ import Link from "next/link"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { motion } from "framer-motion"
-import { getJobStatus, getMaterials, addJobToCart, calculateJobPrice, PriceInfo } from "@/services/api" // Import calculateJobPrice and PriceInfo
+import { getJobStatus, getMaterials, addJobToCart, calculateJobPrice } from "@/services/api" // Import calculateJobPrice and PriceInfo
 
 // Define API base URL for model files
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
@@ -223,7 +223,7 @@ export default function QuotePage() {
   }, []);
 
   // --- NEW function to process the price info from calculateJobPrice --- START
-  const processPriceInfo = (priceInfo: PriceInfo, quality: string, qty: number, multiPart: boolean, isMultiColorFlag: boolean) => {
+  const processPriceInfo = (priceInfo: any, quality: string, qty: number, multiPart: boolean, isMultiColorFlag: boolean) => {
     console.log("processPriceInfo called with:", { priceInfo, quality, qty, multiPart, isMultiColorFlag });
 
     if (!priceInfo || typeof priceInfo.total_price === 'undefined') {
@@ -334,8 +334,9 @@ export default function QuotePage() {
         multiColorDetails,
         quantity,
         isMultiPart,
-        price: quoteDetails.totalWithQuantity, // Use the final calculated total
-        jobId: jobId
+        price: quoteDetails.totalWithQuantity,
+        jobId: jobId,
+        image: "/placeholder.svg"
       };
 
       const existingCart = sessionStorage.getItem("cart");
@@ -430,13 +431,21 @@ export default function QuotePage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="aspect-square p-0">
-                  <ModelViewer
-                    modelPath={modelUrl || "fallback"} // Use state variable modelUrl
-                    color={selectedColor || "#cccccc"}
-                    material={selectedMaterial || "PLA"}
-                    jobId={jobId || undefined}
-                    isLoading={!modelUrl} // Show loading in viewer until URL is set
-                  />
+                  <div className="aspect-square overflow-hidden rounded-md border relative">
+                    <ModelViewer
+                      modelPath={modelUrl || "fallback"}
+                      color={selectedColor || "#cccccc"}
+                      material={selectedMaterial || "PLA"}
+                      jobId={jobId || undefined}
+                      isLoading={!modelUrl}
+                    />
+                    {/* Dimensions overlay */}
+                    {quoteDetails?.size && (
+                      <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
+                        {`${quoteDetails.size.x.toFixed(1)}×${quoteDetails.size.y.toFixed(1)}×${quoteDetails.size.z.toFixed(1)} mm`}
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -451,7 +460,7 @@ export default function QuotePage() {
                 <CardContent>
                   <div className="space-y-4">
                     {/* ... Display Model, Material, Color, Quality (using state variables) ... */}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-4 pt-4">
                       <div className="text-sm">Model:</div>
                       <div className="text-sm font-medium">{modelName}</div>
 

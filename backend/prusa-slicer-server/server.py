@@ -13,6 +13,8 @@ import queue
 from functools import wraps
 import base64
 import traceback # Ensure traceback is imported
+import datetime  # Add import for datetime
+import sys  # Add import for sys for stderr logging
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -921,6 +923,37 @@ def calculate_job_price(job_id):
         print(f"Error in /calculate-price endpoint for job {job_id}: {str(e)}")
         traceback.print_exc() # Print full traceback for debugging
         return jsonify({"error": f"An unexpected error occurred during price calculation: {str(e)}"}), 500
+
+@app.route("/api/product/<product_id>/reviews", methods=["GET", "POST"])
+def product_reviews(product_id):
+    """Get or post reviews for a product"""
+    catalog_data = get_catalog()
+    products = catalog_data.get("products", [])
+    product = next((p for p in products if p.get("id") == product_id), None)
+    if not product:
+        return jsonify({"error": "Product not found"}), 404
+    if request.method == "GET":
+        return jsonify(product.get("reviews", []))
+    # POST: add a new review
+    data = request.json or {}
+    name = data.get("name")
+    rating = data.get("rating")
+    comment = data.get("comment")
+    if not name or rating is None or not comment:
+        return jsonify({"error": "Missing review fields"}), 400
+    review = {
+        "id": str(uuid.uuid4()),
+        "name": name,
+        "rating": rating,
+        "date": datetime.datetime.utcnow().isoformat(),
+        "comment": comment,
+    }
+    product.setdefault("reviews", []).append(review)
+    # Save catalog with new review
+    if save_catalog(catalog_data):
+        return jsonify(review), 201
+    else:
+        return jsonify({"error": "Failed to save review"}), 500
 
 if __name__ == "__main__":
     # Initialize materials if needed (now checks config path)
