@@ -285,11 +285,18 @@ Checkout page:
 
 Admin panel: 
 * Add submitted orders (stored in order.json)
+* Pricing does fuck all. 
+    * Should have a floor price
+    * a simple text input that applies the logic for pricing so maybe a variable called x which you can input (x * 1.30) + 2
+    * A minimum order price So when user checksout, this price is automatically applied if quote is below
+    * A rush order fee setting
+     
 * Add upload images for categories and products (mapped to new dirs)
 
 
 Features:
 * Update for SEO
+* Ensure uses static export (use client)
 
 ## Troubleshooting
 

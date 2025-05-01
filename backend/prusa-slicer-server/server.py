@@ -292,6 +292,61 @@ def calculate_price(material_id, color_id, filament_used_g, print_time, has_supp
         print(f"Error in price calculation: {str(e)}")
         return {"error": str(e)}
 
+def calculate_price(material_id, color_id, filament_used_g, print_time, has_supports, quality_id=None, volume_cm3=None):
+    """Calculate price based on material, color, filament usage, print time, and quality"""
+    try:
+        materials_data = get_materials()
+        materials = materials_data["materials"]
+        global_settings = materials_data["global_settings"]
+        # ... existing material, color lookup and cost calculations ...
+        material_cost = filament_used_g * material["base_cost_per_gram"]
+        if has_supports:
+            material_cost *= global_settings.get("support_material_multiplier", 1)
+        time_cost = parse_time_string(print_time) * material["hourly_rate"]
+        prusa_cost = material_cost + time_cost
+        # Enforce floor price
+        minimum_price = global_settings.get("minimum_price", 0)
+        x = max(prusa_cost, minimum_price)
+        # Evaluate custom formula if present
+        formula = global_settings.get("pricing_formula")
+        if formula:
+            try:
+                # Safe evaluation: only x allowed
+                total_base = eval(formula, {"__builtins__": {}}, {"x": x})
+                base_price_computed = float(total_base)
+            except Exception as fe:
+                # Fallback to x if formula eval fails
+                print(f"Error evaluating pricing formula '{formula}': {fe}")
+                base_price_computed = x
+        else:
+            # If no formula, default to base_price with 30% markup
+            markup_percentage = global_settings.get("markup_percentage", 30)
+            base_price_computed = x * (1 + markup_percentage / 100)
+        # Apply color and material modifiers
+        color_addon = color.get("addon_price", 0)
+        material_modifier = material.get("priceModifier", 0)
+        # Quality modifier
+        quality_modifier = 0
+        if quality_id and "quality_levels" in global_settings:
+            q = next((q for q in global_settings["quality_levels"] if q["id"] == quality_id), None)
+            if q:
+                quality_modifier = q.get("price_modifier", 0)
+        # Final total price
+        total_price = base_price_computed + color_addon + material_modifier + quality_modifier
+        return {
+            "prusa_cost": round(prusa_cost, 2),
+            "base_price": round(base_price_computed, 2),
+            "material_cost": round(material_cost, 2),
+            "time_cost": round(time_cost, 2),
+            "color_addon": round(color_addon, 2),
+            "material_modifier": round(material_modifier, 2),
+            "quality_modifier": round(quality_modifier, 2),
+            "total_price": round(total_price, 2)
+        }
+    except Exception as e:
+        print(f"Error in price calculation: {str(e)}")
+        return {"error": str(e)}
+
 def get_materials():
     """Get materials from file or return defaults if file doesn't exist"""
     if os.path.exists(MATERIALS_FILE):
