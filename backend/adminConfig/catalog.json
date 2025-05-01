@@ -4,7 +4,7 @@
       "description": "Custom 3D printed items for weddings, parties, and corporate events",
       "id": "event-planning",
       "image": "/placeholder.svg?height=300&width=500",
-      "name": "Event Planning 2"
+      "name": "Event Planning"
     },
     {
       "description": "Decorative items to enhance your living space",
@@ -63,7 +63,7 @@
         "PETG"
       ],
       "modelPath": "/assets/3d/duck.glb",
-      "name": "Custom Card Holder",
+      "name": "Custom Card Holde",
       "price": 24.99,
       "relatedProducts": [
         "2",

@@ -1,66 +1,51 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { SiteHeader } from "@/components/site-header"
-import { SiteFooter } from "@/components/site-footer"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Search } from "lucide-react"
-import Link from "next/link"
+import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
+import { Input } from "@/components/ui/input"; // Keep for potential future client component
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Search } from "lucide-react"; // Keep for potential future client component
+import Link from "next/link";
+import { getCatalogData } from "@/services/api"; // Import the API function
+import type { Category, Product } from "@/services/api"; // Import types
+import type { Metadata } from 'next'; // Import Metadata type
 
-// Mock data for categories
-const categories = [
-  {
-    id: "event-planning",
-    name: "Event Planning",
-    description: "Custom 3D printed items for weddings, parties, and corporate events",
-    image: "/placeholder.svg?height=300&width=500",
-    count: 12,
-  },
-  {
-    id: "home-decor",
-    name: "Home Decor",
-    description: "Decorative items to enhance your living space",
-    image: "/placeholder.svg?height=300&width=500",
-    count: 24,
-  },
-  {
-    id: "tools-accessories",
-    name: "Tools & Accessories",
-    description: "Practical tools and accessories for everyday use",
-    image: "/placeholder.svg?height=300&width=500",
-    count: 18,
-  },
-  {
-    id: "novelty-items",
-    name: "Novelty Items",
-    description: "Fun and unique 3D printed creations",
-    image: "/placeholder.svg?height=300&width=500",
-    count: 15,
-  },
-  {
-    id: "office-addons",
-    name: "Office Add-ons",
-    description: "Enhance your workspace with custom 3D printed items",
-    image: "/placeholder.svg?height=300&width=500",
-    count: 9,
-  },
-  {
-    id: "tcg-accessories",
-    name: "TCG Accessories",
-    description: "Custom accessories for trading card games",
-    image: "/placeholder.svg?height=300&width=500",
-    count: 21,
-  },
-]
 
-export default function CatalogPage() {
-  const [searchQuery, setSearchQuery] = useState("")
 
-  const filteredCategories = categories.filter((category) =>
-    category.name.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+// This is now an async Server Component
+export default async function CatalogPage() {
+  let categories: Category[] = [];
+  let products: Product[] = [];
+  let fetchError: string | null = null;
+  let categoriesWithProducts: (Category & { count: number })[] = []; // Add count property
+
+  try {
+    const catalogData = await getCatalogData();
+    categories = catalogData.categories || [];
+    products = catalogData.products || [];
+
+    // Create a map of category IDs to their product counts
+    const productCounts: Record<string, number> = {};
+    for (const product of products) {
+      if (product.category) {
+        productCounts[product.category] = (productCounts[product.category] || 0) + 1;
+      }
+    }
+
+    // Filter categories to include only those with products and add the count
+    categoriesWithProducts = categories
+      .filter(category => productCounts[category.id] > 0)
+      .map(category => ({
+        ...category,
+        count: productCounts[category.id]
+      }));
+
+  } catch (error) {
+    console.error("Failed to load catalog data:", error);
+    fetchError = "Could not load catalog data. Please try again later.";
+    // categoriesWithProducts will remain empty
+  }
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -75,26 +60,22 @@ export default function CatalogPage() {
               </p>
             </div>
 
-            <div className="max-w-md mx-auto mb-8 md:mb-12">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  placeholder="Search categories..."
-                  className="pl-10"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-            </div>
+            {fetchError && (
+              <div className="text-center text-red-600 mb-8">{fetchError}</div>
+            )}
+
+            {categoriesWithProducts.length === 0 && !fetchError && (
+                 <div className="text-center text-muted-foreground">No product categories found.</div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredCategories.map((category) => (
+              {categoriesWithProducts.map((category) => (
                 <Link key={category.id} href={`/catalog/${category.id}`}>
                   <Card className="overflow-hidden h-full transition-all hover:shadow-md">
                     <div className="relative h-48 w-full overflow-hidden">
                       <div
                         className="absolute inset-0 bg-cover bg-center"
-                        style={{ backgroundImage: `url(${category.image})` }}
+                        style={{ backgroundImage: `url(${category.image || '/placeholder.svg'})` }}
                       />
                       <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
                     </div>
@@ -124,6 +105,6 @@ export default function CatalogPage() {
       </main>
       <SiteFooter />
     </div>
-  )
+  );
 }
 

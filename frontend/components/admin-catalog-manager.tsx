@@ -67,17 +67,17 @@ export function AdminCatalogManager() {
 
   const [newProduct, setNewProduct] = useState<Omit<Product, "id">>({ // Use Omit for newProduct
     name: "",
-    category: "",
+    category: "", // Default to empty or a specific category ID if desired
     price: 0,
     description: "",
-    modelPath: "/assets/3d/duck.glb",
-    images: ["/placeholder.svg?height=300&width=300"],
-    colors: ["White", "Black"],
-    materials: ["PLA"],
-    features: [""],
+    modelPath: "/assets/3d/duck.glb", // Default model path
+    images: ["/placeholder.svg?height=300&width=300"], // Default image
+    colors: ["White", "Black"], // Default colors
+    materials: ["PLA"], // Default materials
+    features: [""], // Start with one empty feature
     reviews: [],
     relatedProducts: [],
-  })
+  });
 
   const [newReview, setNewReview] = useState({
     name: "",
@@ -212,19 +212,42 @@ export function AdminCatalogManager() {
   }
 
   const handleAddProduct = () => {
-    if (!newProduct.name || !newProduct.category) return
-
-    const id = Date.now().toString() // Simple ID generation
-    const newProductItem: Product = { // Explicitly type newProductItem
-      id,
-      ...newProduct,
+    // Basic validation
+    if (!newProduct.name || !newProduct.category) {
+        // Optionally show an error message to the user
+        console.error("Product name and category are required.");
+        setError("Product name and category are required."); // Use existing error state if suitable
+        return;
     }
 
-    const updatedProducts = [...products, newProductItem]
-    setProducts(updatedProducts)
+    // Generate slug-based ID from the name
+    const generateSlug = (name: string) =>
+        name
+            .toLowerCase()
+            .replace(/[^a-z0-9\s-]/g, '') // Remove invalid chars
+            .replace(/\s+/g, '-') // Replace spaces with hyphens
+            .replace(/-+/g, '-'); // Replace multiple hyphens with single
+
+    const slugId = generateSlug(newProduct.name);
+
+    // Check if ID already exists (optional but recommended)
+    if (products.some(p => p.id === slugId)) {
+        console.error(`Product ID "${slugId}" already exists.`);
+        setError(`A product with a similar name (resulting in ID "${slugId}") already exists. Please choose a different name.`);
+        return;
+    }
+
+
+    const newProductItem: Product = {
+      id: slugId, // Use the generated slug as the ID
+      ...newProduct,
+    };
+
+    const updatedProducts = [...products, newProductItem];
+    setProducts(updatedProducts);
     setNewProduct({ // Reset form
       name: "",
-      category: "",
+      category: "", // Reset category
       price: 0,
       description: "",
       modelPath: "/assets/3d/duck.glb",
@@ -234,10 +257,11 @@ export function AdminCatalogManager() {
       features: [""],
       reviews: [],
       relatedProducts: [],
-    })
+    });
+    setError(null); // Clear any previous error
 
-    saveData(categories, updatedProducts)
-  }
+    saveData(categories, updatedProducts); // Save to backend
+  };
 
   const handleUpdateProduct = (id: string, field: string, value: any) => {
     const updatedProducts = products.map((product) => {
