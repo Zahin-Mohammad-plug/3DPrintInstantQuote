@@ -46,6 +46,14 @@ interface Category {
   [key: string]: any // Add index signature
 }
 
+// Helper function to generate slug-based IDs (lowercase with dashes)
+const generateSlug = (name: string): string =>
+  name
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '') // Remove invalid chars
+    .replace(/\s+/g, '-')          // Replace spaces with hyphens
+    .replace(/-+/g, '-');          // Replace multiple hyphens with single
+
 // Remove INITIAL_CATEGORIES and INITIAL_PRODUCTS mock data
 
 export function AdminCatalogManager() {
@@ -152,8 +160,15 @@ export function AdminCatalogManager() {
   const handleAddCategory = () => {
     if (!newCategory.name) return
 
-    // Basic ID generation (replace with more robust method if needed)
-    const id = newCategory.name.toLowerCase().replace(/\s+/g, "-") + '-' + Date.now()
+    // Use the same generateSlug function for consistency across products and categories
+    const id = generateSlug(newCategory.name);
+    
+    // Check if ID already exists
+    if (categories.some(c => c.id === id)) {
+      setError(`Category with ID "${id}" already exists. Please choose a different name.`);
+      return;
+    }
+    
     const newCategoryItem: Category = { // Explicitly type newCategoryItem
       id,
       name: newCategory.name,
@@ -221,13 +236,6 @@ export function AdminCatalogManager() {
     }
 
     // Generate slug-based ID from the name
-    const generateSlug = (name: string) =>
-        name
-            .toLowerCase()
-            .replace(/[^a-z0-9\s-]/g, '') // Remove invalid chars
-            .replace(/\s+/g, '-') // Replace spaces with hyphens
-            .replace(/-+/g, '-'); // Replace multiple hyphens with single
-
     const slugId = generateSlug(newProduct.name);
 
     // Check if ID already exists (optional but recommended)

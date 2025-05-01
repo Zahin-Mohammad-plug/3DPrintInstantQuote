@@ -193,7 +193,7 @@ export default function ProductPage() {
 
     // Create cart item
     const cartItem = {
-      id: product.id,
+      id: product.id, // This will be the lowercase-with-dashes format
       name: product.name,
       price: product.price * quantity,
       quantity: quantity,
