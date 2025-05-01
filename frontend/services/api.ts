@@ -541,3 +541,61 @@ export const saveMaterials = async (materialsData: any): Promise<void> => { // R
 };
 
 // Add other API functions as needed (e.g., for materials, colors, pricing)
+
+/**
+ * Interface for price calculation parameters
+ */
+interface PriceCalculationParams {
+  material_id: string;
+  color_id: string;
+  quality_id: string;
+  // Add other parameters like fill_density, enable_supports if needed for recalculation
+}
+
+/**
+ * Interface for the response from the calculate-price endpoint
+ */
+interface PriceInfo {
+  base_price: number;
+  color_addon: number;
+  material_cost: number;
+  material_modifier: number;
+  prusa_cost: number;
+  quality_modifier: number;
+  time_cost: number;
+  total_price: number;
+  // Add other fields if the backend returns more
+}
+
+/**
+ * Calculate the price for a job on demand
+ * @param jobId Job ID
+ * @param params Price calculation parameters (material, color, quality)
+ * @returns Promise with calculated price info
+ */
+export async function calculateJobPrice(jobId: string, params: PriceCalculationParams): Promise<PriceInfo> {
+  try {
+    console.log(`[API] Requesting price calculation for job ${jobId} with params:`, params);
+    const response = await fetch(`${API_BASE_URL}/api/job/${jobId}/calculate-price`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        // Add Authorization header if needed for this endpoint
+      },
+      body: JSON.stringify(params),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error(`[API] Error calculating price for job ${jobId}:`, errorData);
+      throw new Error(errorData.error || 'Failed to calculate job price');
+    }
+
+    const priceInfo = await response.json();
+    console.log(`[API] Received price info for job ${jobId}:`, priceInfo);
+    return priceInfo;
+  } catch (error) {
+    console.error(`[API] Error in calculateJobPrice function for job ${jobId}:`, error);
+    throw error; // Re-throw to be handled by the caller
+  }
+}

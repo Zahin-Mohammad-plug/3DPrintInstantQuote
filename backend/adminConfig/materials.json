@@ -134,7 +134,7 @@
     "default_fill_density": 0.15,
     "markup_percentage": 30,
     "minimum_price": 0.1,
-    "pricing_formula": "(x+0.1)",
+    "pricing_formula": "(x+1)",
     "quality_levels": [
       {
         "description": "Faster printing with visible layer lines. Good for prototypes and non-visible parts.",

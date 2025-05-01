@@ -29,7 +29,7 @@ if %ERRORLEVEL% NEQ 0 (
 )
 echo Docker install found and running.
 
-echo SKipping frontend dependencies installation for now.... (comment out l8r)
+@REM echo SKipping frontend dependencies installation for now.... (comment out l8r)
 REM Clean potential pnpm lock file and old modules
 echo Cleaning up frontend directory...
 cd frontend

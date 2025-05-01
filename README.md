@@ -271,7 +271,7 @@ Upload page:
 
 Quote Page:
 * In quote page, ensure the modifiers update the unit price
-* If the quantity is adjusted so that the cost estimation exceeds the base price, (ignore the base price. Basically creating a minimum order cost) 
+* If cart local + total is below the minimum order price, inform the user. 
 * Save quote and share are missing fucntionality, will integrator save quote later.
 
 Cart Page:
@@ -285,12 +285,11 @@ Checkout page:
 
 Admin panel: 
 * Add submitted orders (stored in order.json)
-* Pricing does fuck all. 
-    * Should have a floor price
-    * a simple text input that applies the logic for pricing so maybe a variable called x which you can input (x * 1.30) + 2
+* Pricing: 
+    * Add abaility to adjust time_cost
     * A minimum order price So when user checksout, this price is automatically applied if quote is below
     * A rush order fee setting
-     
+    * Does support material even do an
 * Add upload images for categories and products (mapped to new dirs)
 
 

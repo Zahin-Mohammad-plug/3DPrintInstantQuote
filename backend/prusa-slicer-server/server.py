@@ -131,7 +131,9 @@ DEFAULT_MATERIALS = {
     "global_settings": {
         "support_material_multiplier": 1.2,  # 20% extra for support material
         "minimum_price": 5.0,                # Minimum price for any print
-        "default_fill_density": 0.15         # Default fill density (15%)
+        "default_fill_density": 0.15,        # Default fill density (15%)
+        "markup_percentage": 30,             # Default markup if no formula
+        "pricing_formula": "(x+1)"           # Default pricing formula applies floor plus one
     }
 }
 
@@ -229,75 +231,13 @@ def calculate_price(material_id, color_id, filament_used_g, print_time, has_supp
         materials_data = get_materials()
         materials = materials_data["materials"]
         global_settings = materials_data["global_settings"]
-        
-        # Find the material
+        # Lookup material and color by ID
         material = next((m for m in materials if m["id"] == material_id), None)
         if not material:
-            return {"error": f"Material {material_id} not found"}
-        
-        # Find the color
-        color = next((c for c in material["colors"] if c["id"] == color_id), None)
+            return {"error": f"Material '{material_id}' not found"}
+        color = next((c for c in material.get("colors", []) if c["id"] == color_id), None)
         if not color:
-            return {"error": f"Color {color_id} not found for material {material_id}"}
-        
-        # Calculate base material cost
-        material_cost = filament_used_g * material["base_cost_per_gram"]
-        
-        # Add support material cost if needed
-        if has_supports:
-            material_cost *= global_settings["support_material_multiplier"]
-        
-        # Calculate time cost
-        time_cost = parse_time_string(print_time) * material["hourly_rate"]
-        
-        # Calculate prusa-generated cost (material + time)
-        prusa_cost = material_cost + time_cost
-        
-        # Get minimum price from settings
-        minimum_price = global_settings["minimum_price"]
-        
-        # Base price is the higher of prusa cost or minimum price
-        base_price = max(prusa_cost, minimum_price)
-        
-        # Apply markup to base price
-        markup_percentage = global_settings.get("markup_percentage", 30)
-        markup = markup_percentage / 100
-        base_price_with_markup = base_price * (1 + markup)
-        
-        # Get modifiers
-        color_addon = color["addon_price"]
-        material_modifier = material.get("priceModifier", 0)
-        
-        # Get quality modifier
-        quality_modifier = 0
-        if quality_id and "quality_levels" in global_settings:
-            quality_level = next((q for q in global_settings["quality_levels"] if q["id"] == quality_id), None)
-            if quality_level:
-                quality_modifier = quality_level.get("price_modifier", 0)
-        
-        # Calculate total price by adding modifiers to base price with markup
-        total_price = base_price_with_markup + color_addon + material_modifier + quality_modifier
-        
-        return {
-            "base_price": round(base_price, 2),
-            "base_price_with_markup": round(base_price_with_markup, 2),
-            "material_cost": round(material_cost, 2),
-            "time_cost": round(time_cost, 2),
-            "color_addon": round(color_addon, 2),
-            "material_modifier": round(material_modifier, 2),
-            "quality_modifier": round(quality_modifier, 2),
-            "total_price": round(total_price, 2)
-        }
-    except Exception as e:
-        print(f"Error in price calculation: {str(e)}")
-        return {"error": str(e)}
-
-def calculate_price(material_id, color_id, filament_used_g, print_time, has_supports, quality_id=None, volume_cm3=None):
-    """Calculate price based on material, color, filament usage, print time, and quality"""
-    try:
-        materials_data = get_materials()
-        materials = materials_data["materials"]
-        global_settings = materials_data["global_settings"]
+            color = {"addon_price": 0}
         # ... existing material, color lookup and cost calculations ...
         material_cost = filament_used_g * material["base_cost_per_gram"]
         if has_supports:
@@ -333,6 +273,8 @@ def calculate_price(material_id, color_id, filament_used_g, print_time, has_supp
                 quality_modifier = q.get("price_modifier", 0)
         # Final total price
         total_price = base_price_computed + color_addon + material_modifier + quality_modifier
+        # Log pricing details for debugging
+        print(f"[PRICE] material={material_id}, color={color_id}, prusa_cost={prusa_cost:.2f}, floor_x={x:.2f}, computed_base={base_price_computed:.2f}, color_addon={color_addon:.2f}, material_modifier={material_modifier:.2f}, quality_modifier={quality_modifier:.2f}, total_price={total_price:.2f}")
         return {
             "prusa_cost": round(prusa_cost, 2),
             "base_price": round(base_price_computed, 2),
@@ -441,7 +383,7 @@ def process_jobs():
             if job["status"] == "pending":
                 jobs[job_id]["status"] = "processing"
                 try:
-                    # Construct full path to the uploaded file (still needed for existence check)
+                    # ... (file path setup and existence check remains the same) ...
                     uploaded_file_path = os.path.join(UPLOAD_FOLDER, job["filename"])
                     if not os.path.exists(uploaded_file_path):
                         raise FileNotFoundError(f"Uploaded file not found: {uploaded_file_path}")
@@ -482,39 +424,27 @@ def process_jobs():
                                  job.pop("gcode_filename", None) # Remove if it doesn't exist
 
                             # Filepath remains pointing to UPLOAD_FOLDER
-                            job["filepath"] = uploaded_file_path # Already set during upload, confirm it's correct
+                            # Use the potentially converted STL filename stored in job["filename"]
+                            job["filepath"] = os.path.join(UPLOAD_FOLDER, job["filename"])
 
-                            # Calculate price
-                            print("Calculating price...")
-                            price_info = calculate_price(
-                                job["material_id"],
-                                job["color_id"],
-                                slice_result["filament_used_g"],
-                                slice_result["estimated_time"],
-                                job.get("enable_supports", True),
-                                job.get("quality_id", "standard"),
-                                slice_result.get("volume_cm3")
-                            )
-                            print("Price calculated.")
-
-                            # Update status to completed and add result
-                            print(f"Updating job {job_id} status to completed.")
+                            # --- Store slicing results, REMOVE price calculation ---
+                            print(f"Updating job {job_id} status to completed with slice results.")
                             jobs[job_id]["status"] = "completed"
-                            jobs[job_id]["result"] = {
-                                **slice_result,
-                                "price_info": price_info
-                            }
+                            # Store only the raw slice results, not the price_info yet
+                            jobs[job_id]["result"] = slice_result
                             print(f"Job {job_id} status updated.")
 
                 except Exception as e:
                     jobs[job_id]["status"] = "failed"
                     jobs[job_id]["error"] = str(e)
+                    traceback.print_exc() # Print full traceback for debugging
 
             job_queue.task_done()
         except queue.Empty:
             pass
         except Exception as e:
             print(f"Error in job processing loop: {str(e)}")
+            traceback.print_exc() # Print full traceback for debugging
             time.sleep(1)
 
 # Start the background processing thread
@@ -912,6 +842,86 @@ def add_job_to_cart(job_id):
         # Consider leaving status as 'completed' if move fails.
         return jsonify({"error": f"Failed to move files to quoted folder: {move_err}"}), 500
 
+# --- NEW Endpoint for On-Demand Price Calculation ---
+@app.route("/api/job/<job_id>/calculate-price", methods=["POST"])
+def calculate_job_price(job_id):
+    """Calculate the price for a completed job based on provided parameters"""
+    if job_id not in jobs:
+        return jsonify({"error": "Job not found"}), 404
+
+    job = jobs[job_id]
+
+    # Allow calculation for completed or potentially other relevant statuses
+    allowed_statuses = ["completed", "approved", "ordered"] # Add statuses as needed
+    if job["status"] not in allowed_statuses:
+        return jsonify({"error": f"Job status is '{job['status']}', cannot calculate price."}), 400
+
+    if "result" not in job or not job["result"]:
+        # Attempt to find slice results even if job status moved on (e.g., approved)
+        # This might be redundant if result is always preserved, but safer
+        if job.get("result"):
+             print(f"Using existing result for job {job_id} with status {job['status']}")
+        else:
+             return jsonify({"error": "Slicing results not found for this job."}), 404
+
+    try:
+        data = request.json
+        if not data:
+             return jsonify({"error": "Missing request body"}), 400
+
+        # Get parameters from request, fall back to job's original values if not provided
+        material_id = data.get("material_id", job.get("material_id", "pla"))
+        color_id = data.get("color_id", job.get("color_id", "white"))
+        quality_id = data.get("quality_id", job.get("quality_id", "standard"))
+        # Consider adding fill_density, enable_supports if they should be recalculatable
+        # enable_supports = data.get("enable_supports", job.get("enable_supports", True))
+
+        slice_result = job["result"]
+        filament_used_g = slice_result.get("filament_used_g")
+        estimated_time = slice_result.get("estimated_time")
+        # Determine 'has_supports' based on slice result primarily, fallback to job setting
+        has_supports = slice_result.get("has_supports")
+        if has_supports is None: # If slicer didn't output it
+             has_supports = job.get("enable_supports", True) # Use the setting used for slicing
+
+        volume_cm3 = slice_result.get("volume_cm3")
+
+        if filament_used_g is None or estimated_time is None:
+             # Check if essential data is missing
+             missing_data = []
+             if filament_used_g is None: missing_data.append("filament_used_g")
+             if estimated_time is None: missing_data.append("estimated_time")
+             return jsonify({"error": f"Missing slicing data ({', '.join(missing_data)}) needed for price calculation."}), 400
+
+        print(f"[CALC PRICE REQ] Job: {job_id}, Status: {job['status']}, Material: {material_id}, Color: {color_id}, Quality: {quality_id}")
+
+        # Call the existing calculate_price function
+        price_info = calculate_price(
+            material_id,
+            color_id,
+            filament_used_g,
+            estimated_time,
+            has_supports, # Use the determined value
+            quality_id,
+            volume_cm3
+        )
+
+        # Log computed price_info
+        print(f"[CALC PRICE RESP] Job: {job_id}, Price Info: {price_info}")
+
+        if "error" in price_info:
+             # Log the specific pricing error before returning
+             print(f"Pricing calculation failed for job {job_id}: {price_info['error']}")
+             return jsonify({"error": f"Pricing calculation failed: {price_info['error']}"}), 500
+
+        # Return the calculated price info directly
+        return jsonify(price_info)
+
+    except Exception as e:
+        print(f"Error in /calculate-price endpoint for job {job_id}: {str(e)}")
+        traceback.print_exc() # Print full traceback for debugging
+        return jsonify({"error": f"An unexpected error occurred during price calculation: {str(e)}"}), 500
+
 if __name__ == "__main__":
     # Initialize materials if needed (now checks config path)
     if not os.path.exists(MATERIALS_FILE):
@@ -928,4 +938,6 @@ if __name__ == "__main__":
     # Initialize auth file if needed
     load_credentials() # This will create it if it doesn't exist
 
-    app.run(host="0.0.0.0", port=5000)
+    ensure_processing_thread()
+    # Ensure debug is True for development to auto-reload changes
+    app.run(host="0.0.0.0", port=5000, debug=True)
