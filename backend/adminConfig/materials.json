@@ -70,12 +70,6 @@
           "hex": "#b17272",
           "id": "truffle-butter",
           "name": "Truffle Butter"
-        },
-        {
-          "addon_price": 10,
-          "hex": "#3e0f0f",
-          "id": "test2",
-          "name": "Test2"
         }
       ],
       "description": "Standard material, good for most prints",
@@ -107,24 +101,13 @@
           "hex": "#E0F7FA",
           "id": "clear",
           "name": "Clear"
-        },
-        {
-          "addon_price": 2.5,
-          "hex": "#b17272",
-          "id": "truffle-butter",
-          "name": "Truffle Butter"
-        },
-        {
-          "addon_price": 10,
-          "hex": "#3e0f0f",
-          "id": "test2",
-          "name": "Test2"
         }
       ],
       "description": "Durable material, suitable for outdoor use",
       "hourly_rate": 2.5,
       "id": "petg",
       "name": "PETG",
+      "priceModifier": 0,
       "properties": [
         "Durable",
         "Outdoor",
@@ -145,36 +128,18 @@
           "name": "Black",
           "hex": "#000000",
           "addon_price": 2.69
-        },
-        {
-          "id": "truffle-butter",
-          "name": "Truffle Butter",
-          "hex": "#b17272",
-          "addon_price": 2.5
-        },
-        {
-          "id": "test2",
-          "name": "Test2",
-          "hex": "#3e0f0f",
-          "addon_price": 10
-        },
-        {
-          "id": "clear",
-          "name": "Clear",
-          "hex": "#E0F7FA",
-          "addon_price": 1
         }
       ],
       "description": "Rigid material, good for mechanical parts",
       "hourly_rate": 3,
       "id": "abs",
       "name": "ABS",
+      "priceModifier": 0,
       "properties": [
         "Rigid",
         "Heat-resistant",
         "Durable"
-      ],
-      "priceModifier": 0
+      ]
     }
   ],
   "special_filaments": [
@@ -182,21 +147,21 @@
       "description": "Multi-color filament that transitions through the rainbow spectrum.",
       "id": "rainbow-pla",
       "name": "Rainbow PLA",
-      "previewImg": "/customTextures/placeHolder.svg",
+      "previewImg": "/customTextures/rainbow.svg",
       "priceModifier": 12
     },
     {
       "description": "Black base with blue, purple, and white speckles for a cosmic effect.",
       "id": "galaxy-pla",
       "name": "Galaxy PLA",
-      "previewImg": "/customTextures/placeHolder.svg",
+      "previewImg": "/customTextures/galaxy.svg",
       "priceModifier": 15
     },
     {
-      "description": "White base with black veins for a marble stone appearance.",
+      "description": "White base with black speckles for a marble stone appearance.",
       "id": "marble-pla",
       "name": "Marble PLA",
-      "previewImg": "/customTextures/placeHolder.svg",
+      "previewImg": "/customTextures/marble.svg",
       "priceModifier": 12
     }
   ]
