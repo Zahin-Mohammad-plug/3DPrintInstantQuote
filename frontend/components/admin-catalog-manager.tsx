@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react" // Import useEffect
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -11,140 +11,61 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Plus, Trash, Edit, Save, X, Upload, Star } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { getCatalogData, saveCatalogData } from "@/services/api" // Assuming API service functions
 
-// Mock data for categories
-const INITIAL_CATEGORIES = [
-  {
-    id: "event-planning",
-    name: "Event Planning",
-    description: "Custom 3D printed items for weddings, parties, and corporate events",
-    image: "/placeholder.svg?height=300&width=500",
-  },
-  {
-    id: "home-decor",
-    name: "Home Decor",
-    description: "Decorative items to enhance your living space",
-    image: "/placeholder.svg?height=300&width=500",
-  },
-  {
-    id: "tools-accessories",
-    name: "Tools & Accessories",
-    description: "Practical tools and accessories for everyday use",
-    image: "/placeholder.svg?height=300&width=500",
-  },
-  {
-    id: "novelty-items",
-    name: "Novelty Items",
-    description: "Fun and unique 3D printed creations",
-    image: "/placeholder.svg?height=300&width=500",
-  },
-  {
-    id: "office-addons",
-    name: "Office Add-ons",
-    description: "Enhance your workspace with custom 3D printed items",
-    image: "/placeholder.svg?height=300&width=500",
-  },
-  {
-    id: "tcg-accessories",
-    name: "TCG Accessories",
-    description: "Custom accessories for trading card games",
-    image: "/placeholder.svg?height=300&width=500",
-  },
-]
+// Define interfaces for Category and Product (can be moved to a types file)
+interface Review {
+  id: string
+  name: string
+  rating: number
+  date: string
+  comment: string
+}
 
-// Mock data for products
-const INITIAL_PRODUCTS = [
-  {
-    id: "1",
-    name: "Custom Card Holder",
-    category: "tcg-accessories",
-    price: 24.99,
-    description: "A customizable card holder perfect for trading card games.",
-    modelPath: "/assets/3d/duck.glb",
-    images: [
-      "/placeholder.svg?height=300&width=300",
-      "/placeholder.svg?height=300&width=300",
-      "/placeholder.svg?height=300&width=300",
-    ],
-    colors: ["White", "Black", "Red", "Blue"],
-    materials: ["PLA", "PETG"],
-    features: [
-      "Holds up to 60 sleeved cards",
-      "Customizable design",
-      "Durable construction",
-      "Available in multiple colors",
-    ],
-    reviews: [
-      {
-        id: "r1",
-        name: "John D.",
-        rating: 5,
-        date: "2023-10-15",
-        comment: "Perfect fit for my cards. The quality is excellent and it looks great on my shelf.",
-      },
-      {
-        id: "r2",
-        name: "Sarah M.",
-        rating: 4,
-        date: "2023-09-22",
-        comment: "Good quality and design. Would be perfect if it had a locking mechanism.",
-      },
-    ],
-    relatedProducts: ["2", "3"],
-  },
-  {
-    id: "2",
-    name: "Desk Organizer",
-    category: "office-addons",
-    price: 29.99,
-    description: "Keep your desk tidy with this customizable organizer.",
-    modelPath: "/assets/3d/duck.glb",
-    images: ["/placeholder.svg?height=300&width=300", "/placeholder.svg?height=300&width=300"],
-    colors: ["White", "Black", "Blue", "Red"],
-    materials: ["PLA", "PETG"],
-    features: ["Multiple compartments", "Customizable layout", "Space-saving design", "Durable construction"],
-    reviews: [
-      {
-        id: "r1",
-        name: "Emily R.",
-        rating: 4,
-        date: "2023-10-28",
-        comment: "Perfect for organizing my small office supplies. Sturdy and well-designed.",
-      },
-    ],
-    relatedProducts: ["1", "3"],
-  },
-  {
-    id: "3",
-    name: "Decorative Vase",
-    category: "home-decor",
-    price: 39.99,
-    description: "A beautiful decorative vase for your home.",
-    modelPath: "/assets/3d/duck.glb",
-    images: ["/placeholder.svg?height=300&width=300"],
-    colors: ["White", "Black", "Gold", "Silver"],
-    materials: ["PLA", "PETG"],
-    features: ["Unique geometric design", "Watertight construction", "Elegant finish", "Multiple size options"],
-    reviews: [],
-    relatedProducts: ["2", "1"],
-  },
-]
+interface Product {
+  id: string
+  name: string
+  category: string
+  price: number
+  description: string
+  modelPath: string
+  images: string[]
+  colors: string[]
+  materials: string[]
+  features: string[]
+  reviews: Review[]
+  relatedProducts: string[]
+  [key: string]: any // Add index signature
+}
+
+interface Category {
+  id: string
+  name: string
+  description: string
+  image: string
+  [key: string]: any // Add index signature
+}
+
+// Remove INITIAL_CATEGORIES and INITIAL_PRODUCTS mock data
 
 export function AdminCatalogManager() {
   const [activeTab, setActiveTab] = useState("categories")
-  const [categories, setCategories] = useState(INITIAL_CATEGORIES)
-  const [products, setProducts] = useState(INITIAL_PRODUCTS)
+  const [categories, setCategories] = useState<Category[]>([]) // Initialize with empty array
+  const [products, setProducts] = useState<Product[]>([]) // Initialize with empty array
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null)
   const [editingProductId, setEditingProductId] = useState<string | null>(null)
   const [activeProductTab, setActiveProductTab] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true) // Add loading state
+  const [error, setError] = useState<string | null>(null) // Add error state
 
+  // ... state for newCategory, newProduct, newReview ...
   const [newCategory, setNewCategory] = useState({
     name: "",
     description: "",
     image: "/placeholder.svg?height=300&width=500",
   })
 
-  const [newProduct, setNewProduct] = useState({
+  const [newProduct, setNewProduct] = useState<Omit<Product, "id">>({ // Use Omit for newProduct
     name: "",
     category: "",
     price: 0,
@@ -164,6 +85,42 @@ export function AdminCatalogManager() {
     comment: "",
   })
 
+
+  // Fetch data on mount
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true)
+      setError(null)
+      try {
+        const data = await getCatalogData() // Fetch from API
+        setCategories(data.categories || [])
+        setProducts(data.products || [])
+      } catch (err) {
+        console.error("Error fetching catalog data:", err)
+        setError("Failed to load catalog data. Please try again later.")
+        // Keep mock data as fallback? Or show error message.
+        // setCategories(INITIAL_CATEGORIES); // Optional: fallback to mock
+        // setProducts(INITIAL_PRODUCTS);     // Optional: fallback to mock
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchData()
+  }, [])
+
+  // Function to save all data (call after each modification)
+  const saveData = async (updatedCategories: Category[], updatedProducts: Product[]) => {
+    try {
+      await saveCatalogData({ categories: updatedCategories, products: updatedProducts })
+      // Optional: Show success toast/message
+    } catch (err) {
+      console.error("Error saving catalog data:", err)
+      setError("Failed to save changes. Please try again.")
+      // Optional: Revert state or show error toast/message
+    }
+  }
+
+
   // Category Management
   const handleCategoryChange = (field: string, value: string) => {
     setNewCategory({ ...newCategory, [field]: value })
@@ -175,48 +132,56 @@ export function AdminCatalogManager() {
 
   const handleSaveCategory = (id: string) => {
     setEditingCategoryId(null)
-    // In a real app, you would save to your backend here
+    // Save updated categories list to backend
+    saveData(categories, products)
   }
 
   const handleCancelEditCategory = () => {
+    // Optional: Refetch data or reset local changes if needed
     setEditingCategoryId(null)
   }
 
   const handleDeleteCategory = (id: string) => {
-    setCategories(categories.filter((category) => category.id !== id))
-    // In a real app, you would delete from your backend here
+    const updatedCategories = categories.filter((category) => category.id !== id)
+    setCategories(updatedCategories)
+    // Also consider removing products associated with this category or re-assigning them?
+    // For now, just save the updated categories list
+    saveData(updatedCategories, products)
   }
 
   const handleAddCategory = () => {
     if (!newCategory.name) return
 
-    const id = newCategory.name.toLowerCase().replace(/\s+/g, "-")
-    const newCategoryItem = {
+    // Basic ID generation (replace with more robust method if needed)
+    const id = newCategory.name.toLowerCase().replace(/\s+/g, "-") + '-' + Date.now()
+    const newCategoryItem: Category = { // Explicitly type newCategoryItem
       id,
       name: newCategory.name,
       description: newCategory.description,
       image: newCategory.image,
     }
 
-    setCategories([...categories, newCategoryItem])
-    setNewCategory({
+    const updatedCategories = [...categories, newCategoryItem]
+    setCategories(updatedCategories)
+    setNewCategory({ // Reset form
       name: "",
       description: "",
       image: "/placeholder.svg?height=300&width=500",
     })
 
-    // In a real app, you would save to your backend here
+    // Save updated categories list to backend
+    saveData(updatedCategories, products)
   }
 
   const handleUpdateCategory = (id: string, field: string, value: string) => {
-    setCategories(
-      categories.map((category) => {
+    const updatedCategories = categories.map((category) => {
         if (category.id === id) {
           return { ...category, [field]: value }
         }
         return category
-      }),
-    )
+      })
+    setCategories(updatedCategories)
+    // Note: Save happens in handleSaveCategory after editing is done
   }
 
   // Product Management
@@ -225,35 +190,39 @@ export function AdminCatalogManager() {
   }
 
   const handleEditProduct = (id: string) => {
-    setEditingProductId(id)
-    setActiveProductTab(id)
+    // setEditingProductId(id) // We don't need this state if using Accordion value
+    setActiveProductTab(id) // Use Accordion's value to track editing state
   }
 
-  const handleSaveProduct = (id: string) => {
-    setEditingProductId(null)
-    // In a real app, you would save to your backend here
-  }
+  // No explicit save button per product in this UI, changes are saved on update
+  // const handleSaveProduct = (id: string) => {
+  //   setActiveProductTab(null)
+  //   saveData(categories, products)
+  // }
 
-  const handleCancelEditProduct = () => {
-    setEditingProductId(null)
+  const handleCancelEditProduct = () => { // Maybe needed if edits are complex
+     setActiveProductTab(null)
+     // Optional: Refetch data to discard local changes
   }
 
   const handleDeleteProduct = (id: string) => {
-    setProducts(products.filter((product) => product.id !== id))
-    // In a real app, you would delete from your backend here
+    const updatedProducts = products.filter((product) => product.id !== id)
+    setProducts(updatedProducts)
+    saveData(categories, updatedProducts)
   }
 
   const handleAddProduct = () => {
     if (!newProduct.name || !newProduct.category) return
 
-    const id = Date.now().toString()
-    const newProductItem = {
+    const id = Date.now().toString() // Simple ID generation
+    const newProductItem: Product = { // Explicitly type newProductItem
       id,
       ...newProduct,
     }
 
-    setProducts([...products, newProductItem])
-    setNewProduct({
+    const updatedProducts = [...products, newProductItem]
+    setProducts(updatedProducts)
+    setNewProduct({ // Reset form
       name: "",
       category: "",
       price: 0,
@@ -267,160 +236,179 @@ export function AdminCatalogManager() {
       relatedProducts: [],
     })
 
-    // In a real app, you would save to your backend here
+    saveData(categories, updatedProducts)
   }
 
   const handleUpdateProduct = (id: string, field: string, value: any) => {
-    setProducts(
-      products.map((product) => {
+    const updatedProducts = products.map((product) => {
         if (product.id === id) {
           return { ...product, [field]: value }
         }
         return product
-      }),
-    )
+      })
+    setProducts(updatedProducts)
+    saveData(categories, updatedProducts) // Save immediately on field update
   }
 
   const handleUpdateProductArray = (id: string, field: string, value: string) => {
-    setProducts(
-      products.map((product) => {
+     const updatedProducts = products.map((product) => {
         if (product.id === id) {
-          const currentArray = product[field] || []
-          const valueArray = value.split(",").map((item) => item.trim())
-          return { ...product, [field]: valueArray }
+          // Ensure the field exists and is an array before trying to join/split
+          const currentArray = Array.isArray(product[field]) ? product[field] : [];
+          // Split the input string into an array, trimming whitespace
+          const valueArray = value.split(",").map((item) => item.trim()).filter(item => item !== ""); // Filter out empty strings
+          return { ...product, [field]: valueArray };
         }
-        return product
-      }),
-    )
+        return product;
+      })
+    setProducts(updatedProducts)
+    saveData(categories, updatedProducts) // Save immediately
   }
 
   // Handle product images
   const handleAddProductImage = (id: string) => {
-    setProducts(
-      products.map((product) => {
+    const updatedProducts = products.map((product) => {
         if (product.id === id) {
           return {
             ...product,
-            images: [...product.images, "/placeholder.svg?height=300&width=300"],
+            images: [...product.images, "/placeholder.svg?height=300&width=300"], // Add placeholder
           }
         }
         return product
-      }),
-    )
+      })
+    setProducts(updatedProducts)
+    saveData(categories, updatedProducts)
   }
 
   const handleUpdateProductImage = (productId: string, index: number, value: string) => {
-    setProducts(
-      products.map((product) => {
+    const updatedProducts = products.map((product) => {
         if (product.id === productId) {
           const updatedImages = [...product.images]
           updatedImages[index] = value
           return { ...product, images: updatedImages }
         }
         return product
-      }),
-    )
+      })
+    setProducts(updatedProducts)
+     saveData(categories, updatedProducts) // Save immediately
   }
 
   const handleDeleteProductImage = (productId: string, index: number) => {
-    setProducts(
-      products.map((product) => {
+     const updatedProducts = products.map((product) => {
         if (product.id === productId) {
+          // Prevent deleting the last image if needed, or handle accordingly
+          if (product.images.length <= 1) return product; // Or show error
           const updatedImages = [...product.images]
           updatedImages.splice(index, 1)
           return { ...product, images: updatedImages }
         }
         return product
-      }),
-    )
+      })
+     setProducts(updatedProducts)
+     saveData(categories, updatedProducts)
   }
 
   // Handle product features
   const handleAddProductFeature = (id: string) => {
-    setProducts(
-      products.map((product) => {
+     const updatedProducts = products.map((product) => {
         if (product.id === id) {
           return {
             ...product,
-            features: [...product.features, ""],
+            // Ensure features is always an array
+            features: [...(product.features || []), ""], // Add empty string for new feature
           }
         }
         return product
-      }),
-    )
+      })
+     setProducts(updatedProducts)
+     saveData(categories, updatedProducts)
   }
 
   const handleUpdateProductFeature = (productId: string, index: number, value: string) => {
-    setProducts(
-      products.map((product) => {
+     const updatedProducts = products.map((product) => {
         if (product.id === productId) {
-          const updatedFeatures = [...product.features]
+          const updatedFeatures = [...(product.features || [])]
           updatedFeatures[index] = value
           return { ...product, features: updatedFeatures }
         }
         return product
-      }),
-    )
+      })
+     setProducts(updatedProducts)
+     saveData(categories, updatedProducts) // Save immediately
   }
 
   const handleDeleteProductFeature = (productId: string, index: number) => {
-    setProducts(
-      products.map((product) => {
+     const updatedProducts = products.map((product) => {
         if (product.id === productId) {
+           // Prevent deleting the last feature if needed
+           if (!product.features || product.features.length <= 1) return product; // Or show error
           const updatedFeatures = [...product.features]
           updatedFeatures.splice(index, 1)
           return { ...product, features: updatedFeatures }
         }
         return product
-      }),
-    )
+      })
+     setProducts(updatedProducts)
+     saveData(categories, updatedProducts)
   }
 
   // Handle product reviews
   const handleAddReview = (productId: string) => {
     if (!newReview.name || !newReview.comment) return
 
-    const review = {
-      id: Date.now().toString(),
+    const review: Review = { // Explicitly type review
+      id: Date.now().toString(), // Simple ID generation
       name: newReview.name,
       rating: newReview.rating,
-      date: new Date().toISOString().split("T")[0],
+      date: new Date().toISOString().split("T")[0], // Format date as YYYY-MM-DD
       comment: newReview.comment,
     }
 
-    setProducts(
-      products.map((product) => {
+    const updatedProducts = products.map((product) => {
         if (product.id === productId) {
           return {
             ...product,
-            reviews: [...product.reviews, review],
+            // Ensure reviews is always an array
+            reviews: [...(product.reviews || []), review],
           }
         }
         return product
-      }),
-    )
+      })
 
-    setNewReview({
+    setProducts(updatedProducts)
+    setNewReview({ // Reset form
       name: "",
       rating: 5,
       comment: "",
     })
+    saveData(categories, updatedProducts)
   }
 
   const handleDeleteReview = (productId: string, reviewId: string) => {
-    setProducts(
-      products.map((product) => {
+    const updatedProducts = products.map((product) => {
         if (product.id === productId) {
           return {
             ...product,
-            reviews: product.reviews.filter((review) => review.id !== reviewId),
+            reviews: (product.reviews || []).filter((review) => review.id !== reviewId),
           }
         }
         return product
-      }),
-    )
+      })
+    setProducts(updatedProducts)
+    saveData(categories, updatedProducts)
   }
 
+  // Render Loading State
+  if (isLoading) {
+    return <div className="p-4 text-center">Loading catalog data...</div>;
+  }
+
+  // Render Error State
+  if (error) {
+    return <div className="p-4 text-center text-red-600">{error}</div>;
+  }
+
+  // Main component render
   return (
     <div className="space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -664,7 +652,7 @@ export function AdminCatalogManager() {
                       placeholder="PLA, PETG, ABS"
                     />
                   </div>
-                </div>
+                </div> {/* Correct closing div for the grid */}
 
                 <Button onClick={handleAddProduct} className="w-full md:w-auto">
                   <Plus className="h-4 w-4 mr-2" />
@@ -780,19 +768,19 @@ export function AdminCatalogManager() {
                                 <Label htmlFor={`edit-colors-${product.id}`}>Available Colors</Label>
                                 <Input
                                   id={`edit-colors-${product.id}`}
-                                  value={product.colors.join(", ")}
+                                  value={Array.isArray(product.colors) ? product.colors.join(", ") : ''} // Handle potential non-array
                                   onChange={(e) => handleUpdateProductArray(product.id, "colors", e.target.value)}
                                 />
-                              </div>
+                              </div> {/* Correct closing div for colors */}
                               <div className="space-y-2">
                                 <Label htmlFor={`edit-materials-${product.id}`}>Available Materials</Label>
                                 <Input
                                   id={`edit-materials-${product.id}`}
-                                  value={product.materials.join(", ")}
+                                  value={Array.isArray(product.materials) ? product.materials.join(", ") : ''} // Added check
                                   onChange={(e) => handleUpdateProductArray(product.id, "materials", e.target.value)}
                                 />
-                              </div>
-                            </div>
+                              </div> {/* Correct closing div for materials */}
+                            </div> {/* Correct closing div for the grid */}
                           </TabsContent>
 
                           <TabsContent value="images" className="space-y-4">
@@ -855,11 +843,11 @@ export function AdminCatalogManager() {
                                     size="sm"
                                     variant="ghost"
                                     onClick={() => handleDeleteProductFeature(product.id, index)}
-                                    disabled={product.features.length <= 1}
+                                    disabled={!product.features || product.features.length <= 1}
                                   >
                                     <Trash className="h-4 w-4" />
                                   </Button>
-                                </div>
+                                </div> // Correct closing div for the flex container
                               ))}
                             </div>
                           </TabsContent>

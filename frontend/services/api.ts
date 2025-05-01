@@ -400,3 +400,58 @@ export async function sendNotificationEmail(emailData: {
     throw error;
   }
 }
+
+// Placeholder functions for fetching and saving catalog data
+// You'll need to implement the actual API endpoints in your backend
+
+interface CatalogData {
+  categories: any[]; // Replace 'any' with your Category interface
+  products: any[];   // Replace 'any' with your Product interface
+}
+
+export const getCatalogData = async (): Promise<CatalogData> => {
+  // In a real app, you would fetch from your backend API
+  // Example:
+  // const response = await fetch(`${API_BASE_URL}/api/catalog`);
+  // if (!response.ok) {
+  //   throw new Error('Failed to fetch catalog data');
+  // }
+  // const data = await response.json();
+  // return data;
+
+  // For now, let's simulate fetching the data from the JSON file we created
+  // This is NOT how it should work in production, but helps for frontend dev
+  console.warn("Using simulated API call for getCatalogData");
+  try {
+    // This dynamic import might only work in some environments or need specific config
+    // A proper API call is the correct approach.
+    const catalogModule = await import('@/../backend/adminConfig/catalog.json');
+    return catalogModule.default || catalogModule;
+  } catch (error) {
+     console.error("Simulated fetch failed:", error);
+     // Fallback to empty data if simulation fails
+     return { categories: [], products: [] };
+  }
+};
+
+export const saveCatalogData = async (data: CatalogData): Promise<void> => {
+  // In a real app, you would send a POST/PUT request to your backend API
+  // Example:
+  // const response = await fetch(`${API_BASE_URL}/api/catalog`, {
+  //   method: 'POST', // or 'PUT'
+  //   headers: {
+  //     'Content-Type': 'application/json',
+  //   },
+  //   body: JSON.stringify(data),
+  // });
+  // if (!response.ok) {
+  //   throw new Error('Failed to save catalog data');
+  // }
+
+  // Simulate saving (just log for now)
+  console.warn("Simulating API call for saveCatalogData");
+  console.log("Data to save:", data);
+  // In a real backend, this would write to backend/adminConfig/catalog.json
+};
+
+// Add other API functions as needed (e.g., for materials, colors, pricing)

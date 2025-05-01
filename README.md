@@ -262,7 +262,7 @@ Upload page:
 
 Customize page:
 * Should grey out unavailable material selection options 
-* Customize page showing colors not available and not updating when colors are added
+
 
 Quote Page:
 * In quote page, ensure the modifiers update the unit price
@@ -283,13 +283,11 @@ Functionality
 * Ensure models orders are stored and accessible through admin ui.
 
 Admin panel:
-* colors and their modifiers arent being updated/enforced 
-* Same goes with materials and their modifiers
 * Listings arent updating when adjusted in the admin panel, the colors arent accurate. 
 * Categories arent updated either, no ability to update the image through UI as well.
 * Same goes with products
 * Special filaments have no way to edit in the admin page and unable to adjust its properties.
-
+* See active orders (stored in order.json)
 Features:
 * Update for SEO
 
