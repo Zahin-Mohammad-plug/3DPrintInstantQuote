@@ -248,7 +248,7 @@ export function AdminCatalogManager() {
 
     const newProductItem: Product = {
       id: slugId, // Use the generated slug as the ID
-      ...newProduct,
+      ...newProduct, // Spread newProduct to include all required fields
     };
 
     const updatedProducts = [...products, newProductItem];
@@ -519,13 +519,29 @@ export function AdminCatalogManager() {
                   {categories.map((category) => (
                     <TableRow key={category.id}>
                       <TableCell>
-                        <div className="h-10 w-16 rounded overflow-hidden bg-muted">
-                          <img
-                            src={category.image || "/placeholder.svg"}
-                            alt={category.name}
-                            className="h-full w-full object-cover"
-                          />
-                        </div>
+                        {editingCategoryId === category.id ? (
+                          <div className="flex flex-col gap-2">
+                            <Input
+                              value={category.image}
+                              onChange={(e) => handleUpdateCategory(category.id, "image", e.target.value)}
+                              placeholder="Image URL"
+                            />
+                            {/* Optional: Add an upload button here if needed */}
+                            <img
+                              src={category.image || "/placeholder.svg"}
+                              alt={category.name}
+                              className="h-10 w-16 rounded object-cover border" // Added border for visibility
+                            />
+                          </div>
+                        ) : (
+                          <div className="h-10 w-16 rounded overflow-hidden bg-muted">
+                            <img
+                              src={category.image || "/placeholder.svg"}
+                              alt={category.name}
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell>
                         {editingCategoryId === category.id ? (
@@ -700,7 +716,8 @@ export function AdminCatalogManager() {
               <CardDescription>Edit or remove existing products</CardDescription>
             </CardHeader>
             <CardContent>
-              <Accordion type="single" collapsible value={activeProductTab} onValueChange={setActiveProductTab}>
+              {/* Fix: Provide empty string fallback for null value */}
+              <Accordion type="single" collapsible value={activeProductTab || ''} onValueChange={setActiveProductTab}>
                 {products.map((product) => (
                   <AccordionItem key={product.id} value={product.id}>
                     <AccordionTrigger>

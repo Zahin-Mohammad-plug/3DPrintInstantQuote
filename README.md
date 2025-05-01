@@ -247,11 +247,18 @@ For production deployment, you can host the application on a Linode server:
 - Improved error handling throughout the application
 
 <!-- TODO! -->
+I am working on my 3d printing service website, this codebase has both the frontend and backend
 Styling
 * Change Printer3d icon (in top left of page) to frontend\public\logo.png with same size, formatting and styling
 
 Catalog page:
 * Showing products that arent available
+* category page titls should reflect current category
+ 
+Product page
+* Tab title should match the product name
+* URL should be the product id
+
 
 Upload page:
 * Allow .3mf files to be uploaded and quoted
@@ -259,10 +266,10 @@ Upload page:
     * Save file
     * inform user that this will require custom inquiry for this size of file.
     * Direct to contact page.
+* Allow larger files
 
 Customize page:
 * Should grey out unavailable material selection options 
-
 
 Quote Page:
 * In quote page, ensure the modifiers update the unit price
@@ -278,16 +285,12 @@ Checkout page:
 * The navBar will reappear on thank you page
 * Fix the checkout page to actually email me
 
-Functionality
-* Allow larger files
-* Ensure models orders are stored and accessible through admin ui.
-
 Admin panel:
-* Listings arent updating when adjusted in the admin panel, the colors arent accurate. 
-* Categories arent updated either, no ability to update the image through UI as well.
-* Same goes with products
-* Special filaments have no way to edit in the admin page and unable to adjust its properties.
-* See active orders (stored in order.json)
+* Front end customize page has extra description beside material type (like:  (Outdoor Use),(Decorative) and so on ), should be stored in backend as well 
+* Add submitted orders (stored in order.json)
+* Add upload images for categories and products (mapped to new dirs)
+
+
 Features:
 * Update for SEO
 
