@@ -15,7 +15,7 @@ import Link from "next/link"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { motion } from "framer-motion"
-import { getJobStatus, getMaterials } from "@/services/api"
+import { getJobStatus, getMaterials, addJobToCart } from "@/services/api"
 
 // Define API base URL for model files
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
@@ -87,6 +87,8 @@ export default function QuotePage() {
   const [isClient, setIsClient] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isAddingToCart, setIsAddingToCart] = useState(false); // Add loading state for cart button
+  const [cartError, setCartError] = useState<string | null>(null); // Add error state for cart action
 
   useEffect(() => {
     setIsClient(true)
@@ -326,33 +328,58 @@ export default function QuotePage() {
     })
   }
 
-  const addToCart = () => {
-    // In a real app, you would add this to a cart in your backend or local storage
-    const cartItem: CartItem = {
-      modelName: modelName || "Unknown Model",
-      selectedColor: selectedColor || "#cccccc",
-      selectedSpecialFilament: selectedSpecialFilament || "",
-      selectedMaterial: selectedMaterial || "PLA",
-      selectedQuality: selectedQuality,
-      isMultiColor,
-      multiColorDetails,
-      quantity,
-      isMultiPart,
-      price: quoteDetails.totalWithQuantity,
-      jobId: jobId || ""
+  const addToCart = async () => { // Make the function async
+    if (!jobId) {
+      setCartError("Cannot add to cart: Job ID is missing.");
+      return;
     }
 
-    // For demo purposes, we'll store in session storage
-    const existingCart = sessionStorage.getItem("cart")
-    const cart = existingCart ? JSON.parse(existingCart) : []
-    cart.push(cartItem)
-    sessionStorage.setItem("cart", JSON.stringify(cart))
+    setIsAddingToCart(true); // Set loading state
+    setCartError(null); // Clear previous errors
 
-    setAddedToCart(true)
+    try {
+      // --- Call backend to move files --- START
+      console.log(`Calling addJobToCart for job ID: ${jobId}`);
+      const cartResult = await addJobToCart(jobId);
+      console.log("addJobToCart response:", cartResult);
+      if (!cartResult.success) {
+        throw new Error(cartResult.message || "Backend failed to add job to cart.");
+      }
+      // --- Call backend to move files --- END
 
-    // Dispatch event to update cart icon
-    window.dispatchEvent(new Event("cartUpdated"))
-  }
+      // Proceed with adding to session storage cart if backend call was successful
+      const cartItem: CartItem = {
+        modelName: modelName || "Unknown Model",
+        selectedColor: selectedColor || "#cccccc",
+        selectedSpecialFilament: selectedSpecialFilament || "",
+        selectedMaterial: selectedMaterial || "PLA",
+        selectedQuality: selectedQuality,
+        isMultiColor,
+        multiColorDetails,
+        quantity,
+        isMultiPart,
+        price: quoteDetails.totalWithQuantity,
+        jobId: jobId // Use the confirmed jobId
+      };
+
+      const existingCart = sessionStorage.getItem("cart");
+      const cart = existingCart ? JSON.parse(existingCart) : [];
+      cart.push(cartItem);
+      sessionStorage.setItem("cart", JSON.stringify(cart));
+
+      setAddedToCart(true); // Mark as added
+
+      // Dispatch event to update cart icon
+      window.dispatchEvent(new Event("cartUpdated"));
+
+    } catch (err: any) {
+      console.error("Error adding item to cart:", err);
+      setCartError(err.message || "An unexpected error occurred while adding to cart.");
+      setAddedToCart(false); // Ensure it's not marked as added if there was an error
+    } finally {
+      setIsAddingToCart(false); // Clear loading state
+    }
+  };
 
   if (!isClient) {
     return <div className="container py-12 text-center">Loading...</div>
@@ -645,13 +672,33 @@ export default function QuotePage() {
                     className="w-full bg-primary hover:bg-primary/90"
                     size="lg"
                     onClick={addToCart}
-                    disabled={addedToCart || quoteDetails.totalWithQuantity < 0}
+                    disabled={addedToCart || quoteDetails.totalWithQuantity < 0 || isLoading || isAddingToCart} // Disable while loading job or adding to cart
                   >
-                    <ShoppingCart className="mr-2 h-4 w-4" />
-                    {addedToCart ? "Added to Cart" : quoteDetails.totalWithQuantity === 0 ? "Add to Cart (Free)" : "Add to Cart"}
+                    {isAddingToCart ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <ShoppingCart className="mr-2 h-4 w-4" />
+                    )}
+                    {isAddingToCart
+                      ? "Adding..."
+                      : addedToCart
+                        ? "Added to Cart"
+                        : quoteDetails.totalWithQuantity === 0
+                          ? "Add to Cart (Free)"
+                          : "Add to Cart"}
                   </Button>
 
-                  {addedToCart && (
+                  {cartError && ( // Display cart-specific errors
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="text-center text-sm text-destructive"
+                    >
+                      {cartError}
+                    </motion.div>
+                  )}
+
+                  {addedToCart && !cartError && ( // Only show success message if no error
                     <motion.div
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}

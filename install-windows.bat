@@ -27,14 +27,16 @@ if %ERRORLEVEL% NEQ 0 (
     echo Docker Desktop is not running. Please start Docker Desktop.
     exit /b 1
 )
-echo Docker found and running.
+echo Docker install found and running.
 
+echo SKipping frontend dependencies installation for now.... (comment out l8r)
 REM Clean potential pnpm lock file and old modules
 echo Cleaning up frontend directory...
 cd frontend
 del pnpm-lock.yaml 2>nul
 rmdir /s /q node_modules 2>nul
 cd ..
+
 
 REM Install frontend dependencies
 echo Installing frontend dependencies (using --legacy-peer-deps)...

@@ -12,6 +12,7 @@ from werkzeug.utils import secure_filename
 import queue
 from functools import wraps
 import base64
+import traceback # Ensure traceback is imported
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -321,23 +322,18 @@ def process_jobs():
             if job["status"] == "pending":
                 jobs[job_id]["status"] = "processing"
                 try:
-                    # Construct full path to the uploaded file
+                    # Construct full path to the uploaded file (still needed for existence check)
                     uploaded_file_path = os.path.join(UPLOAD_FOLDER, job["filename"])
                     if not os.path.exists(uploaded_file_path):
                         raise FileNotFoundError(f"Uploaded file not found: {uploaded_file_path}")
 
-                    # Run slicing script using the full path
+                    # Run slicing script - PASS ONLY THE FILENAME
                     fill_density = job.get("fill_density", get_materials()["global_settings"]["default_fill_density"])
                     enable_supports = "1" if job.get("enable_supports", True) else "0"
 
-                    # Assuming slice_model.py handles paths correctly and potentially outputs gcode
-                    # We need the path to the generated gcode if applicable
-                    # For now, let's assume slice_model.py outputs gcode next to the input
-                    gcode_filename = os.path.splitext(job["filename"])[0] + ".gcode"
-                    gcode_output_path = os.path.join(UPLOAD_FOLDER, gcode_filename) # Expected output path
-
+                    # Pass only the relative filename (job["filename"]) to slice_model.py
                     result = subprocess.run(
-                        ["python3", "/app/slice_model.py", uploaded_file_path, str(fill_density), enable_supports],
+                        ["python3", "/app/slice_model.py", job["filename"], str(fill_density), enable_supports],
                         capture_output=True,
                         text=True,
                         cwd="/app" # Keep cwd as /app if slice_model.py expects it
@@ -352,31 +348,25 @@ def process_jobs():
                             jobs[job_id]["status"] = "failed"
                             jobs[job_id]["error"] = slice_result["error"]
                         else:
-                            # --- Move file to quoted folder on successful slicing --- START
-                            quoted_file_path = os.path.join(QUOTED_FOLDER, job["filename"])
-                            gcode_quoted_path = os.path.join(QUOTED_FOLDER, gcode_filename)
-                            try:
-                                shutil.move(uploaded_file_path, quoted_file_path)
-                                print(f"Moved {job['filename']} to quoted folder.")
-                                # Try moving gcode if it exists
-                                if os.path.exists(gcode_output_path):
-                                     shutil.move(gcode_output_path, gcode_quoted_path)
-                                     print(f"Moved {gcode_filename} to quoted folder.")
-                                     job["gcode_filename"] = gcode_filename # Store gcode filename
-                                else:
-                                     print(f"Gcode file {gcode_output_path} not found after slicing, not moving.")
+                            # --- Files remain in UPLOAD_FOLDER after slicing ---
+                            gcode_filename = os.path.splitext(job["filename"])[0] + ".gcode"
+                            gcode_output_path = os.path.join(UPLOAD_FOLDER, gcode_filename)
 
-                                job["filepath"] = quoted_file_path # Update job filepath
-                            except Exception as move_err:
-                                print(f"Error moving file {job['filename']} to quoted folder: {move_err}")
-                                # Decide how to handle: fail job? log only?
-                                jobs[job_id]["status"] = "failed"
-                                jobs[job_id]["error"] = f"Slicing ok, but failed to move file: {move_err}"
-                                job_queue.task_done()
-                                continue # Skip rest of processing for this job
-                            # --- Move file to quoted folder on successful slicing --- END
+                            print(f"Slicing successful for job {job_id}. Files remain in {UPLOAD_FOLDER}.")
+
+                            # Store gcode filename if it exists
+                            if os.path.exists(gcode_output_path):
+                                 print(f"Gcode file found at {gcode_output_path}.")
+                                 job["gcode_filename"] = gcode_filename
+                            else:
+                                 print(f"Gcode file {gcode_output_path} not found after slicing.")
+                                 job.pop("gcode_filename", None) # Remove if it doesn't exist
+
+                            # Filepath remains pointing to UPLOAD_FOLDER
+                            job["filepath"] = uploaded_file_path # Already set during upload, confirm it's correct
 
                             # Calculate price
+                            print("Calculating price...")
                             price_info = calculate_price(
                                 job["material_id"],
                                 job["color_id"],
@@ -386,14 +376,16 @@ def process_jobs():
                                 job.get("quality_id", "standard"),
                                 slice_result.get("volume_cm3")
                             )
+                            print("Price calculated.")
 
+                            # Update status to completed and add result
+                            print(f"Updating job {job_id} status to completed.")
                             jobs[job_id]["status"] = "completed"
                             jobs[job_id]["result"] = {
                                 **slice_result,
                                 "price_info": price_info
                             }
-                            # Remove old filename, keep filepath
-                            # jobs[job_id].pop("filename", None)
+                            print(f"Job {job_id} status updated.")
 
                 except Exception as e:
                     jobs[job_id]["status"] = "failed"
@@ -611,8 +603,8 @@ def approve_job(job_id):
         return jsonify({"error": "Job not found"}), 404
 
     job = jobs[job_id]
-    if job["status"] != "completed":
-        return jsonify({"error": "Job is not ready for approval (must be 'completed')"}), 400
+    if job["status"] != "quoted":
+        return jsonify({"error": f"Job must be in 'quoted' status to approve (current: {job['status']})"}), 400
 
     # --- Move files from quoted to orders --- START
     current_model_path = os.path.join(QUOTED_FOLDER, job["filename"])
@@ -671,6 +663,112 @@ def reject_job(job_id):
         "message": "Job rejected",
         "job": jobs[job_id]
     })
+
+# --- File Serving ---
+@app.route("/api/file/<filename>", methods=["GET", "HEAD"])
+def get_file(filename):
+    """Serve a model or gcode file based on its expected location (job status dependent)."""
+    filename = secure_filename(filename)
+    found_path = None
+    source_folder = "Unknown"
+
+    # Determine potential job based on filename (less reliable, better to use job_id if possible)
+    # This endpoint might need redesign if filename alone isn't unique enough or status is needed.
+    # For now, we check folders in a specific order.
+
+    # 1. Check ORDERS_FOLDER (Approved/Ordered jobs)
+    orders_path = os.path.join(ORDERS_FOLDER, filename)
+    if os.path.exists(orders_path):
+        found_path = orders_path
+        source_folder = "ORDERS"
+
+    # 2. Check QUOTED_FOLDER (Jobs added to cart)
+    if not found_path:
+        quoted_path = os.path.join(QUOTED_FOLDER, filename)
+        if os.path.exists(quoted_path):
+            found_path = quoted_path
+            source_folder = "QUOTED"
+
+    # 3. Check UPLOAD_FOLDER (Pending/Processing/Completed/Failed jobs)
+    if not found_path:
+        upload_path = os.path.join(UPLOAD_FOLDER, filename)
+        if os.path.exists(upload_path):
+            found_path = upload_path
+            source_folder = "UPLOAD"
+
+    # Serve the file if found
+    if found_path:
+        print(f"Serving file {filename} from {source_folder} folder: {found_path}")
+        try:
+            return send_file(found_path, as_attachment=False)
+        except Exception as e:
+            print(f"Error sending file {found_path}: {e}")
+            return jsonify({"error": "Error sending file"}), 500
+    else:
+        # If file not found in any location
+        print(f"File not found in ORDERS, QUOTED, or UPLOAD folder: {filename}")
+        return jsonify({"error": "File not found"}), 404
+
+# --- New Endpoint to move files when added to cart ---
+@app.route("/api/job/<job_id>/add-to-cart", methods=["POST"])
+# Consider adding @requires_auth if cart actions should be restricted
+def add_job_to_cart(job_id):
+    """Moves job files from uploaded to quoted folder, updates status."""
+    if job_id not in jobs:
+        return jsonify({"error": "Job not found"}), 404
+
+    job = jobs[job_id]
+    if job["status"] != "completed":
+        # Only allow adding completed jobs to cart
+        return jsonify({"error": f"Job status must be 'completed' to add to cart (current: {job['status']})"}), 400
+
+    print(f"Adding job {job_id} to cart. Moving files...")
+
+    current_model_path = os.path.join(UPLOAD_FOLDER, job["filename"])
+    quoted_model_path = os.path.join(QUOTED_FOLDER, job["filename"])
+    current_gcode_path = None
+    quoted_gcode_path = None
+    gcode_filename = job.get("gcode_filename")
+
+    if gcode_filename:
+        current_gcode_path = os.path.join(UPLOAD_FOLDER, gcode_filename)
+        quoted_gcode_path = os.path.join(QUOTED_FOLDER, gcode_filename)
+
+    try:
+        # Move model file
+        if os.path.exists(current_model_path):
+            shutil.move(current_model_path, quoted_model_path)
+            print(f"Moved model {job['filename']} to quoted folder.")
+            job["filepath"] = quoted_model_path # Update filepath
+        else:
+             print(f"Warning: Model file {current_model_path} not found in upload folder during add-to-cart.")
+             # Fail the request if the main model file is missing
+             return jsonify({"error": "Model file missing, cannot add to cart."}), 500
+
+        # Move gcode file if it exists
+        if gcode_filename and current_gcode_path and os.path.exists(current_gcode_path):
+            shutil.move(current_gcode_path, quoted_gcode_path)
+            print(f"Moved gcode {gcode_filename} to quoted folder.")
+        elif gcode_filename:
+            print(f"Warning: Gcode file {current_gcode_path} not found in upload folder during add-to-cart.")
+
+        # Update job status to 'quoted' (or 'carted')
+        jobs[job_id]["status"] = "quoted"
+        jobs[job_id]["added_to_cart_at"] = time.time() # Optional timestamp
+        print(f"Updated job {job_id} status to quoted.")
+
+        return jsonify({
+            "success": True,
+            "message": "Job added to cart, files moved to quoted folder.",
+            "job": jobs[job_id] # Return updated job info
+        })
+
+    except Exception as move_err:
+        print(f"Error moving files for job {job_id} during add-to-cart: {move_err}")
+        traceback.print_exc()
+        # Attempt to revert status if move failed? Complex. For now, just report error.
+        # Consider leaving status as 'completed' if move fails.
+        return jsonify({"error": f"Failed to move files to quoted folder: {move_err}"}), 500
 
 if __name__ == "__main__":
     # Initialize materials if needed (now checks config path)

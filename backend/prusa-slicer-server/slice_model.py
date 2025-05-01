@@ -9,6 +9,9 @@ import shutil
 # Enable debug mode? (1 = on, 0 = off)
 DEBUG = 1
 
+# Define base directory for uploaded files
+UPLOAD_FOLDER = "/app/shared/temp/uploaded"
+
 def debug_print(msg):
     if DEBUG:
         print(f"[DEBUG] {msg}", file=sys.stderr)
@@ -23,27 +26,22 @@ try:
         print(json.dumps({"error": "Missing filename argument"}))
         sys.exit(1)
 
-    # Get file extension
-    filename = sys.argv[1]
-    file_ext = os.path.splitext(filename)[1].lower()
-    
-    MODEL_FILE = "/app/shared/" + filename  # STL/3MF file path
-    GCODE_FILE = os.path.splitext(MODEL_FILE)[0] + ".gcode"
+    # Get relative filename from argument
+    relative_filename = sys.argv[1]
+    file_ext = os.path.splitext(relative_filename)[1].lower()
+
+    # Construct full paths using UPLOAD_FOLDER
+    MODEL_FILE = os.path.join(UPLOAD_FOLDER, relative_filename)
+    GCODE_FILE = os.path.splitext(MODEL_FILE)[0] + ".gcode" # Output gcode to the same folder
     PROFILE_FILE = "/app/shared/prusaslicer-config/x1c.ini"
     
     # Check if the file exists and is accessible
     if not os.path.exists(MODEL_FILE):
         debug_print(f"Model file not found: {MODEL_FILE}")
-        # Check if there's a converted version (for 3MF files that were converted to STL)
-        original_base = os.path.splitext(MODEL_FILE)[0]
-        potential_stl = original_base + ".stl"
-        if os.path.exists(potential_stl):
-            debug_print(f"Found converted STL file: {potential_stl}")
-            MODEL_FILE = potential_stl
-            GCODE_FILE = os.path.splitext(MODEL_FILE)[0] + ".gcode"
-        else:
-            print(json.dumps({"error": f"File not found: {MODEL_FILE}"}))
-            sys.exit(1)
+        # Remove the check for converted STL here, as server.py handles conversion
+        # and passes the correct final filename (STL or original).
+        print(json.dumps({"error": f"File not found: {MODEL_FILE}"}))
+        sys.exit(1)
 
     # Get optional arguments
     FILL_DENSITY = sys.argv[2] if len(sys.argv) > 2 else "0.15" 
@@ -98,7 +96,7 @@ try:
         "--load", PROFILE_FILE, 
         "--fill-density", str(FILL_DENSITY),  # Use decimal format
         "--export-gcode",
-        "--output", GCODE_FILE
+        "--output", GCODE_FILE # Use the correct output path
     ]
 
     # Add support material flags (must be before the STL file)
@@ -107,7 +105,7 @@ try:
         slicing_cmd.append("--support-material-auto")
 
     # Finally, add the STL file to be sliced
-    slicing_cmd.append(MODEL_FILE)
+    slicing_cmd.append(MODEL_FILE) # Use the correct input path
 
     debug_print(f"Slicing command: {' '.join(slicing_cmd)}")
 

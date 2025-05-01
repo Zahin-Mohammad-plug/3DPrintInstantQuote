@@ -314,6 +314,35 @@ export async function rejectJob(jobId: string): Promise<{ success: boolean; mess
 }
 
 /**
+ * Notify backend that a job's quote is being added to the cart.
+ * This triggers moving files from uploaded to quoted folder.
+ * @param jobId Job ID
+ * @returns Promise with success status and updated job data
+ */
+export async function addJobToCart(jobId: string): Promise<{ success: boolean; message: string; job: JobStatus }> {
+  try {
+    // Add authentication if required by the backend endpoint
+    const response = await fetch(`${API_BASE_URL}/api/job/${jobId}/add-to-cart`, {
+      method: 'POST',
+      headers: {
+        // Add 'Authorization': `Basic ${credentials}` if needed
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to add job to cart');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error adding job to cart:', error);
+    throw error;
+  }
+}
+
+/**
  * Submit an order
  * @param orderData Order data
  * @returns Promise with success status
