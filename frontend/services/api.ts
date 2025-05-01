@@ -221,10 +221,16 @@ export async function getMaterials(): Promise<MaterialsResponse> {
  */
 export async function updateMaterials(materialsData: MaterialsResponse): Promise<{ success: boolean; message: string }> {
   try {
+    // Basic Auth credentials (replace with a more secure method if needed)
+    const username = "admin";
+    const password = "password"; // Use the actual password from auth.json or default
+    const credentials = btoa(`${username}:${password}`); // Base64 encode
+
     const response = await fetch(`${API_BASE_URL}/api/materials`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Basic ${credentials}` // Add Basic Auth header
       },
       body: JSON.stringify(materialsData),
     });

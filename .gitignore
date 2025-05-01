@@ -1,3 +1,11 @@
+# Print Files
+userModels/*.gcode
+userModels/*.stl
+
+
+
+
+
 # Logs
 logs
 *.log

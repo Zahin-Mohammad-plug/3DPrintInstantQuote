@@ -296,8 +296,12 @@ def get_materials():
 def save_materials(materials_data):
     """Save materials to file"""
     try:
+        # Ensure the directory exists (though it should due to volume mount)
+        os.makedirs(os.path.dirname(MATERIALS_FILE), exist_ok=True)
         with open(MATERIALS_FILE, 'w') as f:
             json.dump(materials_data, f, indent=2)
+        # Add explicit log message after successful write
+        print(f"Successfully wrote updated data to {MATERIALS_FILE} inside container.")
         return True
     except Exception as e:
         print(f"Error saving materials file {MATERIALS_FILE}: {e}")
@@ -477,7 +481,7 @@ def update_materials():
     try:
         materials_data = request.json
         if save_materials(materials_data):
-             return jsonify({"success": True, "message": "Materials updated successfully"})
+             return jsonify({"success": True, "message": "Materials updated successfully CHANGEDDD"})
         else:
              return jsonify({"success": False, "message": "Failed to save materials file"}), 500
     except Exception as e:

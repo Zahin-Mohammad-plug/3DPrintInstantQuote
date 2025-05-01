@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { getMaterials, updateMaterials } from "@/services/api"
+import { getMaterials, updateMaterials, MaterialsResponse, SpecialFilament } from "@/services/api"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -32,6 +32,7 @@ interface BackendColorItem {
 export function AdminMaterialManager() {
   const [materials, setMaterials] = useState<MaterialItem[]>([])
   const [allColors, setAllColors] = useState<BackendColorItem[]>([])
+  const [specialFilaments, setSpecialFilaments] = useState<SpecialFilament[]>([]) // Add state for special filaments
   const [editingId, setEditingId] = useState<string | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [newMaterial, setNewMaterial] = useState<Partial<MaterialItem>>({
@@ -44,39 +45,63 @@ export function AdminMaterialManager() {
   const loadData = async () => {
     try {
       const data = await getMaterials();
-      if (data && data.materials) {
-        const mappedMaterials = data.materials.map((material: any) => ({
-          id: material.id,
-          name: material.name,
-          description: material.description || "",
-          priceModifier: material.priceModifier || 0,
-          availableColors: material.colors ? material.colors.map((color: any) => color.hex) : [],
-          base_cost_per_gram: material.base_cost_per_gram,
-          hourly_rate: material.hourly_rate,
-          properties: material.properties,
-        }));
-        setMaterials(mappedMaterials);
+      if (data) { // Check if data is not null/undefined
+        // Process materials (existing logic)
+        if (data.materials) {
+          const mappedMaterials = data.materials.map((material: any) => ({
+            id: material.id,
+            name: material.name,
+            description: material.description || "",
+            priceModifier: material.priceModifier || 0,
+            availableColors: material.colors ? material.colors.map((color: any) => color.hex) : [],
+            base_cost_per_gram: material.base_cost_per_gram,
+            hourly_rate: material.hourly_rate,
+            properties: material.properties,
+          }));
+          setMaterials(mappedMaterials);
 
-        const uniqueColors = new Map<string, BackendColorItem>();
-        data.materials.forEach((material: any) => {
-          if (material.colors) {
-            material.colors.forEach((color: any) => {
-              if (!uniqueColors.has(color.id)) {
-                uniqueColors.set(color.id, {
-                  id: color.id,
-                  name: color.name,
-                  hex: color.hex,
-                  addon_price: color.addon_price || 0
-                });
-              }
-            });
-          }
-        });
-        setAllColors(Array.from(uniqueColors.values()));
+          const uniqueColors = new Map<string, BackendColorItem>();
+          data.materials.forEach((material: any) => {
+            if (material.colors) {
+              material.colors.forEach((color: any) => {
+                if (!uniqueColors.has(color.id)) {
+                  uniqueColors.set(color.id, {
+                    id: color.id,
+                    name: color.name,
+                    hex: color.hex,
+                    addon_price: color.addon_price || 0
+                  });
+                }
+              });
+            }
+          });
+          setAllColors(Array.from(uniqueColors.values()));
+        } else {
+           setMaterials([]); // Handle case where materials array might be missing
+           setAllColors([]);
+        }
+
+        // Process special filaments
+        if (data.special_filaments) {
+          setSpecialFilaments(data.special_filaments);
+        } else {
+          setSpecialFilaments([]); // Handle case where special_filaments might be missing
+        }
+
+      } else {
+         // Handle case where data itself is null/undefined
+         setMaterials([]);
+         setAllColors([]);
+         setSpecialFilaments([]);
+         alert("Failed to load any data from the backend.");
       }
     } catch (error) {
-      console.error("Error loading materials/colors:", error);
-      alert("Failed to load materials or colors from the backend.");
+      console.error("Error loading materials/colors/filaments:", error);
+      alert("Failed to load data from the backend.");
+       // Optionally clear state on error too
+       setMaterials([]);
+       setAllColors([]);
+       setSpecialFilaments([]);
     }
   };
 
@@ -92,10 +117,12 @@ export function AdminMaterialManager() {
   const handleSave = async (id: string) => {
     try {
       const currentData = await getMaterials();
-      if (!currentData || !currentData.materials) {
-        alert("Failed to fetch current materials data from backend.");
+      if (!currentData) { // Check for null/undefined data
+        alert("Failed to fetch current data from backend.");
         return;
       }
+      // Ensure materials array exists, default to empty if not
+      const currentMaterials = currentData.materials || [];
 
       const editedMaterialState = materials.find(m => m.id === id);
       if (!editedMaterialState) {
@@ -103,7 +130,7 @@ export function AdminMaterialManager() {
         return;
       }
 
-      const updatedMaterialsBackend = currentData.materials.map((material: any) => {
+      const updatedMaterialsBackend = currentMaterials.map((material: any) => {
         if (material.id === id) {
           const updatedMaterialColors = allColors
             .filter(color => editedMaterialState.availableColors.includes(color.hex))
@@ -125,14 +152,19 @@ export function AdminMaterialManager() {
         return material;
       });
 
-      const result = await updateMaterials({
-        ...currentData,
-        materials: updatedMaterialsBackend
-      });
+      // Construct the full payload, ensuring special_filaments and global_settings are included
+      const payload: MaterialsResponse = {
+        ...currentData, // Includes global_settings
+        materials: updatedMaterialsBackend,
+        special_filaments: specialFilaments // Include current special filaments state
+      };
+
+      const result = await updateMaterials(payload);
 
       if (result.success) {
         alert("Material updated successfully!");
         setEditingId(null);
+        loadData(); // Refresh data after successful save
       } else {
         alert(`Failed to update material: ${result.message}`);
       }
@@ -149,19 +181,29 @@ export function AdminMaterialManager() {
   const handleDelete = async (id: string) => {
     try {
       const currentData = await getMaterials();
-      if (!currentData || !currentData.materials) {
-        alert("Failed to fetch current materials data from backend.");
+      if (!currentData) { // Check for null/undefined data
+        alert("Failed to fetch current data from backend.");
         return;
       }
-      const updatedMaterialsBackend = currentData.materials.filter((material: any) => material.id !== id);
-      const result = await updateMaterials({
-        ...currentData,
-        materials: updatedMaterialsBackend
-      });
+       // Ensure materials array exists, default to empty if not
+      const currentMaterials = currentData.materials || [];
+
+      const updatedMaterialsBackend = currentMaterials.filter((material: any) => material.id !== id);
+
+      // Construct the full payload
+      const payload: MaterialsResponse = {
+        ...currentData, // Includes global_settings
+        materials: updatedMaterialsBackend,
+        special_filaments: specialFilaments // Include current special filaments state
+      };
+
+      const result = await updateMaterials(payload);
 
       if (result.success) {
+        // Update local state *after* successful API call
         setMaterials(materials.filter((material) => material.id !== id));
         alert("Material deleted successfully!");
+        loadData(); // Refresh data after successful delete
       } else {
         alert(`Failed to delete material: ${result.message}`);
       }
@@ -193,12 +235,14 @@ export function AdminMaterialManager() {
       const id = newMaterial.name.split("(")[0].trim().toUpperCase().replace(/\s+/g, '_');
 
       const currentData = await getMaterials();
-      if (!currentData || !currentData.materials) {
-        alert("Failed to fetch current materials data from backend.");
+      if (!currentData) { // Check for null/undefined data
+        alert("Failed to fetch current data from backend.");
         return;
       }
+      // Ensure materials array exists, default to empty if not
+      const currentMaterials = currentData.materials || [];
 
-      if (currentData.materials.some((m: any) => m.id === id)) {
+      if (currentMaterials.some((m: any) => m.id === id)) {
         alert(`Material with ID ${id} already exists. Please choose a different name.`);
         return;
       }
@@ -222,14 +266,18 @@ export function AdminMaterialManager() {
       };
 
       const updatedMaterialsBackend = [
-        ...currentData.materials,
+        ...currentMaterials,
         newMaterialBackend
       ];
 
-      const result = await updateMaterials({
-        ...currentData,
-        materials: updatedMaterialsBackend
-      });
+      // Construct the full payload
+      const payload: MaterialsResponse = {
+        ...currentData, // Includes global_settings
+        materials: updatedMaterialsBackend,
+        special_filaments: specialFilaments // Include current special filaments state
+      };
+
+      const result = await updateMaterials(payload);
 
       if (result.success) {
         const newMaterialState: MaterialItem = {
@@ -245,6 +293,7 @@ export function AdminMaterialManager() {
         setMaterials([...materials, newMaterialState]);
         setNewMaterial({ name: "", description: "", priceModifier: 0, availableColors: [] });
         alert("Material added successfully!");
+        loadData(); // Refresh data after successful add
       } else {
         alert(`Failed to add material: ${result.message}`);
       }
@@ -493,7 +542,8 @@ export function AdminMaterialManager() {
                               </div>
                             </div>
                           ) : (
-                            <div className="space-y-4">
+                            <div>
+                              <div className="space-y-4"></div>
                               <p className="text-sm">{material.description}</p>
                               <div className="space-y-2">
                                 <h4 className="text-sm font-medium">Available Colors:</h4>
