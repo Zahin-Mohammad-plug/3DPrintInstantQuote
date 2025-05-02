@@ -30,6 +30,12 @@ export default function CartPage() {
     jobId?: string;
   }
 
+  // Map hex codes to names
+  const colorNameMap: Record<string,string> = {
+    '#ffffff':'White','#000000':'Black','#ff0000':'Red','#0000ff':'Blue',
+    '#00ff00':'Green','#ffd700':'Gold','#c0c0c0':'Silver'
+  }
+
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [subtotal, setSubtotal] = useState(0)
   const [total, setTotal] = useState(0)
@@ -180,7 +186,7 @@ export default function CartPage() {
                               <div className="h-16 w-16 rounded overflow-hidden bg-muted">
                                 <img
                                   src={item.image || "/placeholder.svg"}
-                                  alt={item.name}
+                                  alt={item.modelName || item.name}
                                   className="h-full w-full object-cover"
                                 />
                               </div>
@@ -189,19 +195,12 @@ export default function CartPage() {
                           </TableCell>
                           <TableCell>
                             <div className="space-y-1 text-sm">
-                              <div>Material: {item.selectedMaterial}</div>
+                              <div>Material: {item.selectedMaterial?.toUpperCase()}</div>
                               <div>
-                                {item.isMultiColor
-                                  ? "Multi-Color"
-                                  : item.selectedSpecialFilament
-                                    ? `Special: ${item.selectedSpecialFilament}`
-                                    : `Color: ${
-                                        item.selectedColor === "#ffffff"
-                                          ? "White"
-                                          : item.selectedColor === "#000000"
-                                            ? "Black"
-                                            : item.selectedColor
-                                      }`}
+                                {item.isMultiColor ? 'Multi-Color' :
+                                  item.selectedSpecialFilament ? `Special: ${item.selectedSpecialFilament}` :
+                                  `Color: ${colorNameMap[item.selectedColor?.toLowerCase()||''] || item.selectedColor}`
+                                }
                               </div>
                               <div>Quality: {item.selectedQuality || "Standard"}</div>
                             </div>

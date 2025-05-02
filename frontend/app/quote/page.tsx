@@ -51,6 +51,7 @@ interface CartItem {
   isMultiPart: boolean
   price: number
   jobId: string
+  image?: string // Add preview image URL
 }
 
 // Quality options for reference
@@ -82,6 +83,8 @@ export default function QuotePage() {
   const [error, setError] = useState<string | null>(null)
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [cartError, setCartError] = useState<string | null>(null);
+  // Theme for model viewer background
+  const [viewerTheme, setViewerTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
     setIsClient(true)
@@ -336,7 +339,7 @@ export default function QuotePage() {
         isMultiPart,
         price: quoteDetails.totalWithQuantity,
         jobId: jobId,
-        image: "/placeholder.svg"
+        image: modelUrl || "/placeholder.svg" // Use preview image URL
       };
 
       const existingCart = sessionStorage.getItem("cart");
@@ -413,6 +416,12 @@ export default function QuotePage() {
               Back to Customization
             </Link>
           </div>
+          {/* Viewer background toggle */}
+          <div className="flex justify-end mb-4">
+            <Button variant="outline" size="sm" onClick={() => setViewerTheme(v => v === 'light' ? 'dark' : 'light')}>
+              {viewerTheme === 'light' ? 'Dark Background' : 'Light Background'}
+            </Button>
+          </div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -438,6 +447,7 @@ export default function QuotePage() {
                       material={selectedMaterial || "PLA"}
                       jobId={jobId || undefined}
                       isLoading={!modelUrl}
+                      viewerTheme={viewerTheme}
                     />
                     {/* Dimensions overlay */}
                     {quoteDetails?.size && (
