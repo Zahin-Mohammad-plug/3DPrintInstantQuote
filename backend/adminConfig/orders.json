@@ -1,0 +1,250 @@
+[
+  {
+    "id": "15db32a7-b6f7-477b-96c0-22d0ea3c90ad",
+    "job_id": "2c14240c-f75a-443e-b7bb-a54d0799382d",
+    "status": "PENDING",
+    "createdAt": "2025-05-03T03:55:19.744054Z",
+    "updatedAt": "2025-05-03T03:55:19.744066Z",
+    "customer": {
+      "name": "z",
+      "email": "z@z.comn",
+      "phone": "4"
+    },
+    "shippingAddress": null,
+    "delivery_method": "pickup",
+    "notes": "",
+    "items": [
+      {
+        "job_id": "2c14240c-f75a-443e-b7bb-a54d0799382d",
+        "name": "deskheadset1.stl",
+        "quantity": 1,
+        "price": 4.58,
+        "details": {
+          "material_id": "pla",
+          "color_id": "#000000",
+          "quality_id": "standard",
+          "fill_density": 0.15,
+          "enable_supports": true,
+          "filament_used_g": 30.24,
+          "estimated_time": "1h 2m 11s",
+          "volume_cm3": 171.53732327028695,
+          "dimensions_mm": {
+            "x": 32.988333,
+            "y": 129.998478,
+            "z": 40.0
+          },
+          "price_breakdown": {
+            "prusa_cost": 3.58,
+            "base_price": 4.58,
+            "material_cost": 1.51,
+            "time_cost": 2.07,
+            "color_addon": 0,
+            "material_modifier": 0,
+            "quality_modifier": 0,
+            "total_price": 4.58
+          }
+        }
+      }
+    ],
+    "subtotal": 4.58,
+    "shipping": 0,
+    "tax": 0,
+    "total": 4.58
+  },
+  {
+    "id": "56a5b843-0e46-4d04-9d43-7ddc7232afe7",
+    "job_id": "62ae0923-cd9a-488f-92a1-2491d858669c",
+    "status": "PENDING",
+    "createdAt": "2025-05-03T03:58:07.791356Z",
+    "updatedAt": "2025-05-03T03:58:07.791367Z",
+    "customer": {
+      "name": "3",
+      "email": "12@dd",
+      "phone": "213"
+    },
+    "shippingAddress": null,
+    "delivery_method": "pickup",
+    "notes": "",
+    "items": [
+      {
+        "job_id": "62ae0923-cd9a-488f-92a1-2491d858669c",
+        "name": "lock-slide-v2.stl",
+        "quantity": 1,
+        "price": 2.06,
+        "details": {
+          "material_id": "pla",
+          "color_id": "#white",
+          "quality_id": "standard",
+          "fill_density": 0.15,
+          "enable_supports": true,
+          "filament_used_g": 5.77,
+          "estimated_time": "23m 4s",
+          "volume_cm3": 20.51314776,
+          "dimensions_mm": {
+            "x": 28.490483,
+            "y": 24.0,
+            "z": 30.0
+          },
+          "price_breakdown": {
+            "prusa_cost": 1.06,
+            "base_price": 2.06,
+            "material_cost": 0.29,
+            "time_cost": 0.77,
+            "color_addon": 0,
+            "material_modifier": 0,
+            "quality_modifier": 0,
+            "total_price": 2.06
+          }
+        }
+      }
+    ],
+    "subtotal": 2.06,
+    "shipping": 0,
+    "tax": 0,
+    "total": 2.06
+  },
+  {
+    "id": "0e50d303-c8b6-435f-b921-c0d394090d75",
+    "job_id": "fe7e6885-c430-4764-a699-a2721d755bdf",
+    "status": "PENDING",
+    "createdAt": "2025-05-03T04:00:10.680028Z",
+    "updatedAt": "2025-05-03T04:00:10.680039Z",
+    "customer": {
+      "name": "123",
+      "email": "21@d323d",
+      "phone": "321"
+    },
+    "shippingAddress": null,
+    "delivery_method": "pickup",
+    "notes": "",
+    "items": [
+      {
+        "job_id": "fe7e6885-c430-4764-a699-a2721d755bdf",
+        "name": "card-display-stand-v2.stl",
+        "quantity": 1,
+        "price": 2.9,
+        "details": {
+          "material_id": "pla",
+          "color_id": "#cccccc",
+          "quality_id": "standard",
+          "fill_density": 0.15,
+          "enable_supports": true,
+          "filament_used_g": 9.47,
+          "estimated_time": "42m 45s",
+          "volume_cm3": 134.87350590000003,
+          "dimensions_mm": {
+            "x": 60.0,
+            "y": 35.0,
+            "z": 64.225479
+          },
+          "price_breakdown": {
+            "prusa_cost": 1.9,
+            "base_price": 2.9,
+            "material_cost": 0.47,
+            "time_cost": 1.43,
+            "color_addon": 0,
+            "material_modifier": 0,
+            "quality_modifier": 0,
+            "total_price": 2.9
+          }
+        }
+      }
+    ],
+    "subtotal": 2.9,
+    "shipping": 0,
+    "tax": 0,
+    "total": 2.9
+  },
+  {
+    "id": "a3d89d97-1e29-4bff-a3b8-581a2619d914",
+    "job_id": "20d37cda-2e88-41e2-87df-2b09173ef86e",
+    "product_id": null,
+    "status": "PENDING",
+    "createdAt": "2025-05-03T04:34:31.013195Z",
+    "updatedAt": "2025-05-03T04:34:31.013208Z",
+    "customer": {
+      "name": "21321",
+      "email": "21@gmai.com",
+      "phone": "231"
+    },
+    "shippingAddress": null,
+    "delivery_method": "pickup",
+    "notes": "",
+    "items": [
+      {
+        "job_id": "20d37cda-2e88-41e2-87df-2b09173ef86e",
+        "product_id": null,
+        "name": "deskheadset1.stl",
+        "quantity": 1,
+        "price": 4.58,
+        "details": {
+          "material_id": "pla",
+          "color_id": "#FF0000",
+          "quality_id": "standard",
+          "fill_density": 0.15,
+          "enable_supports": true,
+          "filament_used_g": 30.24,
+          "estimated_time": "1h 2m 11s",
+          "volume_cm3": 171.53732327028695,
+          "dimensions_mm": {
+            "x": 32.988333,
+            "y": 129.998478,
+            "z": 40.0
+          },
+          "price_breakdown": {
+            "prusa_cost": 3.58,
+            "base_price": 4.58,
+            "material_cost": 1.51,
+            "time_cost": 2.07,
+            "color_addon": 0,
+            "material_modifier": 0,
+            "quality_modifier": 0,
+            "total_price": 4.58
+          }
+        }
+      }
+    ],
+    "subtotal": 4.58,
+    "shipping": 0,
+    "tax": 0,
+    "total": 4.58
+  },
+  {
+    "id": "db5528ca-1bad-4e53-89f0-02b2f4a1dad6",
+    "job_id": null,
+    "product_id": "phone-stand",
+    "status": "PROCESSING",
+    "createdAt": "2025-05-03T04:36:52.781284Z",
+    "updatedAt": "2025-05-03T04:55:03.466935Z",
+    "customer": {
+      "name": "eqw",
+      "email": "qwe@wqew",
+      "phone": "ewq"
+    },
+    "shippingAddress": null,
+    "delivery_method": "pickup",
+    "notes": "",
+    "items": [
+      {
+        "job_id": null,
+        "product_id": "phone-stand",
+        "name": "Phone Stand",
+        "quantity": 1,
+        "price": 14.99,
+        "details": {
+          "product_id": "phone-stand",
+          "material_id": null,
+          "color_id": null,
+          "quality_id": null,
+          "is_multi_color": null,
+          "multi_color_details": null,
+          "special_filament": null
+        }
+      }
+    ],
+    "subtotal": 14.99,
+    "shipping": 0,
+    "tax": 0,
+    "total": 14.99
+  }
+]

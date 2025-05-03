@@ -265,67 +265,133 @@ export async function updateMaterials(materialsData: MaterialsResponse): Promise
 
 /**
  * Get all jobs (admin only)
+ * Requires authentication headers if backend endpoint is protected.
  * @returns Promise with all jobs
  */
-export async function getAllJobs(): Promise<JobStatus[]> {
+export async function getAllJobs(): Promise<JobStatus[]> { // Removed authToken parameter
   try {
-    const response = await fetch(`${API_BASE_URL}/api/jobs`);
-    
+    // Retrieve the stored Basic Auth string from sessionStorage
+    const authString = sessionStorage.getItem('adminAuth');
+    const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+    };
+
+    if (authString) {
+        headers['Authorization'] = authString; // Use the retrieved token
+    } else {
+        // If no auth string is found, throw an error immediately
+        console.error("Admin auth credentials not found for getting all jobs.");
+        throw new Error("Authentication required. Please log in as admin.");
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/jobs`, {
+      method: 'GET',
+      headers: headers, // Use the headers with Authorization
+    });
+
     if (!response.ok) {
+      // Handle potential 401 Unauthorized
+      if (response.status === 401) {
+        sessionStorage.removeItem('adminAuth'); // Clear potentially invalid token
+        throw new Error('Authentication failed. Please log in again.');
+      }
       const errorData = await response.json();
       throw new Error(errorData.error || 'Failed to get jobs');
     }
-    
+
     return await response.json();
   } catch (error) {
     console.error('Error getting jobs:', error);
+    // Re-throw the error so the caller can handle it (e.g., show a toast)
     throw error;
   }
 }
 
 /**
  * Approve a job for printing (admin only)
+ * Requires authentication headers.
  * @param jobId Job ID
  * @returns Promise with success status
  */
-export async function approveJob(jobId: string): Promise<{ success: boolean; message: string; job: JobStatus }> {
+export async function approveJob(jobId: string): Promise<{ success: boolean; message: string; job: JobStatus }> { // Removed authToken parameter
   try {
+    // Retrieve the stored Basic Auth string from sessionStorage
+    const authString = sessionStorage.getItem('adminAuth');
+    const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+    };
+
+    if (authString) {
+        headers['Authorization'] = authString; // Use the retrieved token
+    } else {
+        // If no auth string is found, throw an error immediately
+        console.error("Admin auth credentials not found for approving job.");
+        throw new Error("Authentication required. Please log in as admin.");
+    }
+
     const response = await fetch(`${API_BASE_URL}/api/job/${jobId}/approve`, {
       method: 'POST',
+      headers: headers, // Use the headers with Authorization
     });
-    
+
     if (!response.ok) {
+       // Handle potential 401 Unauthorized
+      if (response.status === 401) {
+        sessionStorage.removeItem('adminAuth'); // Clear potentially invalid token
+        throw new Error('Authentication failed. Please log in again.');
+      }
       const errorData = await response.json();
       throw new Error(errorData.error || 'Failed to approve job');
     }
-    
+
     return await response.json();
   } catch (error) {
     console.error('Error approving job:', error);
-    throw error;
+    throw error; // Re-throw
   }
 }
 
 /**
  * Reject a job (admin only)
+ * Requires authentication headers.
  * @param jobId Job ID
  * @returns Promise with success status
  */
-export async function rejectJob(jobId: string): Promise<{ success: boolean; message: string; job: JobStatus }> {
+export async function rejectJob(jobId: string): Promise<{ success: boolean; message: string; job: JobStatus }> { // Removed authToken parameter
   try {
+    // Retrieve the stored Basic Auth string from sessionStorage
+    const authString = sessionStorage.getItem('adminAuth');
+    const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+    };
+
+    if (authString) {
+        headers['Authorization'] = authString; // Use the retrieved token
+    } else {
+        // If no auth string is found, throw an error immediately
+        console.error("Admin auth credentials not found for rejecting job.");
+        throw new Error("Authentication required. Please log in as admin.");
+    }
+
     const response = await fetch(`${API_BASE_URL}/api/job/${jobId}/reject`, {
       method: 'POST',
+       headers: headers, // Use the headers with Authorization
     });
-    
+
     if (!response.ok) {
+       // Handle potential 401 Unauthorized
+      if (response.status === 401) {
+        sessionStorage.removeItem('adminAuth'); // Clear potentially invalid token
+        throw new Error('Authentication failed. Please log in again.');
+      }
       const errorData = await response.json();
       throw new Error(errorData.error || 'Failed to reject job');
     }
-    
+
     return await response.json();
   } catch (error) {
     console.error('Error rejecting job:', error);
-    throw error;
+    throw error; // Re-throw
   }
 }
 
@@ -360,31 +426,154 @@ export async function addJobToCart(jobId: string): Promise<{ success: boolean; m
 
 /**
  * Submit an order
- * @param orderData Order data
- * @returns Promise with success status
+ * @param orderData Order data matching backend expectations
+ * @returns Promise with success status and potentially order ID
  */
-export async function submitOrder(orderData: OrderData): Promise<{ success: boolean; message: string }> {
+export async function submitOrder(orderData: OrderData): Promise<{ success: boolean; message: string; order_id?: string }> {
   try {
-    // This endpoint would need to be added to the backend
-    const response = await fetch(`${API_BASE_URL}/api/orders`, {
+    // Use the correct endpoint defined in the backend
+    const response = await fetch(`${API_BASE_URL}/api/orders`, { // Changed endpoint
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        // Add Authorization header if needed for order submission
       },
       body: JSON.stringify(orderData),
     });
-    
+
     if (!response.ok) {
       const errorData = await response.json();
+      console.error('Failed to submit order:', errorData); // Log detailed error
       throw new Error(errorData.error || 'Failed to submit order');
     }
-    
+
+    // Expecting { success: boolean, message: string, order_id: string } from backend
     return await response.json();
   } catch (error) {
     console.error('Error submitting order:', error);
-    throw error;
+    // Rethrow or handle error appropriately for the UI
+    throw error instanceof Error ? error : new Error('An unknown error occurred while submitting the order.');
   }
 }
+
+// --- NEW Order Tracking Functions ---
+
+/**
+ * Interface for a single Order (matching backend structure)
+ */
+export interface Order {
+  id: string;
+  job_id: string; // Assuming one job per order for now
+  status: string; // e.g., PENDING, PROCESSING, SHIPPED, etc.
+  createdAt: string; // ISO 8601 date string
+  updatedAt: string; // ISO 8601 date string
+  customer: {
+    name: string;
+    email: string;
+    phone?: string;
+  };
+  shippingAddress?: { // Make optional if delivery_method can be 'pickup'
+    street: string;
+    street2?: string;
+    city: string;
+    state: string; // Or province
+    zip: string; // Or postal code
+    country: string;
+  };
+  delivery_method: 'pickup' | 'shipping';
+  notes?: string;
+  items: {
+    job_id: string;
+    name: string; // Original filename or product name
+    quantity: number;
+    price: number; // Price per item at time of order
+    details: { // Configuration snapshot
+      material_id: string;
+      color_id: string;
+      quality_id?: string;
+      fill_density: number;
+      enable_supports: boolean;
+      filament_used_g?: number;
+      estimated_time?: string;
+      volume_cm3?: number;
+      dimensions_mm?: { x: number; y: number; z: number };
+      price_breakdown?: any; // Store the full price breakdown
+    };
+  }[];
+  subtotal: number;
+  shipping: number;
+  tax: number;
+  total: number;
+}
+
+
+/**
+ * Get all orders (admin only)
+ * Requires authentication headers if backend endpoint is protected.
+ * @returns Promise with an array of orders
+ */
+export async function getAllOrders(): Promise<Order[]> {  // Removed authToken parameter
+  // Retrieve the stored Basic Auth string from sessionStorage
+  const authString = sessionStorage.getItem('adminAuth');
+  if (!authString) {
+    console.error("Admin auth credentials not found for getting all orders.");
+    throw new Error("Authentication required. Please log in as admin.");
+  }
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    'Authorization': authString // Use full Basic auth string
+  };
+  const response = await fetch(`${API_BASE_URL}/api/orders`, {
+    method: 'GET',
+    headers,
+  });
+  if (!response.ok) {
+    if (response.status === 401) {
+      sessionStorage.removeItem('adminAuth');
+      throw new Error('Authentication failed. Please log in again.');
+    }
+    const errorData = await response.json();
+    throw new Error(errorData.error || 'Failed to get orders');
+  }
+  return await response.json();
+}
+
+/**
+ * Update the status of an order (admin only)
+ * Requires authentication headers.
+ * @param orderId The ID of the order to update
+ * @param status The new status string
+ * @returns Promise with success status and updated order data
+ */
+export async function updateOrderStatus(orderId: string, status: string): Promise<{ success: boolean; message: string; order: Order }> {  // Removed authToken parameter
+  // Retrieve the stored Basic Auth string from sessionStorage
+  const authString = sessionStorage.getItem('adminAuth');
+  if (!authString) {
+    console.error("Admin auth credentials not found for updating order status.");
+    throw new Error("Authentication required. Please log in as admin.");
+  }
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    'Authorization': authString // Use full Basic auth string
+  };
+  const response = await fetch(`${API_BASE_URL}/api/orders/${orderId}`, {
+    method: 'PATCH',
+    headers,
+    body: JSON.stringify({ status }),
+  });
+  if (!response.ok) {
+    if (response.status === 401) {
+      sessionStorage.removeItem('adminAuth');
+      throw new Error('Authentication failed. Please log in again.');
+    }
+    const errorData = await response.json();
+    throw new Error(errorData.error || 'Failed to update order status');
+  }
+  return await response.json();
+}
+
+// --- End NEW Order Tracking Functions ---
+
 
 /**
  * Send a notification email
@@ -397,22 +586,23 @@ export async function sendNotificationEmail(emailData: {
   message: string;
 }): Promise<{ success: boolean }> {
   try {
-    const response = await fetch('/api/send-order-email', {
+    // This endpoint would need to be added to the backend
+    const response = await fetch(`${API_BASE_URL}/api/send-email`, { // Example endpoint
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(emailData),
     });
-    
+
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.error || 'Failed to send email');
     }
-    
+
     return await response.json();
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error('Error sending notification email:', error);
     throw error;
   }
 }

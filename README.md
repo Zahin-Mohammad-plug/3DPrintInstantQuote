@@ -278,6 +278,7 @@ Quote Page:
 * comment out the print details like: "Filament: 
 Est. Time: 
 Volume: "
+* Remove prusa cost from console.log
 
 
 Cart Page:
@@ -295,7 +296,9 @@ Admin panel:
 * Pricing: 
     * Add ability to adjust time_cost.
     * Does support material even work?, if not, lets comment out for now
-* In filaments -> colors -> manage exsisting colors, allow the ability to edit current colors, similar button like the one in catalog, Manage Categories
+* Filaments
+        * In filaments -> colors -> manage exsisting colors, allow the ability to edit current colors, similar button like the one in catalog, Manage Categories
+        * Special Filaments arent selectable in materials, which means they don't respect material selection
 * Add upload images for categories and products (mapped to new dirs)
 * Set file size and uploaded file types in admin. 
 

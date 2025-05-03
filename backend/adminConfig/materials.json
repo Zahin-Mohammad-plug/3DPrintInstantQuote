@@ -43,34 +43,34 @@
       "base_cost_per_gram": 0.05,
       "colors": [
         {
-          "id": "black",
-          "name": "Black",
+          "addon_price": 2.69,
           "hex": "#000000",
-          "addon_price": 2.69
+          "id": "black",
+          "name": "Black"
         },
         {
-          "id": "red",
-          "name": "Red",
+          "addon_price": 5,
           "hex": "#FF0000",
-          "addon_price": 5
+          "id": "red",
+          "name": "Red"
         },
         {
-          "id": "blue",
-          "name": "Blue",
+          "addon_price": 0,
           "hex": "#0000FF",
-          "addon_price": 0
+          "id": "blue",
+          "name": "Blue"
         },
         {
-          "id": "truffle-butter",
-          "name": "Truffle Butter",
-          "hex": "#b17272",
-          "addon_price": 2.5
-        },
-        {
-          "id": "white",
-          "name": "White",
+          "addon_price": 0,
           "hex": "#FFFFFF",
-          "addon_price": 0
+          "id": "white",
+          "name": "White"
+        },
+        {
+          "addon_price": 1,
+          "hex": "#C0C0C0",
+          "id": "2edebf67-3da5-4290-bdd3-61fb49925266",
+          "name": "Silver"
         }
       ],
       "description": "Standard material for decorative prints. Good detail, limited durability.",
@@ -103,6 +103,12 @@
           "hex": "#E0F7FA",
           "id": "clear",
           "name": "Clear"
+        },
+        {
+          "addon_price": 1,
+          "hex": "#C0C0C0",
+          "id": "2edebf67-3da5-4290-bdd3-61fb49925266",
+          "name": "Silver"
         }
       ],
       "description": "Weather-resistant material for outdoor applications. Good strength and UV resistance.",
@@ -131,6 +137,12 @@
           "hex": "#000000",
           "id": "black",
           "name": "Black"
+        },
+        {
+          "addon_price": 1,
+          "hex": "#C0C0C0",
+          "id": "2edebf67-3da5-4290-bdd3-61fb49925266",
+          "name": "Silver"
         }
       ],
       "description": "Durable, impact-resistant material for structural components and commercial applications.",

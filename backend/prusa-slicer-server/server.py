@@ -30,6 +30,7 @@ MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB max file size
 MATERIALS_FILE = os.path.join(CONFIG_FOLDER, "materials.json") # Updated path
 AUTH_FILE = os.path.join(CONFIG_FOLDER, "auth.json") # New path for auth
 CATALOG_FILE = os.path.join(CONFIG_FOLDER, "catalog.json") # Path for catalog data
+ORDERS_STORAGE_FILE = os.path.join(CONFIG_FOLDER, "orders.json") # Path for storing orders
 
 # Create necessary directories
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -84,7 +85,7 @@ DEFAULT_MATERIALS = {
             "name": "PETG",
             "description": "Durable material, suitable for outdoor use",
             "properties": ["Durable", "Outdoor", "Water-resistant"],
-            "base_cost_per_gram": 0.07,
+            "base_cost_per_gram": 0.07, # Corrected from 07
             "hourly_rate": 2.5,
             "colors": [
                 {
@@ -152,6 +153,10 @@ DEFAULT_CATALOG = {
   "products": []
 }
 
+# Default orders data if no file exists
+DEFAULT_ORDERS = []
+
+
 # Load admin credentials
 def load_credentials():
     if os.path.exists(AUTH_FILE):
@@ -173,6 +178,55 @@ def load_credentials():
             return default_creds # Fallback
 
 ADMIN_CREDENTIALS = load_credentials()
+
+# --- Order Data Handling (NEW) ---
+def load_orders():
+    """Load orders from the JSON file or return default (empty list)."""
+    if os.path.exists(ORDERS_STORAGE_FILE):
+        try:
+            with open(ORDERS_STORAGE_FILE, 'r', encoding='utf-8') as f:
+                content = f.read()
+                if not content:
+                    print(f"Orders file is empty at {ORDERS_STORAGE_FILE}, returning default.")
+                    return DEFAULT_ORDERS[:] # Return a copy
+                return json.loads(content)
+        except json.JSONDecodeError:
+            print(f"Error decoding JSON from {ORDERS_STORAGE_FILE}. File might be corrupted. Returning default.")
+            return DEFAULT_ORDERS[:] # Return a copy
+        except Exception as e:
+            print(f"Error reading orders file {ORDERS_STORAGE_FILE}: {e}. Returning default.")
+            return DEFAULT_ORDERS[:] # Return a copy
+    else:
+        # Create the default orders file if it doesn't exist
+        print(f"Orders file not found at {ORDERS_STORAGE_FILE}, creating default.")
+        try:
+            with open(ORDERS_STORAGE_FILE, 'w', encoding='utf-8') as f:
+                json.dump(DEFAULT_ORDERS, f, indent=2)
+            return DEFAULT_ORDERS[:] # Return a copy
+        except Exception as e:
+            print(f"Error creating default orders file {ORDERS_STORAGE_FILE}: {e}")
+            return DEFAULT_ORDERS[:] # Fallback
+
+def save_orders(orders_list):
+    """Save the list of orders to the JSON file."""
+    try:
+        if not isinstance(orders_list, list):
+             print(f"Invalid orders data format received for saving: {type(orders_list)}")
+             return False
+
+        # Ensure the directory exists
+        os.makedirs(os.path.dirname(ORDERS_STORAGE_FILE), exist_ok=True)
+        with open(ORDERS_STORAGE_FILE, 'w', encoding='utf-8') as f:
+            json.dump(orders_list, f, indent=2)
+        print(f"Successfully wrote updated orders data to {ORDERS_STORAGE_FILE} inside container.")
+        return True
+    except Exception as e:
+        print(f"Error saving orders file {ORDERS_STORAGE_FILE}: {e}")
+        traceback.print_exc() # Print full traceback for debugging
+        return False
+
+# --- End Order Data Handling ---
+
 
 # Job queue
 job_queue = queue.Queue()
@@ -916,6 +970,17 @@ def calculate_job_price(job_id):
              print(f"Pricing calculation failed for job {job_id}: {price_info['error']}")
              return jsonify({"error": f"Pricing calculation failed: {price_info['error']}"}), 500
 
+        # --- Store the calculated price info back into the job object --- ADDED
+        if "result" not in jobs[job_id]:
+            jobs[job_id]["result"] = {} # Ensure result dict exists
+        jobs[job_id]["result"]["price_info"] = price_info
+        # Also store the parameters used for this price calculation
+        jobs[job_id]["material_id"] = material_id
+        jobs[job_id]["color_id"] = color_id
+        jobs[job_id]["quality_id"] = quality_id
+        print(f"Stored price_info for job {job_id}: {price_info}") # Log storage
+        # --- End Storing price info ---
+
         # Return the calculated price info directly
         return jsonify(price_info)
 
@@ -923,6 +988,259 @@ def calculate_job_price(job_id):
         print(f"Error in /calculate-price endpoint for job {job_id}: {str(e)}")
         traceback.print_exc() # Print full traceback for debugging
         return jsonify({"error": f"An unexpected error occurred during price calculation: {str(e)}"}), 500
+
+# --- NEW Order Endpoints ---
+
+@app.route("/api/orders", methods=["POST"])
+def submit_order():
+    """Submit a new order, associate with job(s) or product, move files (if applicable), save order."""
+    try:
+        order_data = request.json
+        if not order_data:
+            return jsonify({"error": "Missing order data"}), 400
+
+        # --- Basic Validation (Common Fields) ---
+        required_fields = ["customer_name", "customer_email", "delivery_method", "quantity"]
+        missing_fields = [field for field in required_fields if field not in order_data]
+        if missing_fields:
+            return jsonify({"error": f"Missing required fields: {', '.join(missing_fields)}"}), 400
+
+        job_id = order_data.get("job_id")
+        product_id = order_data.get("product_id")
+        item_details_from_request = order_data.get("item_details") # Get details sent from frontend
+
+        job = None
+        is_custom_upload = bool(job_id)
+
+        if is_custom_upload:
+            # --- Custom Upload Order Logic ---
+            print(f"Processing order for custom upload job_id: {job_id}")
+            if job_id not in jobs:
+                return jsonify({"error": f"Job with ID {job_id} not found"}), 404
+
+            job = jobs[job_id]
+
+            # Ensure job is in a state ready for ordering (e.g., quoted)
+            if job["status"] != "quoted":
+                return jsonify({"error": f"Job status must be 'quoted' to place an order (current: {job['status']})"}), 400
+
+            if "result" not in job or "price_info" not in job["result"]:
+                 return jsonify({"error": "Job is missing final quote details. Cannot place order."}), 400
+
+            # --- Move Files from Quoted to Orders ---
+            print(f"Processing order for job {job_id}. Moving files to orders folder...")
+            current_model_path = os.path.join(QUOTED_FOLDER, job["filename"])
+            ordered_model_path = os.path.join(ORDERS_FOLDER, job["filename"])
+            current_gcode_path = None
+            ordered_gcode_path = None
+            gcode_filename = job.get("gcode_filename")
+
+            if gcode_filename:
+                current_gcode_path = os.path.join(QUOTED_FOLDER, gcode_filename)
+                ordered_gcode_path = os.path.join(ORDERS_FOLDER, gcode_filename)
+
+            try:
+                # Move model file
+                if os.path.exists(current_model_path):
+                    shutil.move(current_model_path, ordered_model_path)
+                    print(f"Moved model {job['filename']} to orders folder.")
+                    job["filepath"] = ordered_model_path # Update job filepath
+                else:
+                     print(f"Warning: Model file {current_model_path} not found in quoted folder during order submission.")
+                     # Fail the order if the main model file is missing
+                     return jsonify({"error": "Model file missing, cannot place order."}), 500
+
+                # Move gcode file if it exists
+                if gcode_filename and current_gcode_path and os.path.exists(current_gcode_path):
+                    shutil.move(current_gcode_path, ordered_gcode_path)
+                    print(f"Moved gcode {gcode_filename} to orders folder.")
+                elif gcode_filename:
+                    print(f"Warning: Gcode file {current_gcode_path} not found in quoted folder during order submission.")
+
+                # Update job status to 'ordered'
+                job["status"] = "ordered"
+                job["ordered_at"] = time.time()
+                print(f"Updated job {job_id} status to ordered.")
+
+            except Exception as move_err:
+                print(f"Error moving files for job {job_id} during order submission: {move_err}")
+                traceback.print_exc()
+                # Attempt to revert status? Complex. For now, just report error.
+                job["status"] = "quoted" # Revert status if move failed
+                return jsonify({"error": f"Failed to move files to orders folder: {move_err}"}), 500
+
+            # Extract item details from the job object
+            item_name = job.get("original_upload_filename", job.get("filename"))
+            item_price = job["result"]["price_info"]["total_price"]
+            item_quantity = order_data.get("quantity") # Use quantity from request
+            item_details_for_order = { # Store the configuration used for the quote
+                "material_id": job.get("material_id"),
+                "color_id": job.get("color_id"),
+                "quality_id": job.get("quality_id"),
+                "fill_density": job.get("fill_density"),
+                "enable_supports": job.get("enable_supports"),
+                "filament_used_g": job["result"].get("filament_used_g"),
+                "estimated_time": job["result"].get("estimated_time"),
+                "volume_cm3": job["result"].get("volume_cm3"),
+                "dimensions_mm": job["result"].get("size"), # Assuming size is in mm
+                "price_breakdown": job["result"]["price_info"] # Store full breakdown
+            }
+
+        elif product_id and item_details_from_request:
+            # --- Catalog Item Order Logic ---
+            print(f"Processing order for catalog product_id: {product_id}")
+            # Validate item_details_from_request
+            if not all(k in item_details_from_request for k in ["name", "price", "quantity"]):
+                 return jsonify({"error": "Catalog item order is missing essential details (name, price, quantity)."}), 400
+
+            # Extract item details from the request payload
+            item_name = item_details_from_request.get("name")
+            item_price = item_details_from_request.get("price")
+            item_quantity = item_details_from_request.get("quantity")
+            # Create a simplified details structure for catalog items
+            item_details_for_order = {
+                "product_id": product_id,
+                "material_id": item_details_from_request.get("material"),
+                "color_id": item_details_from_request.get("color"),
+                "quality_id": item_details_from_request.get("quality"),
+                "is_multi_color": item_details_from_request.get("is_multi_color"),
+                "multi_color_details": item_details_from_request.get("multi_color_details"),
+                "special_filament": item_details_from_request.get("special_filament"),
+                # Add other relevant fields from item_details_from_request if needed
+            }
+            # No file moving or job status update needed for catalog items
+
+        else:
+            # --- Invalid Order Request ---
+            return jsonify({"error": "Order request must contain either a valid 'job_id' or both 'product_id' and 'item_details'."}), 400
+
+
+        # --- Create and Save Order Object (Common Logic) ---
+        order_id = str(uuid.uuid4())
+        quantity = item_quantity # Use the extracted quantity
+
+        # Calculate totals based on extracted item price and quantity
+        subtotal = item_price * quantity
+        shipping_cost = order_data.get("shipping_cost", 0)
+        tax_amount = order_data.get("tax_amount", 0) # Assuming tax is calculated elsewhere or zero for now
+        total = subtotal + shipping_cost + tax_amount
+
+        new_order = {
+            "id": order_id,
+            "job_id": job_id, # Will be None for catalog items
+            "product_id": product_id, # Will be None for custom uploads
+            "status": "PENDING", # Initial status
+            "createdAt": datetime.datetime.utcnow().isoformat() + "Z", # ISO 8601 format
+            "updatedAt": datetime.datetime.utcnow().isoformat() + "Z",
+            "customer": {
+                "name": order_data.get("customer_name"),
+                "email": order_data.get("customer_email"),
+                "phone": order_data.get("customer_phone"),
+            },
+            "shippingAddress": order_data.get("shipping_address"), # Assumes structure matches frontend
+            "delivery_method": order_data.get("delivery_method"),
+            "notes": order_data.get("notes"), # Include notes, important for multi-color etc.
+            "items": [
+                {
+                    # Use extracted details
+                    "job_id": job_id, # Link back if applicable
+                    "product_id": product_id, # Link back if applicable
+                    "name": item_name,
+                    "quantity": quantity,
+                    "price": item_price, # Price per item
+                    "details": item_details_for_order # Contains config/breakdown/etc.
+                }
+                # Extend this if cart supports multiple items per order later
+            ],
+            # Use calculated totals
+            "subtotal": round(subtotal, 2),
+            "shipping": round(shipping_cost, 2),
+            "tax": round(tax_amount, 2),
+            "total": round(total, 2)
+        }
+
+        # Load existing orders, add the new one, save back
+        all_orders = load_orders()
+        all_orders.append(new_order)
+        if save_orders(all_orders):
+            # TODO: Add email notification logic here if needed
+            return jsonify({"success": True, "message": "Order submitted successfully.", "order_id": order_id}), 201
+        else:
+            # If saving fails, the job status might already be 'ordered' and files moved (for custom uploads).
+            # This state is inconsistent. Manual intervention might be needed.
+            # Log critical error.
+            print(f"CRITICAL: Failed to save new order {order_id} (job_id: {job_id}, product_id: {product_id}).")
+            # Revert job status if it was a custom upload and saving failed
+            if is_custom_upload and job:
+                 job["status"] = "quoted" # Attempt to revert status
+                 print(f"Attempted to revert job {job_id} status to 'quoted' due to order save failure.")
+            return jsonify({"error": "Order processed but failed to save persistently."}), 500
+
+    except Exception as e:
+        print(f"Error in /api/orders POST endpoint: {str(e)}")
+        traceback.print_exc()
+        return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
+
+
+@app.route("/api/orders", methods=["GET"])
+@requires_auth
+def get_orders():
+    """Get all orders (admin only)."""
+    try:
+        all_orders = load_orders()
+        # Sort by creation date descending (newest first)
+        all_orders.sort(key=lambda o: o.get("createdAt", ""), reverse=True)
+        return jsonify(all_orders)
+    except Exception as e:
+        print(f"Error in /api/orders GET endpoint: {str(e)}")
+        traceback.print_exc()
+        return jsonify({"error": "Failed to retrieve orders"}), 500
+
+
+@app.route("/api/orders/<order_id>", methods=["PATCH"])
+@requires_auth
+def update_order_status(order_id):
+    """Update the status of an order (admin only)."""
+    try:
+        data = request.json
+        new_status = data.get("status")
+        if not new_status:
+            return jsonify({"error": "Missing 'status' in request body"}), 400
+
+        # Basic validation of status could be added here if needed
+        # valid_statuses = ["PENDING", "PROCESSING", "PRINTING", "SHIPPED", "DELIVERED", "CANCELLED"]
+        # if new_status not in valid_statuses:
+        #     return jsonify({"error": f"Invalid status value: {new_status}"}), 400
+
+        all_orders = load_orders()
+        order_found = False
+        updated_order = None
+
+        for order in all_orders:
+            if order.get("id") == order_id:
+                order["status"] = new_status
+                order["updatedAt"] = datetime.datetime.utcnow().isoformat() + "Z"
+                order_found = True
+                updated_order = order
+                break
+
+        if not order_found:
+            return jsonify({"error": "Order not found"}), 404
+
+        if save_orders(all_orders):
+            # TODO: Add email notification logic for status update if needed
+            return jsonify({"success": True, "message": "Order status updated.", "order": updated_order})
+        else:
+            print(f"Error saving orders after updating status for order {order_id}.")
+            return jsonify({"error": "Failed to save order status update."}), 500
+
+    except Exception as e:
+        print(f"Error in /api/orders/<order_id> PATCH endpoint: {str(e)}")
+        traceback.print_exc()
+        return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
+
+# --- End NEW Order Endpoints ---
+
 
 @app.route("/api/product/<product_id>/reviews", methods=["GET", "POST"])
 def product_reviews(product_id):
@@ -967,6 +1285,9 @@ if __name__ == "__main__":
 
     # Initialize catalog if needed (NEW)
     get_catalog() # This function now handles creation/defaults
+
+    # Initialize orders file if needed (NEW)
+    load_orders() # This handles creation/defaults
 
     # Initialize auth file if needed
     load_credentials() # This will create it if it doesn't exist

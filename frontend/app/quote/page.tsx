@@ -51,7 +51,7 @@ interface CartItem {
   quantity: number
   isMultiPart: boolean
   price: number
-  jobId: string
+  job_id: string // Add preview image URL
   image?: string // Add preview image URL
 }
 
@@ -118,6 +118,7 @@ export default function QuotePage() {
     setIsMultiColor(storedIsMultiColor === "true")
     setMultiColorDetails(storedMultiColorDetails || "")
     setJobId(storedJobId)
+    console.log("QuotePage useEffect - Set jobId state from sessionStorage:", storedJobId); // <-- ADD Log for state setting
 
     // --- Fetch Job Status and then Calculate Price --- START
     const fetchJobAndPrice = async (
@@ -330,7 +331,10 @@ export default function QuotePage() {
     })
   }
 
+  console.log("QuotePage render - current jobId state:", jobId); // <-- ADD Log before addToCart definition
+
   const addToCart = async () => {
+    console.log("addToCart called - jobId state:", jobId, "quoteDetails:", quoteDetails); // <-- ADD Log at function start
     if (!jobId || !quoteDetails) {
       // Check quoteDetails as well
       setCartError("Cannot add to cart: Job ID or Quote Details are missing.")
@@ -342,12 +346,13 @@ export default function QuotePage() {
 
     try {
       console.log(`Calling addJobToCart for job ID: ${jobId}`)
-      const cartResult = await addJobToCart(jobId)
+      const cartResult = await addJobToCart(jobId) // Moves files on backend
       console.log("addJobToCart response:", cartResult)
       if (!cartResult.success) {
         throw new Error(cartResult.message || "Backend failed to add job to cart.")
       }
 
+      // Ensure job_id is included here when creating the item for sessionStorage
       const cartItem: CartItem = {
         modelName: modelName || "Unknown Model",
         selectedColor: selectedColor || "#cccccc",
@@ -359,9 +364,10 @@ export default function QuotePage() {
         quantity,
         isMultiPart,
         price: quoteDetails.totalWithQuantity,
-        jobId: jobId,
+        job_id: jobId, // Make sure this line exists and jobId is populated
         image: modelUrl || "/placeholder.svg", // Use preview image URL
       }
+      console.log("Adding item to cart session storage:", cartItem); // Add log
 
       const existingCart = sessionStorage.getItem("cart")
       const cart = existingCart ? JSON.parse(existingCart) : []

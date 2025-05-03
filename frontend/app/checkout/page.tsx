@@ -16,9 +16,12 @@ import Link from "next/link"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { motion } from "framer-motion"
+import { submitOrder } from "@/services/api" // Import the submitOrder function
+import { useToast } from "@/hooks/use-toast" // Import useToast
 
 export default function CheckoutPage() {
   const router = useRouter()
+  const { toast } = useToast() // Initialize toast
   const [cartItems, setCartItems] = useState<any[]>([])
   const [subtotal, setSubtotal] = useState(0)
   const [total, setTotal] = useState(0)
@@ -26,16 +29,19 @@ export default function CheckoutPage() {
   const [deliveryMethod, setDeliveryMethod] = useState("pickup")
   const [shippingCost, setShippingCost] = useState(0)
   const [orderPlaced, setOrderPlaced] = useState(false)
+  const [isLoading, setIsLoading] = useState(false) // Add loading state
 
   // Form state
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
-    address: "",
+    address: "", // Street address
+    street2: "", // Optional street address line 2
     city: "",
     postalCode: "",
-    province: "",
+    province: "", // State/Province
+    country: "Canada", // Default or make it an input
     notes: "",
   })
 
@@ -44,15 +50,31 @@ export default function CheckoutPage() {
     // Get cart items from session storage
     const storedCart = sessionStorage.getItem("cart")
     if (storedCart) {
-      const parsedCart = JSON.parse(storedCart)
-      setCartItems(parsedCart)
+      try {
+        const parsedCart = JSON.parse(storedCart)
+        console.log("CheckoutPage useEffect - Read from sessionStorage:", parsedCart); // <-- ADDED Log
+        if (!Array.isArray(parsedCart)) {
+          console.error("CheckoutPage useEffect - Parsed cart is not an array:", parsedCart);
+          setCartItems([]); // Set to empty array if not valid
+          // Optionally redirect or show error
+          router.push("/cart");
+          return;
+        }
+        setCartItems(parsedCart)
 
-      // Calculate totals
-      const calculatedSubtotal = parsedCart.reduce((sum: number, item: any) => sum + item.price, 0)
-      setSubtotal(calculatedSubtotal)
-      setTotal(calculatedSubtotal)
+        // Calculate totals
+        const calculatedSubtotal = parsedCart.reduce((sum: number, item: any) => sum + (item.price || 0), 0)
+        setSubtotal(calculatedSubtotal)
+        setTotal(calculatedSubtotal) // Shipping cost added later
+      } catch (error) {
+        console.error("CheckoutPage useEffect - Error parsing cart from sessionStorage:", error);
+        sessionStorage.removeItem("cart"); // Clear potentially corrupted cart data
+        setCartItems([]);
+        router.push("/cart"); // Redirect to cart page
+      }
     } else {
       // Redirect to cart if empty
+      console.log("CheckoutPage useEffect - Cart empty in sessionStorage, redirecting."); // <-- ADDED Log
       router.push("/cart")
     }
   }, [router])
@@ -76,25 +98,123 @@ export default function CheckoutPage() {
   }
 
   const handleSubmitOrder = async (e: React.FormEvent) => {
+    console.log("handleSubmitOrder called"); // LOG 1
     e.preventDefault()
+    setIsLoading(true) // LOG 2
+    console.log("Loading state set to true");
 
-    // In a real app, you would send this data to your backend
-    // For demo purposes, we'll simulate sending an email
+    if (cartItems.length === 0) {
+      console.log("Validation failed: Cart is empty"); // LOG 3a
+      // ... toast ...
+      setIsLoading(false)
+      return
+    }
+    console.log("Cart is not empty, proceeding..."); // LOG 3b
+
+    const firstCartItem = cartItems[0];
+
+    // --- MODIFIED VALIDATION ---
+    // Check if it looks like a custom upload (has modelName) AND lacks jobId
+    // Catalog items usually have 'name' but might lack 'modelName' initially
+    const isCustomUpload = !!firstCartItem.modelName;
+    if (isCustomUpload && !firstCartItem.job_id) {
+        console.log("Validation failed: Custom upload item missing job_id", firstCartItem); // LOG 4a
+        toast({
+            title: "Error",
+            description: "Cart item is missing necessary job information. Please try adding it again from the quote page.",
+            variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+    }
+    // If it's not a custom upload OR if it is and has a job_id, proceed
+    console.log("Item validation passed. Item:", firstCartItem); // LOG 4b (modified)
+
+
+    // --- Prepare Order Data (Needs Backend Update Later) ---
+    // This still assumes a single item order based on the first item.
+    // The backend currently expects 'job_id' at the top level.
+    // We will need to refactor both frontend and backend to handle arrays of items
+    // with either job_id or product_id.
+    // For now, we send job_id if available, otherwise null (backend will likely fail for catalog items).
+
+    // Combine multi-color details with general notes if applicable
+    let combinedNotes = formData.notes;
+    if (firstCartItem.isMultiColor && firstCartItem.multiColorDetails) {
+      combinedNotes = `Multi-Color Details: ${firstCartItem.multiColorDetails}\n\n${formData.notes}`;
+    }
+
+    const orderData = {
+      job_id: firstCartItem.job_id || null, // Send job_id if it exists
+      product_id: !isCustomUpload ? firstCartItem.id : null, // Send product id if it's likely a catalog item
+      customer_name: formData.name,
+      customer_email: formData.email,
+      customer_phone: formData.phone,
+      delivery_method: deliveryMethod as 'pickup' | 'shipping',
+      // IMPORTANT: Quantity and price might need adjustment if backend expects item array
+      quantity: firstCartItem.quantity || 1,
+      notes: combinedNotes, // Use the combined notes
+      shipping_address: deliveryMethod === "shipping" ? {
+        street: formData.address,
+        street2: formData.street2,
+        city: formData.city,
+        postal_code: formData.postalCode,
+        province: formData.province,
+        country: formData.country,
+      } : undefined,
+      shipping_cost: shippingCost,
+      tax_amount: 0, // Placeholder for tax calculation
+      // Include item details directly in the order for backend processing
+      // This helps the backend identify the item even without a job_id/product_id lookup initially
+      // (Backend logic will still need refinement)
+      item_details: {
+        name: firstCartItem.modelName || firstCartItem.name, // Use modelName or name
+        price: firstCartItem.price,
+        quantity: firstCartItem.quantity,
+        material: firstCartItem.selectedMaterial,
+        color: firstCartItem.selectedColor,
+        quality: firstCartItem.selectedQuality,
+        is_multi_color: firstCartItem.isMultiColor,
+        multi_color_details: firstCartItem.multiColorDetails,
+        special_filament: firstCartItem.selectedSpecialFilament,
+        image: firstCartItem.image
+      }
+    };
+    console.log("Order data prepared:", orderData); // LOG 5
+
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      console.log("Attempting to call submitOrder API..."); // LOG 6
+      const result = await submitOrder(orderData); // Call API
+      console.log("API call result:", result); // LOG 7
 
-      // Clear cart after successful order
-      sessionStorage.removeItem("cart")
+      // --- ADDED: Handle successful order placement ---
+      if (result && result.success) { // Check if the API call was successful
+        console.log("Order placed successfully, clearing cart and showing thank you page."); // LOG 8
+        sessionStorage.removeItem("cart"); // Clear the cart
+        setCartItems([]); // Clear local cart state
+        setOrderPlaced(true); // Set state to show the thank you page
+      } else {
+        // Handle API error response (e.g., validation error from backend)
+        console.error("API call failed or returned error:", result?.message || "Unknown error"); // LOG 9
+        toast({
+          title: "Order Failed",
+          description: result?.message || "Could not place the order. Please try again.",
+          variant: "destructive",
+        });
+      }
+      // --- END ADDED ---
 
-      // Show success message
-      setOrderPlaced(true)
-
-      // In a real app, you would redirect to a success page
-      // router.push("/order-confirmation")
     } catch (error) {
-      console.error("Error placing order:", error)
+      console.error("Error submitting order:", error); // LOG 10
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred while submitting your order. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      console.log("Setting loading state back to false"); // LOG 11
+      setIsLoading(false); // Ensure loading is turned off regardless of success/failure
     }
   }
 
@@ -143,6 +263,8 @@ export default function CheckoutPage() {
       </div>
     )
   }
+
+  console.log("Rendering CheckoutPage component"); // <-- ADDED: Basic render log
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -246,6 +368,7 @@ export default function CheckoutPage() {
                         className="mt-6 space-y-4"
                       >
                         <div className="grid gap-4 sm:grid-cols-2">
+                          {/* Street Address */}
                           <div className="space-y-2">
                             <Label htmlFor="address">Street Address</Label>
                             <Input
@@ -257,6 +380,18 @@ export default function CheckoutPage() {
                               autoComplete="street-address"
                             />
                           </div>
+                           {/* Street Address Line 2 (Optional) */}
+                           <div className="space-y-2">
+                            <Label htmlFor="street2">Address Line 2 (Optional)</Label>
+                            <Input
+                              id="street2"
+                              name="street2"
+                              value={formData.street2}
+                              onChange={handleInputChange}
+                              autoComplete="address-line2"
+                            />
+                          </div>
+                          {/* City */}
                           <div className="space-y-2">
                             <Label htmlFor="city">City</Label>
                             <Input
@@ -268,6 +403,7 @@ export default function CheckoutPage() {
                               autoComplete="address-level2"
                             />
                           </div>
+                          {/* Postal Code */}
                           <div className="space-y-2">
                             <Label htmlFor="postalCode">Postal Code</Label>
                             <Input
@@ -279,8 +415,9 @@ export default function CheckoutPage() {
                               autoComplete="postal-code"
                             />
                           </div>
+                          {/* Province/State */}
                           <div className="space-y-2">
-                            <Label htmlFor="province">Province</Label>
+                            <Label htmlFor="province">Province / State</Label>
                             <Input
                               id="province"
                               name="province"
@@ -288,6 +425,18 @@ export default function CheckoutPage() {
                               onChange={handleInputChange}
                               required={deliveryMethod === "shipping"}
                               autoComplete="address-level1"
+                            />
+                          </div>
+                           {/* Country */}
+                           <div className="space-y-2">
+                            <Label htmlFor="country">Country</Label>
+                            <Input
+                              id="country"
+                              name="country"
+                              value={formData.country}
+                              onChange={handleInputChange}
+                              required={deliveryMethod === "shipping"}
+                              autoComplete="country-name"
                             />
                           </div>
                         </div>
@@ -316,9 +465,26 @@ export default function CheckoutPage() {
                   </CardContent>
                 </Card>
 
-                <Button type="submit" className="w-full md:w-auto bg-primary hover:bg-primary/90 button-hover-effect">
-                  <CreditCard className="mr-2 h-4 w-4" />
-                  Place Order
+                <Button
+                  type="submit"
+                  className="w-full md:w-auto bg-primary hover:bg-primary/90 button-hover-effect"
+                  disabled={isLoading}
+                  onClick={() => console.log("Place Order BUTTON CLICKED")} // <-- ADDED: Direct button click log
+                >
+                  {isLoading ? (
+                     <>
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Placing Order...
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      Place Order
+                    </>
+                  )}
                 </Button>
               </form>
             </div>
