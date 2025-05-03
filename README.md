@@ -286,7 +286,8 @@ Admin panel:
 * Filaments:
         * Special Filaments arent selectable in materials, which means they don't respect material selection
 * Catalog:
-
+    * add logic for product 3d models.
+    * Allow selectable available color models.  
 * Orders:
     * Be able to download the files uploaded when viewing order details
 
