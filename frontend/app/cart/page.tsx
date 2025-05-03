@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import { getMaterials } from "@/services/api"  // fetch colors from materials
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Separator } from "@/components/ui/separator"
@@ -30,11 +31,8 @@ export default function CartPage() {
     jobId?: string;
   }
 
-  // Map hex codes to names
-  const colorNameMap: Record<string,string> = {
-    '#ffffff':'White','#000000':'Black','#ff0000':'Red','#0000ff':'Blue',
-    '#00ff00':'Green','#ffd700':'Gold','#c0c0c0':'Silver'
-  }
+  // Color name lookup loaded from materials.json
+  const [colorMap, setColorMap] = useState<Record<string,string>>({})
 
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [subtotal, setSubtotal] = useState(0)
@@ -54,6 +52,14 @@ export default function CartPage() {
       setSubtotal(calculatedSubtotal)
       setTotal(calculatedSubtotal)
     }
+    // Load color map from materials
+    getMaterials().then(data => {
+      const map: Record<string, string> = {}
+      data.materials?.forEach((mat: any) => mat.colors?.forEach((c: any) => {
+        map[c.hex.toLowerCase()] = c.name
+      }))
+      setColorMap(map)
+    })
   }, [])
 
   const removeItem = (index: number) => {
@@ -199,7 +205,7 @@ export default function CartPage() {
                               <div>
                                 {item.isMultiColor ? 'Multi-Color' :
                                   item.selectedSpecialFilament ? `Special: ${item.selectedSpecialFilament}` :
-                                  `Color: ${colorNameMap[item.selectedColor?.toLowerCase()||''] || item.selectedColor}`
+                                  `Color: ${colorMap[item.selectedColor?.toLowerCase()||''] || item.selectedColor}`
                                 }
                               </div>
                               <div>Quality: {item.selectedQuality || "Standard"}</div>

@@ -338,5 +338,59 @@
     "shipping": 0,
     "tax": 0,
     "total": 24.99
+  },
+  {
+    "id": "93e6f7c7-f703-479d-9e45-6002f20d8dd2",
+    "job_id": "d3d2f606-77c2-4af5-ad1d-3f83dd3e3e41",
+    "product_id": null,
+    "status": "PENDING",
+    "createdAt": "2025-05-03T06:50:13.588752Z",
+    "updatedAt": "2025-05-03T06:50:13.588763Z",
+    "customer": {
+      "name": "dsa",
+      "email": "32@323",
+      "phone": "233"
+    },
+    "shippingAddress": null,
+    "delivery_method": "pickup",
+    "notes": "",
+    "items": [
+      {
+        "job_id": "d3d2f606-77c2-4af5-ad1d-3f83dd3e3e41",
+        "product_id": null,
+        "name": "mflink_support.stl",
+        "quantity": 1,
+        "price": 3.35,
+        "details": {
+          "material_id": "pla",
+          "color_id": "#FF0000",
+          "quality_id": "standard",
+          "fill_density": 0.15,
+          "enable_supports": true,
+          "filament_used_g": 11.18,
+          "estimated_time": "53m 40s",
+          "volume_cm3": 27.089777759400004,
+          "dimensions_mm": {
+            "x": 23.05,
+            "y": 23.5,
+            "z": 50.011128
+          },
+          "price_breakdown": {
+            "prusa_cost": 2.35,
+            "base_price": 3.35,
+            "material_cost": 0.56,
+            "time_cost": 1.79,
+            "color_addon": 0,
+            "material_modifier": 0,
+            "quality_modifier": 0,
+            "total_price": 3.35
+          }
+        }
+      }
+    ],
+    "subtotal": 3.35,
+    "shipping": 0,
+    "tax": 0,
+    "total": 3.35
   }
 ]

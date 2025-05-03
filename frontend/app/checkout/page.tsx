@@ -31,6 +31,12 @@ export default function CheckoutPage() {
   const [orderPlaced, setOrderPlaced] = useState(false)
   const [isLoading, setIsLoading] = useState(false) // Add loading state
 
+  // Map hex codes to names (similar to CartPage)
+  const colorNameMap: Record<string,string> = {
+    '#ffffff':'White','#000000':'Black','#ff0000':'Red','#0000ff':'Blue',
+    '#00ff00':'Green','#ffd700':'Gold','#c0c0c0':'Silver','#cccccc':'Clear'
+  }
+
   // Form state
   const [formData, setFormData] = useState({
     name: "",
@@ -268,7 +274,8 @@ export default function CheckoutPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <SiteHeader />
+      {/* TODO: Navbar hidden on checkout form; enable for thank you or back */}
+      {/* <SiteHeader /> */}
       <main className="flex-1 py-8">
         <div className="container">
           <div className="mb-8">
@@ -506,13 +513,13 @@ export default function CheckoutPage() {
                           <div className="flex-1 min-w-0">
                             <p className="font-medium truncate">{item.modelName}</p>
                             <div className="text-xs text-muted-foreground">
-                              <p>Material: {item.selectedMaterial}</p>
+                              <p>Material: {item.selectedMaterial.toUpperCase()}</p>
                               <p>
                                 {item.isMultiColor
                                   ? "Multi-Color"
                                   : item.selectedSpecialFilament
                                     ? `Special: ${item.selectedSpecialFilament}`
-                                    : `Color: ${item.selectedColor}`}
+                                    : `Color: ${colorNameMap[item.selectedColor.toLowerCase()] || item.selectedColor}`}
                               </p>
                               <p>Quality: {item.selectedQuality}</p>
                               <p>Quantity: {item.quantity}</p>
@@ -552,7 +559,7 @@ export default function CheckoutPage() {
           </div>
         </div>
       </main>
-      <SiteFooter />
+      {/* <SiteFooter /> */}
     </div>
   )
 }

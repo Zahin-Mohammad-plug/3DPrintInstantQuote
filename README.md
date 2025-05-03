@@ -251,9 +251,10 @@ I am working on my 3d printing service website, this codebase has both the front
 Styling
 
 Catalog page:
+* Product page: Implement the share and save later
 
 Product page
-* Share and save page is currently unavailble; comment out temporarily
+* Share and save page is currently unavailble; implement later
 
 Upload page:
 * ALlow .step files to be uploaded and quoted
@@ -277,12 +278,12 @@ Volume: "
 
 
 Cart Page:
-* Most Color's in cart is the hex code not the name, it should always use the stored colors name
+* colors use a custom hex mapping for name, but it should be using the color name stored in 
 * Should havbe a small preview image of the model / the product photo, this may require additional processing (possibly from backend) in order to create the thumbnail; We will implement this later
 * Edit a already quoted item.
 
 Checkout page:
-* Colors should be the color name, not the hex code
+* Colors should be the color name, not the hex code. 
 * Material should always be all caps so like PLA
 * Should hide navbar
 * The navBar will reappear on thank you page or going back

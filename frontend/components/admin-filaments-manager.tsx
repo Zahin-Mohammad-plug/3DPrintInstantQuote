@@ -83,6 +83,10 @@ export function AdminFilamentsManager() {
   // Store global settings to preserve them
   const [globalSettings, setGlobalSettings] = useState<any>(null);
 
+  // --- Color Editing State ---
+  const [editingColorId, setEditingColorId] = useState<string | null>(null)
+  const [editColorState, setEditColorState] = useState<ColorItem | null>(null)
+
   // Fetch data using the API service
   const loadData = async () => {
     setIsLoading(true);
@@ -274,6 +278,31 @@ export function AdminFilamentsManager() {
       setIsLoading(false);
     }
   };
+
+  // Handle start editing a color
+  const handleEditColor = (color: ColorItem) => {
+    setEditingColorId(color.id)
+    setEditColorState({ ...color })
+  }
+  // Handle cancel edit
+  const handleCancelColor = () => {
+    setEditingColorId(null)
+    setEditColorState(null)
+  }
+  // Handle change in edit fields
+  const handleEditColorChange = (field: keyof Omit<ColorItem,'id'>, value: string | number) => {
+    if (!editColorState) return
+    setEditColorState({ ...editColorState, [field]: value })
+  }
+  // Handle save edited color (TODO: implement API update)
+  const handleSaveColor = async (id: string) => {
+    // TODO: Call updateMaterials API to save edited color across materials
+    console.log('Saving color', editColorState)
+    // After successful save:
+    setEditingColorId(null)
+    setEditColorState(null)
+    loadData()
+  }
 
   // --- Material Management ---
 
@@ -755,7 +784,7 @@ export function AdminFilamentsManager() {
                                     <TableHead>Name</TableHead>
                                     <TableHead>Hex</TableHead>
                                     <TableHead>Addon Price</TableHead>
-                                    <TableHead className="text-right w-[100px]">Actions</TableHead>
+                                    <TableHead className="text-right w-[150px]">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -764,15 +793,49 @@ export function AdminFilamentsManager() {
                                         <TableCell>
                                             <div className="w-6 h-6 rounded-full border" style={{ backgroundColor: color.hex }}></div>
                                         </TableCell>
-                                        <TableCell>{color.name}</TableCell>
-                                        <TableCell>{color.hex}</TableCell>
-                                        <TableCell>${color.addon_price.toFixed(2)}</TableCell>
-                                        <TableCell className="text-right">
-                                            <Button variant="ghost" size="icon" onClick={() => deleteColor(color.id)} disabled={isLoading || !!editingSpecialFilamentId}>
-                                                <Trash2 className="h-4 w-4 text-red-500" />
-                                            </Button>
-                                        </TableCell>
-                                    </TableRow>
+                                        <TableCell>
+                                       {editingColorId === color.id && editColorState ? (
+                                         <Input value={editColorState.name} onChange={(e) => handleEditColorChange('name', e.target.value)} />
+                                       ) : (
+                                          color.name
+                                       )}
+                                    </TableCell>
+                                    <TableCell>
+                                       {editingColorId === color.id && editColorState ? (
+                                         <Input type="text" value={editColorState.hex} onChange={(e) => handleEditColorChange('hex', e.target.value)} />
+                                       ) : (
+                                          color.hex
+                                       )}
+                                    </TableCell>
+                                    <TableCell>
+                                       {editingColorId === color.id && editColorState ? (
+                                         <Input type="number" value={editColorState.addon_price} onChange={(e) => handleEditColorChange('addon_price', Number(e.target.value))} />
+                                       ) : (
+                                          `$${color.addon_price.toFixed(2)}`
+                                       )}
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                       {editingColorId === color.id ? (
+                                         <div className="flex justify-end gap-1">
+                                           <Button variant="ghost" size="icon" onClick={() => handleSaveColor(color.id)}>
+                                             <Save className="h-4 w-4" />
+                                           </Button>
+                                           <Button variant="ghost" size="icon" onClick={handleCancelColor}>
+                                             <X className="h-4 w-4" />
+                                           </Button>
+                                         </div>
+                                       ) : (
+                                         <div className="flex justify-end gap-1">
+                                           <Button variant="ghost" size="icon" onClick={() => handleEditColor(color)}>
+                                             <Edit className="h-4 w-4" />
+                                           </Button>
+                                           <Button variant="ghost" size="icon" onClick={() => deleteColor(color.id)} disabled={isLoading || !!editingSpecialFilamentId}>
+                                             <Trash2 className="h-4 w-4 text-red-500" />
+                                           </Button>
+                                         </div>
+                                       )}
+                                    </TableCell>
+                                </TableRow>
                                 )) : (
                                     <TableRow>
                                         <TableCell colSpan={5} className="text-center text-muted-foreground">

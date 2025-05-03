@@ -71,7 +71,17 @@ export function AdminCatalogManager() {
     name: "",
     description: "",
     image: "/placeholder.svg?height=300&width=500",
+    // TODO: upload image via input below
   })
+
+  // TODO: implement file upload API for category images
+  const handleCategoryImageFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    // TODO: upload file to '/catalog/categories' and get URL
+    // Example: const url = await uploadImageAPI(file, 'categories')
+    // setNewCategory(prev => ({...prev, image: url}))
+  }
 
   const [newProduct, setNewProduct] = useState<Omit<Product, "id">>({ // Use Omit for newProduct
     name: "",
@@ -86,6 +96,15 @@ export function AdminCatalogManager() {
     reviews: [],
     relatedProducts: [],
   });
+
+  // TODO: implement file upload for product images
+  const handleNewProductImageFile = (e: React.ChangeEvent<HTMLInputElement>, index?: number) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    // TODO: upload file to '/catalog/products' and get URL
+    // Example: const url = await uploadImageAPI(file, 'products')
+    // if index provided, replace images[index], else append
+  }
 
   const [newReview, setNewReview] = useState({
     name: "",
@@ -476,6 +495,12 @@ export function AdminCatalogManager() {
                         onChange={(e) => handleCategoryChange("image", e.target.value)}
                         placeholder="URL to category image"
                       />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleCategoryImageFile}
+                        className="border p-1"
+                      /> {/* TODO: handle file upload */}
                       <Button variant="outline" size="icon" className="flex-shrink-0">
                         <Upload className="h-4 w-4" />
                       </Button>
@@ -701,6 +726,14 @@ export function AdminCatalogManager() {
                     />
                   </div>
                 </div> {/* Correct closing div for the grid */}
+
+                <Label htmlFor="new-product-image">Upload Product Image</Label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleNewProductImageFile(e)}
+                  className="block"
+                /> {/* TODO: handle upload and add to newProduct.images */}
 
                 <Button onClick={handleAddProduct} className="w-full md:w-auto">
                   <Plus className="h-4 w-4 mr-2" />
