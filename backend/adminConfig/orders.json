@@ -246,5 +246,97 @@
     "shipping": 0,
     "tax": 0,
     "total": 14.99
+  },
+  {
+    "id": "b41a56f1-1405-46a1-b999-72f54d3460d6",
+    "job_id": "8c806e3f-3e51-4bef-98f1-8175df5e2e3f",
+    "product_id": null,
+    "status": "PENDING",
+    "createdAt": "2025-05-03T05:03:14.386166Z",
+    "updatedAt": "2025-05-03T05:03:14.386178Z",
+    "customer": {
+      "name": "321",
+      "email": "21312@231",
+      "phone": "123"
+    },
+    "shippingAddress": null,
+    "delivery_method": "pickup",
+    "notes": "Multi-Color Details: 2321\n\n",
+    "items": [
+      {
+        "job_id": "8c806e3f-3e51-4bef-98f1-8175df5e2e3f",
+        "product_id": null,
+        "name": "filament_guide_v2.stl",
+        "quantity": 1,
+        "price": 1.42,
+        "details": {
+          "material_id": "pla",
+          "color_id": "#cccccc",
+          "quality_id": "standard",
+          "fill_density": 0.15,
+          "enable_supports": true,
+          "filament_used_g": 2.92,
+          "estimated_time": "8m 7s",
+          "volume_cm3": 6.7946526,
+          "dimensions_mm": {
+            "x": 20.0,
+            "y": 67.946526,
+            "z": 5.0
+          },
+          "price_breakdown": {
+            "prusa_cost": 0.42,
+            "base_price": 1.42,
+            "material_cost": 0.15,
+            "time_cost": 0.27,
+            "color_addon": 0,
+            "material_modifier": 0,
+            "quality_modifier": 0,
+            "total_price": 1.42
+          }
+        }
+      }
+    ],
+    "subtotal": 1.42,
+    "shipping": 0,
+    "tax": 0,
+    "total": 1.42
+  },
+  {
+    "id": "12cf7ca8-b7e1-4975-a383-373c660178e8",
+    "job_id": null,
+    "product_id": "custom-card-holder",
+    "status": "PENDING",
+    "createdAt": "2025-05-03T05:20:59.418859Z",
+    "updatedAt": "2025-05-03T05:20:59.418866Z",
+    "customer": {
+      "name": "Test",
+      "email": "tesyt@testicles",
+      "phone": "tickles"
+    },
+    "shippingAddress": null,
+    "delivery_method": "pickup",
+    "notes": "",
+    "items": [
+      {
+        "job_id": null,
+        "product_id": "custom-card-holder",
+        "name": "Custom Card Holde",
+        "quantity": 1,
+        "price": 24.99,
+        "details": {
+          "product_id": "custom-card-holder",
+          "material_id": null,
+          "color_id": null,
+          "quality_id": null,
+          "is_multi_color": null,
+          "multi_color_details": null,
+          "special_filament": null
+        }
+      }
+    ],
+    "subtotal": 24.99,
+    "shipping": 0,
+    "tax": 0,
+    "total": 24.99
   }
 ]

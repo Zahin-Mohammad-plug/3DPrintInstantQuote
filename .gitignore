@@ -1,6 +1,6 @@
 # Print Files
 userModels/*.gcode
-userModels/*.stl
+userModels/orders/
 userModels/temp/
 # userModels/temp/uploaded/
 
