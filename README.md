@@ -265,28 +265,18 @@ Upload page:
 
 
 Customize page:
-* dimesnsions are in cm when should be mm) and dont appear until toggling background to dark
 * When a special filament is selected, you can still pick a material even if not compatible.
-* On first load, the default color doesnt exsist, it should grab the first available color then apply it. 
+
 
 Quote Page:
 * Save quote and share are missing fucntionality, will integrate later; comment out for now
-* comment out the print details like: "Filament: 
-Est. Time: 
-Volume: "
-* Remove prusa cost from console.log
 
 
 Cart Page:
-* colors use a custom hex mapping for name, but it should be using the color name stored in 
 * Should havbe a small preview image of the model / the product photo, this may require additional processing (possibly from backend) in order to create the thumbnail; We will implement this later
 * Edit a already quoted item.
 
 Checkout page:
-* Colors should be the color name, not the hex code. 
-* Material should always be all caps so like PLA
-* Should hide navbar
-* The navBar will reappear on thank you page or going back
 * Fix the checkout page to actually email me and store in the backend. May require additonal backend process to do so.
 
 Admin panel: 
@@ -294,10 +284,9 @@ Admin panel:
     * Add ability to adjust time_cost.
     * Does support material even work?, if not, lets comment out for now
 * Filaments:
-        * In filaments -> colors -> manage exsisting colors, allow the ability to edit current colors, similar button like the one in catalog, Manage Categories
         * Special Filaments arent selectable in materials, which means they don't respect material selection
 * Catalog:
-    * Add upload images for categories and products (mapped to new dirs)
+
 * Orders:
     * Be able to download the files uploaded when viewing order details
 

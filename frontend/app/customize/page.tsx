@@ -18,7 +18,6 @@ import { getJobStatus } from "@/services/api"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Switch } from "@/components/ui/switch"; // Import Switch
 import { Label } from "@/components/ui/label"; // Import Label
-import { useTheme } from "@/components/theme-provider"; // Import useTheme
 
 // Define API base URL for model files
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
@@ -40,13 +39,7 @@ export default function CustomizePage() {
   const [isClient, setIsClient] = useState(false)
   const [isLoadingJob, setIsLoadingJob] = useState(true) // State for job fetching/polling
   const [error, setError] = useState<string | null>(null)
-  const [viewerTheme, setViewerTheme] = useState<'light' | 'dark'>('light'); // State for viewer background
-  const { theme: appTheme } = useTheme(); // Get app theme
-
-  useEffect(() => {
-    // Set initial viewer theme based on app theme
-    setViewerTheme(appTheme === 'dark' ? 'dark' : 'light');
-  }, [appTheme]);
+  const [viewerTheme, setViewerTheme] = useState<'light' | 'dark'>('dark'); // Default dark background
 
   useEffect(() => {
     setIsClient(true)
