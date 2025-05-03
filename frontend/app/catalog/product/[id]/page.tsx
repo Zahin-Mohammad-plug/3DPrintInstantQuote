@@ -437,12 +437,13 @@ export default function ProductPage() {
                   </Button>
 
                   <div className="flex gap-4">
-                    <Button variant="outline" size="icon" className="flex-1">
+                    {/* TODO: Implement save functionality in the future */}
+                    {/* <Button variant="outline" size="icon" className="flex-1">
                       <Heart className="h-4 w-4" />
                     </Button>
                     <Button variant="outline" size="icon" className="flex-1">
                       <Share2 className="h-4 w-4" />
-                    </Button>
+                    </Button> */}
                   </div>
                 </div>
 

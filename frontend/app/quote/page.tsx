@@ -583,7 +583,7 @@ export default function QuotePage() {
                         <span className="text-base font-medium">Unit Price:</span>
                         <span className="text-base font-medium">${quoteDetails.total.toFixed(2)}</span>
                       </div>
-                      {/* ... Optional: Display filament used, time etc. from jobResultDetails ... */}
+                      {/* TODO: Implement print details display in future version 
                       {jobResultDetails && (
                         <div className="text-xs text-muted-foreground space-y-1 mt-2">
                           {jobResultDetails.filament_used_g && (
@@ -594,7 +594,7 @@ export default function QuotePage() {
                             <div>Volume: {jobResultDetails.volume_cm3.toFixed(2)} cm³</div>
                           )}
                         </div>
-                      )}
+                      )} */}
                     </div>
 
                     {/* --- Quantity and Multi-Part Section --- */}
@@ -714,14 +714,15 @@ export default function QuotePage() {
                   )}
                   {/* ... Save/Share Buttons ... */}
                   <div className="flex gap-4 w-full">
-                    <Button variant="outline" className="flex-1">
+                    {/* TODO: Implement save and share quote functionality in the future */}
+                    {/* <Button variant="outline" className="flex-1">
                       <Download className="mr-2 h-4 w-4" />
                       Save Quote
                     </Button>
                     <Button variant="outline" className="flex-1">
                       <Share2 className="mr-2 h-4 w-4" />
                       Share Quote
-                    </Button>
+                    </Button> */}
                   </div>
                 </CardFooter>
               </Card>

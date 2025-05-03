@@ -30,7 +30,7 @@ export default function CustomizePage() {
   const [modelName, setModelName] = useState<string | null>(null)
   const [modelUrl, setModelUrl] = useState<string | null>(null) // State for the confirmed model URL
   const [jobId, setJobId] = useState<string | null>(null)
-  const [selectedColor, setSelectedColor] = useState<string | null>(null)
+  const [selectedColor, setSelectedColor] = useState<string | null>("#000000") // Set default color to black
   const [selectedSpecialFilament, setSelectedSpecialFilament] = useState<string | null>(null)
   const [selectedMaterial, setSelectedMaterial] = useState<string | null>(null)
   const [selectedQuality, setSelectedQuality] = useState<string>("standard")
@@ -54,7 +54,6 @@ export default function CustomizePage() {
     const storedJobId = sessionStorage.getItem("uploadedModelJobId")
 
     // --- Restore previous selections --- START
-    const storedColor = sessionStorage.getItem("selectedColor");
     const storedSpecial = sessionStorage.getItem("selectedSpecialFilament");
     const storedMaterial = sessionStorage.getItem("selectedMaterial");
     const storedQuality = sessionStorage.getItem("selectedQuality");
@@ -69,6 +68,15 @@ export default function CustomizePage() {
 
     setModelName(storedModel)
     setJobId(storedJobId)
+
+    // --- Restore state *after* setting model/jobId --- START
+    // Restore other states similarly, checking if they exist
+    if (storedSpecial) setSelectedSpecialFilament(storedSpecial);
+    if (storedMaterial) setSelectedMaterial(storedMaterial);
+    if (storedQuality) setSelectedQuality(storedQuality);
+    if (storedIsMulti) setIsMultiColor(storedIsMulti);
+    if (storedMultiDetails) setMultiColorDetails(storedMultiDetails);
+    // --- Restore state *after* setting model/jobId --- END
 
     let isMounted = true;
     let pollingIntervalId: NodeJS.Timeout | null = null;
@@ -172,8 +180,7 @@ export default function CustomizePage() {
                    setIsLoadingJob(false); // Stop loading on failure
                  } else { // Completed
                    if (updatedStatus.material_id) setSelectedMaterial(updatedStatus.material_id);
-                   if (updatedStatus.color_id) setSelectedColor(`#${updatedStatus.color_id}`);
-                   // Determine and set Model URL (this now handles setting isLoadingJob to false)
+                   // (Removed overriding color: keep existing selectedColor)
                    await determineAndSetModelUrl(updatedStatus.filename);
                  }
                  // Removed setIsLoadingJob(false) from here; it's now in determineAndSetModelUrl
@@ -196,8 +203,7 @@ export default function CustomizePage() {
                 setIsLoadingJob(false); // Stop loading on initial failure
             } else { // Completed
                 if (currentJobStatus.material_id) setSelectedMaterial(currentJobStatus.material_id);
-                if (currentJobStatus.color_id) setSelectedColor(`#${currentJobStatus.color_id}`);
-                // Determine and set Model URL (this now handles setting isLoadingJob to false)
+                // (Removed overriding color on initial fetch: keep existing selectedColor)
                 await determineAndSetModelUrl(currentJobStatus.filename);
             }
             // Removed setIsLoadingJob(false) from here; it's now in determineAndSetModelUrl
@@ -275,7 +281,7 @@ export default function CustomizePage() {
 
   // --- Rendering ---
   if (!isClient) {
-     return <div className="container py-12 text-center">Initializing...</div>
+     return <div className="container py-12 text-center">Initializing...</div>;
   }
 
   // Display error first
@@ -336,7 +342,7 @@ export default function CustomizePage() {
                 <CardContent className="aspect-square p-0 relative"> {/* Added relative positioning */}
                   <ModelViewer
                     modelPath={modelUrl || "fallback"} // Pass determined URL or fallback
-                    color={selectedColor || "#cccccc"}
+                    color={selectedColor || "#000000"}
                     material={selectedMaterial || "PLA"}
                     jobId={jobId || undefined}
                     isLoading={isLoadingJob} // Pass the job loading state
@@ -374,7 +380,6 @@ export default function CustomizePage() {
                         <span>Material & Quality</span>
                       </TabsTrigger>
                     </TabsList>
-
                     <TabsContent value="color" className="pt-4">
                       <div className="selection-container">
                         <h3 className="selection-title flex items-center gap-2">
@@ -440,5 +445,5 @@ export default function CustomizePage() {
       </main>
       <SiteFooter />
     </div>
-  )
+  );
 }

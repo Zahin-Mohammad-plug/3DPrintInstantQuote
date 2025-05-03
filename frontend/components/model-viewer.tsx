@@ -205,18 +205,28 @@ export function ModelViewer({ modelPath, color, material, jobId, isLoading = fal
 
   // Effect to calculate dimensions after model loads
   useEffect(() => {
-    if (modelRef.current && !isLoading && !loadError) {
-      const box = new THREE.Box3().setFromObject(modelRef.current);
-      const size = box.getSize(new THREE.Vector3());
-      // Assuming the backend provides dimensions in mm
-      setDimensions({
-        x: parseFloat(size.x.toFixed(1)),
-        y: parseFloat(size.y.toFixed(1)),
-        z: parseFloat(size.z.toFixed(1)),
-      });
-    } else {
-      setDimensions(null); // Reset if loading or error
-    }
+    // Create a timer to ensure dimensions are calculated even if modelRef isn't immediately available
+    const calculateDimensions = () => {
+      if (modelRef.current && !isLoading && !loadError) {
+        const box = new THREE.Box3().setFromObject(modelRef.current);
+        const size = box.getSize(new THREE.Vector3());
+        // Convert to mm (multiply by 10 since the model is normalized)
+        setDimensions({
+          x: parseFloat((size.x * 10).toFixed(1)),
+          y: parseFloat((size.y * 10).toFixed(1)),
+          z: parseFloat((size.z * 10).toFixed(1)),
+        });
+      }
+    };
+
+    calculateDimensions(); // Try immediately first
+
+    // Then set a short timer as backup to ensure dimensions are calculated
+    const timer = setTimeout(() => {
+      calculateDimensions();
+    }, 500);
+
+    return () => clearTimeout(timer);
   }, [modelRef.current, isLoading, loadError]); // Re-run when modelRef changes or loading/error state changes
 
   // Callback for Model component to signal an error
@@ -291,7 +301,7 @@ export function ModelViewer({ modelPath, color, material, jobId, isLoading = fal
       {/* Dimensions Display (Bottom Left) */}
       {dimensions && (
         <div className="absolute bottom-2 left-2 bg-background/80 text-xs px-2 py-1 rounded">
-          {`Dimensions: ${dimensions.x} x ${dimensions.y} x ${dimensions.z} CM`}
+          {`Dimensions: ${dimensions.x} x ${dimensions.y} x ${dimensions.z} MM`}
         </div>
       )}
     </div>
