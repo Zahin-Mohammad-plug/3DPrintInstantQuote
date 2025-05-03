@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react" // Import useEffect
+import { useState, useEffect, ChangeEvent } from "react" // Import ChangeEvent
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -74,13 +74,33 @@ export function AdminCatalogManager() {
     // TODO: upload image via input below
   })
 
-  // TODO: implement file upload API for category images
-  const handleCategoryImageFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle local file upload for new category image
+  const handleCategoryImageFile = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    // TODO: upload file to '/catalog/categories' and get URL
-    // Example: const url = await uploadImageAPI(file, 'categories')
-    // setNewCategory(prev => ({...prev, image: url}))
+    const reader = new FileReader()
+    reader.onload = () => {
+      setNewCategory(prev => ({ ...prev, image: reader.result as string }))
+    }
+    reader.readAsDataURL(file)
+  }
+  // Handle local file upload for editing category image
+  const handleEditCategoryImageFile = (e: ChangeEvent<HTMLInputElement>, id: string) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      handleUpdateCategory(id, "image", reader.result as string)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  // Handler to choose an existing category image URL
+  const handleChooseExistingCategoryImage = (id: string) => {
+    const url = window.prompt("Enter URL of an existing image from public folder (e.g., /customTextures/your-image.png):")
+    if (url) {
+      handleUpdateCategory(id, "image", url)
+    }
   }
 
   const [newProduct, setNewProduct] = useState<Omit<Product, "id">>({ // Use Omit for newProduct
@@ -97,13 +117,39 @@ export function AdminCatalogManager() {
     relatedProducts: [],
   });
 
-  // TODO: implement file upload for product images
-  const handleNewProductImageFile = (e: React.ChangeEvent<HTMLInputElement>, index?: number) => {
+  // Handle local file upload for new product images
+  const handleNewProductImageFile = (e: ChangeEvent<HTMLInputElement>, index?: number) => {
     const file = e.target.files?.[0]
     if (!file) return
-    // TODO: upload file to '/catalog/products' and get URL
-    // Example: const url = await uploadImageAPI(file, 'products')
-    // if index provided, replace images[index], else append
+    const reader = new FileReader()
+    reader.onload = () => {
+      const url = reader.result as string
+      setNewProduct(prev => ({
+        ...prev,
+        images: index !== undefined
+          ? prev.images.map((img, i) => i === index ? url : img)
+          : [...prev.images, url]
+      }))
+    }
+    reader.readAsDataURL(file)
+  }
+  // Handle local file upload for editing existing product image
+  const handleEditProductImageFile = (e: ChangeEvent<HTMLInputElement>, productId: string, index: number) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      handleUpdateProductImage(productId, index, reader.result as string)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  // Handler to choose an existing product image URL for new product
+  const handleNewChooseExistingProductImage = () => {
+    const url = window.prompt("Enter URL of an existing image from public folder (e.g., /customTextures/your-image.png):")
+    if (url) {
+      setNewProduct(prev => ({ ...prev, images: [...prev.images, url] }))
+    }
   }
 
   const [newReview, setNewReview] = useState({
@@ -359,6 +405,14 @@ export function AdminCatalogManager() {
      saveData(categories, updatedProducts)
   }
 
+  // Handler to choose an existing product image URL for existing products
+  const handleChooseExistingProductImage = (productId: string, index: number) => {
+    const url = window.prompt("Enter URL of an existing image from public folder (e.g., /customTextures/your-image.png):");
+    if (url) {
+      handleUpdateProductImage(productId, index, url);
+    }
+  }
+
   // Handle product features
   const handleAddProductFeature = (id: string) => {
      const updatedProducts = products.map((product) => {
@@ -546,26 +600,37 @@ export function AdminCatalogManager() {
                       <TableCell>
                         {editingCategoryId === category.id ? (
                           <div className="flex flex-col gap-2">
-                            <Input
-                              value={category.image}
-                              onChange={(e) => handleUpdateCategory(category.id, "image", e.target.value)}
-                              placeholder="Image URL"
-                            />
-                            {/* Optional: Add an upload button here if needed */}
+                            <div className="flex items-center gap-2">
+                              <Input
+                                value={category.image}
+                                onChange={(e) => handleUpdateCategory(category.id, "image", e.target.value)}
+                                placeholder="Image URL"
+                              />
+                              <Button size="sm" variant="ghost" onClick={() => handleChooseExistingCategoryImage(category.id)} title="Choose Existing">
+                                <Star className="h-4 w-4" />
+                              </Button>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => handleEditCategoryImageFile(e, category.id)}
+                                className="border p-1"
+                                title="Upload local"
+                              />
+                            </div>
                             <img
                               src={category.image || "/placeholder.svg"}
                               alt={category.name}
                               className="h-10 w-16 rounded object-cover border" // Added border for visibility
                             />
                           </div>
-                        ) : (
-                          <div className="h-10 w-16 rounded overflow-hidden bg-muted">
-                            <img
-                              src={category.image || "/placeholder.svg"}
-                              alt={category.name}
-                              className="h-full w-full object-cover"
-                            />
-                          </div>
+                         ) : (
+                            <div className="h-10 w-16 rounded overflow-hidden bg-muted">
+                              <img
+                                src={category.image || "/placeholder.svg"}
+                                alt={category.name}
+                                className="h-full w-full object-cover"
+                              />
+                            </div>
                         )}
                       </TableCell>
                       <TableCell>
@@ -728,12 +793,17 @@ export function AdminCatalogManager() {
                 </div> {/* Correct closing div for the grid */}
 
                 <Label htmlFor="new-product-image">Upload Product Image</Label>
+              <div className="flex items-center gap-2">
                 <input
                   type="file"
                   accept="image/*"
                   onChange={(e) => handleNewProductImageFile(e)}
                   className="block"
                 /> {/* TODO: handle upload and add to newProduct.images */}
+                <Button variant="ghost" size="icon" onClick={handleNewChooseExistingProductImage} title="Choose Existing">
+                  <Star className="h-4 w-4" />
+                </Button>
+              </div>
 
                 <Button onClick={handleAddProduct} className="w-full md:w-auto">
                   <Plus className="h-4 w-4 mr-2" />
@@ -884,12 +954,22 @@ export function AdminCatalogManager() {
                                       className="h-full w-full object-cover"
                                     />
                                   </div>
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => handleEditProductImageFile(e, product.id, index)}
+                                    className="border p-1"
+                                    title="Upload local"
+                                  />
                                   <Input
                                     value={image}
                                     onChange={(e) => handleUpdateProductImage(product.id, index, e.target.value)}
                                     placeholder="Image URL"
                                     className="flex-1"
                                   />
+                                  <Button size="sm" variant="ghost" onClick={() => handleChooseExistingProductImage(product.id, index)} title="Choose Existing">
+                                    <Star className="h-4 w-4" />
+                                  </Button>
                                   <Button
                                     size="sm"
                                     variant="ghost"
