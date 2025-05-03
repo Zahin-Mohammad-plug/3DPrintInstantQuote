@@ -249,50 +249,45 @@ For production deployment, you can host the application on a Linode server:
 <!-- TODO! -->
 I am working on my 3d printing service website, this codebase has both the frontend and backend
 Styling
-* Ensure footer matches content (name wise) as the header does. 
 
 Catalog page:
-* Should have "use client" but need to fix error of: 
-async/await is not yet supported in Client Components, only Server Components. This error is often caused by accidentally adding `'use client'` to a module that was originally written for the server.
-* category page title should reflect its on the category
-* Should show some recommend products under the categories. A search bar between allowing you to search across all items (can borrow styling from the [category]/page.tsx)
- 
+* Add pading between footer and end of recommended products.
+
 Product page
-* Tab title should match the product name
-* URL should be the product id (not just a number)
-* finish review submission by adding backend support.
-* review shoud allow you to enter name.
+* Fix name styling for review submission. 
 
 
 Upload page:
 * Allow .3mf files to be uploaded and quoted
+* ALlow .step files to be uploaded and quoted
 * Allow oversize items with complex functionality:
     * Save file
     * inform user that this will require custom inquiry for this size of file.
     * Direct to contact page with file attached.
-* Allow larger files
+
 
 Customize page:
--dimesnsions arent accurate and dont appear until toggling background
+-dimesnsions arent accurate (it's in cm when should be mm) and dont appear until toggling background
+* When a special filament is selected, you can still pick a material even if not compatible.
+* On first load, the default color doesnt exsist, it should grab the first available color then apply it. 
 
 Quote Page:
 * Ensure that the modifiers and notes for the multi-color print is preserved and saved to be submitted when checking out
-* adding padding between Model: and box above
-* Include dimensions in bottom left of the model viewer (same formatting as the customize page, should use the same viewer)
-
-* Save quote and share are missing fucntionality, will integrator save quote later.
+* Save quote and share are missing fucntionality, will integratw save quote later.
 * If cart local + total is below the minimum order price, inform the user. 
 
 
 Cart Page:
-* Most Color's in cart is the hex code not the name. 
+* Most Color's in cart is the hex code not the name, it should always use the stored colors name
 * Material name should always be all caps
-* Should havbe a small preview image of the model / the product photo
+* Should havbe a small preview image of the model / the product photo, this may require additional processing (possibly from backend) in order to create the thumbnail.
 
 Checkout page:
+* Colors should be the color name, not the hex code
+* Material should always be all caps so like PLA
 * Should hide navbar
 * The navBar will reappear on thank you page
-* Fix the checkout page to actually email me
+* Fix the checkout page to actually email me and store in the backend. May require additonal backend process to do so.
 
 Admin panel: 
 * Add submitted orders (stored in order.json)
@@ -302,7 +297,8 @@ Admin panel:
     * A rush order fee setting
     * Does support material even do an
 * Add upload images for categories and products (mapped to new dirs)
-
+* Set file size and uploaded file types in admin. 
+* In materials, you should be able to pick a special filaments as well.
 
 Features:
 * Update for SEO

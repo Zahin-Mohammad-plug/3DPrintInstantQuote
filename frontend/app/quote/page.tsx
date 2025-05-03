@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { ModelViewer } from "@/components/model-viewer"
-import { ArrowLeft, Download, ShoppingCart, Share2, Plus, Minus, AlertCircle, Loader2 } from "lucide-react"
+import { ArrowLeft, Download, ShoppingCart, Share2, Plus, Minus, AlertCircle, Loader2, Sun, Moon } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -15,10 +15,11 @@ import Link from "next/link"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { motion } from "framer-motion"
-import { getJobStatus, getMaterials, addJobToCart, calculateJobPrice } from "@/services/api" // Import calculateJobPrice and PriceInfo
+import { getJobStatus, getMaterials, addJobToCart, calculateJobPrice } from "@/services/api"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 // Define API base URL for model files
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
 
 interface QuoteDetails {
   basePrice: number
@@ -76,15 +77,15 @@ export default function QuotePage() {
   const [quantity, setQuantity] = useState(1)
   const [isMultiPart, setIsMultiPart] = useState(false)
   const [quoteDetails, setQuoteDetails] = useState<QuoteDetails | null>(null) // Initialize as null
-  const [jobResultDetails, setJobResultDetails] = useState<any>(null); // Store raw job results separately
+  const [jobResultDetails, setJobResultDetails] = useState<any>(null) // Store raw job results separately
   const [addedToCart, setAddedToCart] = useState(false)
   const [isClient, setIsClient] = useState(false)
   const [isLoading, setIsLoading] = useState(true) // Start loading initially
   const [error, setError] = useState<string | null>(null)
-  const [isAddingToCart, setIsAddingToCart] = useState(false);
-  const [cartError, setCartError] = useState<string | null>(null);
-  // Theme for model viewer background
-  const [viewerTheme, setViewerTheme] = useState<'light' | 'dark'>('light');
+  const [isAddingToCart, setIsAddingToCart] = useState(false)
+  const [cartError, setCartError] = useState<string | null>(null)
+  // Theme for model viewer background - default to dark
+  const [viewerTheme, setViewerTheme] = useState<"light" | "dark">("dark")
 
   useEffect(() => {
     setIsClient(true)
@@ -97,9 +98,13 @@ export default function QuotePage() {
     const storedIsMultiColor = sessionStorage.getItem("isMultiColor")
     const storedMultiColorDetails = sessionStorage.getItem("multiColorDetails")
     const storedJobId = sessionStorage.getItem("jobId")
+    const storedViewerTheme = sessionStorage.getItem("viewerTheme") || "dark"
+
+    // Set viewer theme from storage
+    setViewerTheme(storedViewerTheme as "light" | "dark")
 
     if (!storedModel || !storedMaterial || !storedJobId) {
-      console.error("Missing essential data in sessionStorage, redirecting to upload.");
+      console.error("Missing essential data in sessionStorage, redirecting to upload.")
       router.push("/upload")
       return
     }
@@ -115,49 +120,54 @@ export default function QuotePage() {
     setJobId(storedJobId)
 
     // --- Fetch Job Status and then Calculate Price --- START
-    const fetchJobAndPrice = async (currentJobId: string, currentQuality: string, currentMaterial: string, currentColor: string | null) => {
-      setIsLoading(true);
-      setError(null);
+    const fetchJobAndPrice = async (
+      currentJobId: string,
+      currentQuality: string,
+      currentMaterial: string,
+      currentColor: string | null,
+    ) => {
+      setIsLoading(true)
+      setError(null)
       try {
-        let jobStatus = await getJobStatus(currentJobId);
+        let jobStatus = await getJobStatus(currentJobId)
 
         // --- Polling Logic --- START
-        let attempts = 0;
-        const maxAttempts = 10; // Poll for 30 seconds max
-        const pollInterval = 3000;
+        let attempts = 0
+        const maxAttempts = 10 // Poll for 30 seconds max
+        const pollInterval = 3000
 
-        while (jobStatus.status !== 'completed' && jobStatus.status !== 'failed' && attempts < maxAttempts) {
-          console.log(`Job ${currentJobId} status is ${jobStatus.status}, polling... (Attempt ${attempts + 1})`);
-          await new Promise(resolve => setTimeout(resolve, pollInterval));
-          jobStatus = await getJobStatus(currentJobId);
-          attempts++;
+        while (jobStatus.status !== "completed" && jobStatus.status !== "failed" && attempts < maxAttempts) {
+          console.log(`Job ${currentJobId} status is ${jobStatus.status}, polling... (Attempt ${attempts + 1})`)
+          await new Promise((resolve) => setTimeout(resolve, pollInterval))
+          jobStatus = await getJobStatus(currentJobId)
+          attempts++
         }
         // --- Polling Logic --- END
 
-        if (jobStatus.status === 'failed') {
-          throw new Error(jobStatus.error || 'Failed to process model');
+        if (jobStatus.status === "failed") {
+          throw new Error(jobStatus.error || "Failed to process model")
         }
 
-        if (jobStatus.status !== 'completed') {
-          throw new Error(`Job processing timed out or is stuck in status: ${jobStatus.status}`);
+        if (jobStatus.status !== "completed") {
+          throw new Error(`Job processing timed out or is stuck in status: ${jobStatus.status}`)
         }
 
         // --- Job is Completed, store results and model URL --- START
-        console.log(`Job ${currentJobId} completed. Result:`, jobStatus.result);
-        setJobResultDetails(jobStatus.result); // Store raw results
+        console.log(`Job ${currentJobId} completed. Result:`, jobStatus.result)
+        setJobResultDetails(jobStatus.result) // Store raw results
 
         if (jobStatus.filename) {
-          const modelUrlPath = `${API_BASE_URL}/api/file/${jobStatus.filename}`;
+          const modelUrlPath = `${API_BASE_URL}/api/file/${jobStatus.filename}`
           try {
-            const fileCheck = await fetch(modelUrlPath, { method: 'HEAD' });
+            const fileCheck = await fetch(modelUrlPath, { method: "HEAD" })
             if (fileCheck.ok) {
-              setModelUrl(modelUrlPath);
+              setModelUrl(modelUrlPath)
             } else {
-              console.warn(`Model file ${jobStatus.filename} not found (HTTP ${fileCheck.status})`);
+              console.warn(`Model file ${jobStatus.filename} not found (HTTP ${fileCheck.status})`)
               // Handle potential 3mf -> stl conversion if needed
             }
           } catch (err) {
-            console.error("Error checking model file:", err);
+            console.error("Error checking model file:", err)
           }
         }
         // --- Job is Completed, store results and model URL --- END
@@ -166,92 +176,109 @@ export default function QuotePage() {
         if (jobStatus.result) {
           const priceParams = {
             material_id: currentMaterial,
-            color_id: currentColor || 'default', // Use a default if null, backend should handle
+            color_id: currentColor || "default", // Use a default if null, backend should handle
             quality_id: currentQuality,
-          };
-          console.log(`Requesting price calculation for job ${currentJobId} with params:`, priceParams);
-          const priceInfo = await calculateJobPrice(currentJobId, priceParams);
-          console.log(`Received price info for job ${currentJobId}:`, priceInfo);
-          processPriceInfo(priceInfo, currentQuality, quantity, isMultiPart, isMultiColor);
+          }
+          console.log(`Requesting price calculation for job ${currentJobId} with params:`, priceParams)
+          const priceInfo = await calculateJobPrice(currentJobId, priceParams)
+          console.log(`Received price info for job ${currentJobId}:`, priceInfo)
+          processPriceInfo(priceInfo, currentQuality, quantity, isMultiPart, isMultiColor)
         } else {
-          throw new Error("Job completed but slicing results are missing.");
+          throw new Error("Job completed but slicing results are missing.")
         }
         // --- Calculate Price using the new endpoint --- END
-
       } catch (err: any) {
-        console.error("Error in fetchJobAndPrice:", err);
-        setError(err.message || 'Failed to get job status or calculate price');
+        console.error("Error in fetchJobAndPrice:", err)
+        setError(err.message || "Failed to get job status or calculate price")
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
-    };
+    }
 
     // Initial fetch
-    fetchJobAndPrice(storedJobId, storedQuality || "standard", storedMaterial, storedColor);
+    fetchJobAndPrice(storedJobId, storedQuality || "standard", storedMaterial, storedColor)
     // --- Fetch Job Status and then Calculate Price --- END
+  }, [router]) // Only run on initial mount and if router changes
 
-  }, [router]); // Only run on initial mount and if router changes
+  // Save viewer theme to session storage when it changes
+  useEffect(() => {
+    if (isClient) {
+      sessionStorage.setItem("viewerTheme", viewerTheme)
+    }
+  }, [viewerTheme, isClient])
 
   // Get quality modifiers from the backend
-  const [qualityModifiers, setQualityModifiers] = useState<{[key: string]: number}>({
+  const [qualityModifiers, setQualityModifiers] = useState<{ [key: string]: number }>({
     draft: -5,
     standard: 0,
     high: 10,
-    ultra: 15
-  });
-  
+    ultra: 15,
+  })
+
   // Load quality modifiers from the backend
   useEffect(() => {
     const loadQualityModifiers = async () => {
       try {
-        const materialsData = await getMaterials();
-        
+        const materialsData = await getMaterials()
+
         // Check if quality levels are available in the response
         if (materialsData.global_settings && materialsData.global_settings.quality_levels) {
-          const modifiers: {[key: string]: number} = {};
-          
+          const modifiers: { [key: string]: number } = {}
+
           // Map quality levels to modifiers
           materialsData.global_settings.quality_levels.forEach((level: any) => {
-            modifiers[level.id] = level.price_modifier;
-          });
-          
-          setQualityModifiers(modifiers);
+            modifiers[level.id] = level.price_modifier
+          })
+
+          setQualityModifiers(modifiers)
         }
       } catch (error) {
-        console.error("Error loading quality modifiers:", error);
+        console.error("Error loading quality modifiers:", error)
       }
-    };
-    
-    loadQualityModifiers();
-  }, []);
+    }
+
+    loadQualityModifiers()
+  }, [])
 
   // --- NEW function to process the price info from calculateJobPrice --- START
-  const processPriceInfo = (priceInfo: any, quality: string, qty: number, multiPart: boolean, isMultiColorFlag: boolean) => {
-    console.log("processPriceInfo called with:", { priceInfo, quality, qty, multiPart, isMultiColorFlag });
+  const processPriceInfo = (
+    priceInfo: any,
+    quality: string,
+    qty: number,
+    multiPart: boolean,
+    isMultiColorFlag: boolean,
+  ) => {
+    console.log("processPriceInfo called with:", { priceInfo, quality, qty, multiPart, isMultiColorFlag })
 
-    if (!priceInfo || typeof priceInfo.total_price === 'undefined') {
-      setError('Invalid pricing information received from backend');
-      setQuoteDetails(null); // Clear quote details on error
-      return;
+    if (!priceInfo || typeof priceInfo.total_price === "undefined") {
+      setError("Invalid pricing information received from backend")
+      setQuoteDetails(null) // Clear quote details on error
+      return
     }
 
     // Get individual components from the calculated priceInfo
-    const basePrice = priceInfo.base_price || 0;
-    const colorModifier = priceInfo.color_addon || 0;
-    const materialModifier = priceInfo.material_modifier || 0;
-    const qualityModifier = priceInfo.quality_modifier || 0;
-    const multiColorModifier = isMultiColorFlag ? 15 : 0; // Keep frontend logic for this modifier for now
+    const basePrice = priceInfo.base_price || 0
+    const colorModifier = priceInfo.color_addon || 0
+    const materialModifier = priceInfo.material_modifier || 0
+    const qualityModifier = priceInfo.quality_modifier || 0
+    const multiColorModifier = isMultiColorFlag ? 15 : 0 // Keep frontend logic for this modifier for now
 
     // Unit price is now directly from the backend's total_price
-    const unitPrice = priceInfo.total_price;
-    console.log("Using unitPrice from backend:", unitPrice, "Breakdown:", { basePrice, colorModifier, materialModifier, qualityModifier, multiColorModifier });
+    const unitPrice = priceInfo.total_price
+    console.log("Using unitPrice from backend:", unitPrice, "Breakdown:", {
+      basePrice,
+      colorModifier,
+      materialModifier,
+      qualityModifier,
+      multiColorModifier,
+    })
 
     // Calculate total with quantity
-    let totalWithQuantity = unitPrice * qty;
+    let totalWithQuantity = unitPrice * qty
 
     // Apply multi-part discount
     if (multiPart && qty > 1) {
-      totalWithQuantity *= 0.9; // 10% discount
+      totalWithQuantity *= 0.9 // 10% discount
     }
 
     setQuoteDetails({
@@ -267,64 +294,58 @@ export default function QuotePage() {
       estimatedTime: jobResultDetails?.estimated_time,
       hasSupports: jobResultDetails?.has_supports,
       size: jobResultDetails?.size,
-      volumeCm3: jobResultDetails?.volume_cm3
-    });
-    setError(null); // Clear any previous errors if successful
-  };
+      volumeCm3: jobResultDetails?.volume_cm3,
+    })
+    setError(null) // Clear any previous errors if successful
+  }
   // --- NEW function to process the price info from calculateJobPrice --- END
 
-  // --- Remove the old processCompletedJob function --- 
-  // const processCompletedJob = (jobStatus: any, quality: string, qty: number, multiPart: boolean) => { ... }
-
   const handleQuantityChange = (newQuantity: number) => {
-    if (newQuantity < 1 || !quoteDetails) return;
-    setQuantity(newQuantity);
+    if (newQuantity < 1 || !quoteDetails) return
+    setQuantity(newQuantity)
 
     // Recalculate total with new quantity based on the unit price (quoteDetails.total)
-    const newTotalWithQuantity = quoteDetails.total * newQuantity;
+    const newTotalWithQuantity = quoteDetails.total * newQuantity
 
     // Apply multi-part discount if applicable
-    const finalTotal = isMultiPart && newQuantity > 1
-      ? newTotalWithQuantity * 0.9
-      : newTotalWithQuantity;
+    const finalTotal = isMultiPart && newQuantity > 1 ? newTotalWithQuantity * 0.9 : newTotalWithQuantity
 
     setQuoteDetails({
       ...quoteDetails,
-      totalWithQuantity: finalTotal
-    });
-  };
+      totalWithQuantity: finalTotal,
+    })
+  }
 
   const handleMultiPartChange = (checked: boolean) => {
-    if (!quoteDetails) return;
-    setIsMultiPart(checked);
+    if (!quoteDetails) return
+    setIsMultiPart(checked)
 
     // Recalculate total with multi-part discount
-    const totalWithQuantity = quoteDetails.total * quantity;
-    const finalTotal = checked && quantity > 1
-      ? totalWithQuantity * 0.9
-      : totalWithQuantity;
+    const totalWithQuantity = quoteDetails.total * quantity
+    const finalTotal = checked && quantity > 1 ? totalWithQuantity * 0.9 : totalWithQuantity
 
     setQuoteDetails({
       ...quoteDetails,
-      totalWithQuantity: finalTotal
-    });
-  };
+      totalWithQuantity: finalTotal,
+    })
+  }
 
   const addToCart = async () => {
-    if (!jobId || !quoteDetails) { // Check quoteDetails as well
-      setCartError("Cannot add to cart: Job ID or Quote Details are missing.");
-      return;
+    if (!jobId || !quoteDetails) {
+      // Check quoteDetails as well
+      setCartError("Cannot add to cart: Job ID or Quote Details are missing.")
+      return
     }
 
-    setIsAddingToCart(true);
-    setCartError(null);
+    setIsAddingToCart(true)
+    setCartError(null)
 
     try {
-      console.log(`Calling addJobToCart for job ID: ${jobId}`);
-      const cartResult = await addJobToCart(jobId);
-      console.log("addJobToCart response:", cartResult);
+      console.log(`Calling addJobToCart for job ID: ${jobId}`)
+      const cartResult = await addJobToCart(jobId)
+      console.log("addJobToCart response:", cartResult)
       if (!cartResult.success) {
-        throw new Error(cartResult.message || "Backend failed to add job to cart.");
+        throw new Error(cartResult.message || "Backend failed to add job to cart.")
       }
 
       const cartItem: CartItem = {
@@ -339,27 +360,26 @@ export default function QuotePage() {
         isMultiPart,
         price: quoteDetails.totalWithQuantity,
         jobId: jobId,
-        image: modelUrl || "/placeholder.svg" // Use preview image URL
-      };
+        image: modelUrl || "/placeholder.svg", // Use preview image URL
+      }
 
-      const existingCart = sessionStorage.getItem("cart");
-      const cart = existingCart ? JSON.parse(existingCart) : [];
-      cart.push(cartItem);
-      sessionStorage.setItem("cart", JSON.stringify(cart));
+      const existingCart = sessionStorage.getItem("cart")
+      const cart = existingCart ? JSON.parse(existingCart) : []
+      cart.push(cartItem)
+      sessionStorage.setItem("cart", JSON.stringify(cart))
 
-      setAddedToCart(true);
-      window.dispatchEvent(new Event("cartUpdated"));
-
+      setAddedToCart(true)
+      window.dispatchEvent(new Event("cartUpdated"))
     } catch (err: any) {
-      console.error("Error adding item to cart:", err);
-      setCartError(err.message || "An unexpected error occurred while adding to cart.");
-      setAddedToCart(false);
+      console.error("Error adding item to cart:", err)
+      setCartError(err.message || "An unexpected error occurred while adding to cart.")
+      setAddedToCart(false)
     } finally {
-      setIsAddingToCart(false);
+      setIsAddingToCart(false)
     }
-  };
+  }
 
-  // --- Render Logic --- 
+  // --- Render Logic ---
   // Make sure to handle the case where quoteDetails is null during loading/error
 
   if (!isClient) {
@@ -398,7 +418,8 @@ export default function QuotePage() {
     )
   }
 
-  if (!modelName || !selectedMaterial || !quoteDetails) { // Check quoteDetails here
+  if (!modelName || !selectedMaterial || !quoteDetails) {
+    // Check quoteDetails here
     // This might indicate an issue if loading is finished but data is still missing
     return <div className="container py-12 text-center">Loading Quote Details...</div>
   }
@@ -416,12 +437,6 @@ export default function QuotePage() {
               Back to Customization
             </Link>
           </div>
-          {/* Viewer background toggle */}
-          <div className="flex justify-end mb-4">
-            <Button variant="outline" size="sm" onClick={() => setViewerTheme(v => v === 'light' ? 'dark' : 'light')}>
-              {viewerTheme === 'light' ? 'Dark Background' : 'Light Background'}
-            </Button>
-          </div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -432,12 +447,37 @@ export default function QuotePage() {
             {/* --- Model Viewer Card --- */}
             <div>
               <Card className="mb-6 overflow-hidden shadow-md hover:shadow-lg transition-shadow">
-                <CardHeader className="bg-muted/50">
-                  <CardTitle>Your 3D Print</CardTitle>
-                  <CardDescription>
-                    {modelName} - Preview of your customized model
-                    {isMultiColor && " (Preview shows base color only)"}
-                  </CardDescription>
+                <CardHeader className="bg-muted/50 flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle>Your 3D Print</CardTitle>
+                    <CardDescription>
+                      {modelName} - Preview of your customized model
+                      {isMultiColor && " (Preview shows base color only)"}
+                    </CardDescription>
+                  </div>
+
+                  {/* Improved viewer theme toggle */}
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setViewerTheme(viewerTheme === "dark" ? "light" : "dark")}
+                          className="rounded-full h-9 w-9"
+                        >
+                          {viewerTheme === "dark" ? (
+                            <Sun className="h-5 w-5 text-yellow-500" />
+                          ) : (
+                            <Moon className="h-5 w-5 text-blue-500" />
+                          )}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Switch to {viewerTheme === "dark" ? "light" : "dark"} background</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </CardHeader>
                 <CardContent className="aspect-square p-0">
                   <div className="aspect-square overflow-hidden rounded-md border relative">
@@ -484,15 +524,15 @@ export default function QuotePage() {
                           <span className="text-sm font-medium">Multi-Color</span>
                         ) : selectedSpecialFilament ? (
                           <span className="text-sm font-medium">
-                            Special:{" "}
-                            {/* ... special filament name logic ... */}
+                            Special: {/* ... special filament name logic ... */}
                           </span>
                         ) : (
                           <>
-                            <div className="w-4 h-4 rounded-full mr-2" style={{ backgroundColor: selectedColor || "#cccccc" }} />
-                            <span className="text-sm font-medium">
-                              {/* ... color name logic ... */}
-                            </span>
+                            <div
+                              className="w-4 h-4 rounded-full mr-2"
+                              style={{ backgroundColor: selectedColor || "#cccccc" }}
+                            />
+                            <span className="text-sm font-medium">{/* ... color name logic ... */}</span>
                           </>
                         )}
                       </div>
@@ -524,11 +564,11 @@ export default function QuotePage() {
                     {/* --- Price Breakdown (using quoteDetails state) --- */}
                     <div className="space-y-2">
                       {/* Display breakdown components if needed, using quoteDetails */}
-                      {/* Example: Base Price */} 
+                      {/* Example: Base Price */}
                       {/* <div className="flex justify-between">
                         <span className="text-sm">Base Price:</span>
                         <span className="text-sm font-medium">${quoteDetails.basePrice.toFixed(2)}</span>
-                      </div> */} 
+                      </div> */}
                       {/* ... other modifiers ... */}
 
                       <Separator />
@@ -538,13 +578,17 @@ export default function QuotePage() {
                         <span className="text-base font-medium">${quoteDetails.total.toFixed(2)}</span>
                       </div>
                       {/* ... Optional: Display filament used, time etc. from jobResultDetails ... */}
-                      {/* {jobResultDetails && (
+                      {jobResultDetails && (
                         <div className="text-xs text-muted-foreground space-y-1 mt-2">
-                          {jobResultDetails.filament_used_g && <div>Filament: {jobResultDetails.filament_used_g.toFixed(2)}g</div>}
+                          {jobResultDetails.filament_used_g && (
+                            <div>Filament: {jobResultDetails.filament_used_g.toFixed(2)}g</div>
+                          )}
                           {jobResultDetails.estimated_time && <div>Est. Time: {jobResultDetails.estimated_time}</div>}
-                          {jobResultDetails.size && <div>Size: {jobResultDetails.size.x.toFixed(1)}x{jobResultDetails.size.y.toFixed(1)}x{jobResultDetails.size.z.toFixed(1)}mm</div>}
+                          {jobResultDetails.volume_cm3 && (
+                            <div>Volume: {jobResultDetails.volume_cm3.toFixed(2)} cm³</div>
+                          )}
                         </div>
-                      )} */} 
+                      )}
                     </div>
 
                     {/* --- Quantity and Multi-Part Section --- */}
@@ -623,7 +667,9 @@ export default function QuotePage() {
                     className="w-full bg-primary hover:bg-primary/90"
                     size="lg"
                     onClick={addToCart}
-                    disabled={addedToCart || quoteDetails.totalWithQuantity < 0 || isLoading || isAddingToCart || !quoteDetails} // Disable if no quoteDetails
+                    disabled={
+                      addedToCart || quoteDetails.totalWithQuantity < 0 || isLoading || isAddingToCart || !quoteDetails
+                    } // Disable if no quoteDetails
                   >
                     {isAddingToCart ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
