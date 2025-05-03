@@ -12,7 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 // Import Table components
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 // Keep existing icons + add Loader2
-import { AlertCircle, Plus, Trash2, Loader2 } from "lucide-react"
+import { AlertCircle, Plus, Trash2, Loader2, Save, X, Edit } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { v4 as uuidv4 } from 'uuid'; // Import uuid for generating unique IDs
 
@@ -45,6 +45,9 @@ interface BackendColor {
     addon_price: number;
 }
 
+// Interface for special filament state (maps directly to backend SpecialFilament)
+interface SpecialFilamentItem extends SpecialFilament {}
+
 export function AdminFilamentsManager() {
   // State for unique colors across all materials
   const [allColors, setAllColors] = useState<ColorItem[]>([])
@@ -62,15 +65,23 @@ export function AdminFilamentsManager() {
     properties: ["Standard"], // Default example
   })
 
+  // State for special filaments
+  const [specialFilaments, setSpecialFilaments] = useState<SpecialFilamentItem[]>([])
+  const [editingSpecialFilamentId, setEditingSpecialFilamentId] = useState<string | null>(null)
+  const [newSpecialFilament, setNewSpecialFilament] = useState<Partial<SpecialFilamentItem>>({
+    name: "",
+    description: "",
+    previewImg: "/customTextures/placeHolder.svg", // Default path
+    priceModifier: 0,
+  })
+  const [editSpecialFilamentState, setEditSpecialFilamentState] = useState<SpecialFilamentItem | null>(null); // State for editing special filament
+
   // General state
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  // Store special filaments to preserve them during updates
-  const [specialFilaments, setSpecialFilaments] = useState<SpecialFilament[]>([]);
   // Store global settings to preserve them
   const [globalSettings, setGlobalSettings] = useState<any>(null);
-
 
   // Fetch data using the API service
   const loadData = async () => {
@@ -118,7 +129,8 @@ export function AdminFilamentsManager() {
         }
 
         // Preserve special filaments and global settings
-        setSpecialFilaments(data.special_filaments || []);
+        // Map directly as the structure matches SpecialFilamentItem
+        setSpecialFilaments(data.special_filaments ? data.special_filaments.map(sf => ({...sf})) : []);
         setGlobalSettings(data.global_settings || null);
 
       } else {
@@ -245,7 +257,7 @@ export function AdminFilamentsManager() {
       const payload: MaterialsResponse = {
         ...currentData,
         materials: updatedMaterials,
-        special_filaments: currentData.special_filaments || [],
+        special_filaments: specialFilaments, // Preserve special filaments
       };
 
       const result = await updateMaterials(payload);
@@ -333,7 +345,7 @@ export function AdminFilamentsManager() {
         const payload: MaterialsResponse = {
             ...currentData,
             materials: updatedMaterials,
-            special_filaments: currentData.special_filaments || [],
+            special_filaments: specialFilaments, // Preserve special filaments
         };
 
         const result = await updateMaterials(payload);
@@ -376,7 +388,7 @@ export function AdminFilamentsManager() {
       const payload: MaterialsResponse = {
         ...currentData,
         materials: updatedMaterials,
-        special_filaments: currentData.special_filaments || [],
+        special_filaments: specialFilaments, // Preserve special filaments
       };
 
       const result = await updateMaterials(payload);
@@ -427,7 +439,7 @@ export function AdminFilamentsManager() {
       const payload: MaterialsResponse = {
         ...currentData,
         materials: updatedMaterials,
-        special_filaments: currentData.special_filaments || [],
+        special_filaments: specialFilaments, // Preserve special filaments
       };
 
       const result = await updateMaterials(payload);
@@ -465,12 +477,176 @@ export function AdminFilamentsManager() {
     updateMaterialColors(materialId, newSelectedIds);
   };
 
+  // --- Special Filament Management ---
+
+  const handleNewSpecialFilamentChange = (field: keyof Omit<SpecialFilamentItem, 'id'>, value: string | number) => {
+    setNewSpecialFilament({ ...newSpecialFilament, [field]: value })
+  }
+
+  const handleAddSpecialFilament = async () => {
+    setError(null);
+    setSuccess(null);
+    if (!newSpecialFilament.name) {
+        setError("Special Filament Name is required.");
+        return;
+    }
+
+    setIsLoading(true);
+    try {
+        const currentData = await getMaterials();
+        if (!currentData) {
+            throw new Error("Failed to fetch current data from backend.");
+        }
+
+        const id = newSpecialFilament.name.toLowerCase().replace(/\s+/g, "-") + '_' + uuidv4().substring(0, 4);
+        const currentSpecialFilaments = currentData.special_filaments || [];
+
+        // Check if ID already exists
+        const idExists = currentSpecialFilaments.some(sf => sf.id === id);
+        if (idExists) {
+            throw new Error(`Special Filament with ID ${id} already exists. Please choose a different name.`);
+        }
+
+        const newFilament: SpecialFilamentItem = {
+            id,
+            name: newSpecialFilament.name,
+            description: newSpecialFilament.description || "",
+            previewImg: newSpecialFilament.previewImg || "/customTextures/placeHolder.svg",
+            priceModifier: Number(newSpecialFilament.priceModifier) || 0
+        };
+
+        const updatedSpecialFilaments = [...currentSpecialFilaments, newFilament];
+
+        const payload: MaterialsResponse = {
+            ...currentData,
+            materials: currentData.materials || [], // Preserve existing materials
+            special_filaments: updatedSpecialFilaments
+        };
+
+        const result = await updateMaterials(payload);
+
+        if (result.success) {
+            setSuccess("Special Filament added successfully!");
+            setNewSpecialFilament({ name: "", description: "", previewImg: "/customTextures/placeHolder.svg", priceModifier: 0 });
+            loadData(); // Re-fetch data
+        } else {
+            throw new Error(result.message || "Failed to add Special Filament.");
+        }
+    } catch (error: any) {
+        console.error("Error adding Special Filament:", error);
+        setError(`Failed to add Special Filament: ${error.message}`);
+        setIsLoading(false);
+    }
+  }
+
+  const handleEditSpecialFilament = (id: string) => {
+    const filamentToEdit = specialFilaments.find(f => f.id === id);
+    if (filamentToEdit) {
+        setEditSpecialFilamentState({ ...filamentToEdit });
+        setEditingSpecialFilamentId(id);
+    }
+  }
+
+  const handleEditSpecialFilamentChange = (field: keyof SpecialFilamentItem, value: string | number) => {
+     setEditSpecialFilamentState(prev => prev ? { ...prev, [field]: value } : null);
+  }
+
+  const handleSaveSpecialFilament = async (id: string) => {
+    if (!editSpecialFilamentState) return;
+    setError(null);
+    setSuccess(null);
+    setIsLoading(true);
+    try {
+        const currentData = await getMaterials();
+        if (!currentData) {
+            throw new Error("Failed to fetch current data from backend.");
+        }
+
+        const updatedSpecialFilaments = (currentData.special_filaments || []).map(sf => {
+            if (sf.id === id) {
+                // Return the edited state, ensuring all fields are present
+                return {
+                    id: editSpecialFilamentState.id,
+                    name: editSpecialFilamentState.name,
+                    description: editSpecialFilamentState.description,
+                    previewImg: editSpecialFilamentState.previewImg,
+                    priceModifier: Number(editSpecialFilamentState.priceModifier) || 0
+                };
+            }
+            return sf;
+        });
+
+        const payload: MaterialsResponse = {
+            ...currentData,
+            materials: currentData.materials || [], // Preserve existing materials
+            special_filaments: updatedSpecialFilaments
+        };
+
+        const result = await updateMaterials(payload);
+
+        if (result.success) {
+            setSuccess("Special Filament updated successfully!");
+            setEditingSpecialFilamentId(null);
+            setEditSpecialFilamentState(null);
+            loadData(); // Re-fetch data
+        } else {
+            throw new Error(result.message || "Failed to update Special Filament.");
+        }
+    } catch (error: any) {
+        console.error("Error updating Special Filament:", error);
+        setError(`Failed to update Special Filament: ${error.message}`);
+        setIsLoading(false);
+    }
+  }
+
+  const handleCancelSpecialFilament = () => {
+    setEditingSpecialFilamentId(null);
+    setEditSpecialFilamentState(null);
+  }
+
+  const handleDeleteSpecialFilament = async (id: string) => {
+     const filamentToDelete = specialFilaments.find(f=>f.id===id);
+     if (!filamentToDelete) return;
+     if (!confirm(`Are you sure you want to delete the special filament "${filamentToDelete.name}"?`)) return;
+
+    setError(null);
+    setSuccess(null);
+    setIsLoading(true);
+    try {
+        const currentData = await getMaterials();
+        if (!currentData) {
+            throw new Error("Failed to fetch current data from backend.");
+        }
+
+        const updatedSpecialFilaments = (currentData.special_filaments || []).filter(sf => sf.id !== id);
+
+        const payload: MaterialsResponse = {
+            ...currentData,
+            materials: currentData.materials || [], // Preserve existing materials
+            special_filaments: updatedSpecialFilaments
+        };
+
+        const result = await updateMaterials(payload);
+
+        if (result.success) {
+            setSuccess(`Special Filament "${filamentToDelete.name}" deleted successfully!`);
+            loadData(); // Re-fetch data
+        } else {
+            throw new Error(result.message || "Failed to delete Special Filament.");
+        }
+    } catch (error: any) {
+        console.error("Error deleting Special Filament:", error);
+        setError(`Failed to delete Special Filament: ${error.message}`);
+        setIsLoading(false);
+    }
+  }
+
 
   return (
     <Card className="w-full">
       <CardHeader>
         <CardTitle>Filaments Manager</CardTitle>
-        <CardDescription>Manage filament colors and material types</CardDescription>
+        <CardDescription>Manage filament colors, special filaments, and material types</CardDescription>
       </CardHeader>
       <CardContent>
         {/* Loading Indicator */}
@@ -495,8 +671,9 @@ export function AdminFilamentsManager() {
         )}
 
         <Tabs defaultValue="colors" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="colors">Colors</TabsTrigger>
+            <TabsTrigger value="special">Special Filaments</TabsTrigger> {/* Moved Special Filaments before Materials */}
             <TabsTrigger value="materials">Materials</TabsTrigger>
           </TabsList>
 
@@ -591,7 +768,7 @@ export function AdminFilamentsManager() {
                                         <TableCell>{color.hex}</TableCell>
                                         <TableCell>${color.addon_price.toFixed(2)}</TableCell>
                                         <TableCell className="text-right">
-                                            <Button variant="ghost" size="icon" onClick={() => deleteColor(color.id)} disabled={isLoading}>
+                                            <Button variant="ghost" size="icon" onClick={() => deleteColor(color.id)} disabled={isLoading || !!editingSpecialFilamentId}>
                                                 <Trash2 className="h-4 w-4 text-red-500" />
                                             </Button>
                                         </TableCell>
@@ -611,7 +788,161 @@ export function AdminFilamentsManager() {
             </div>
           </TabsContent>
 
-          {/* Materials Tab */}
+          {/* Special Filaments Tab - Moved */}
+          <TabsContent value="special" className="mt-4">
+            <div className="space-y-6">
+              {/* Add New Special Filament Form */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Add New Special Filament</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="new-sf-name">Filament Name *</Label>
+                        <Input
+                          id="new-sf-name"
+                          value={newSpecialFilament.name}
+                          onChange={(e) => handleNewSpecialFilamentChange("name", e.target.value)}
+                          placeholder="e.g. Rainbow PLA"
+                          disabled={isLoading}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="new-sf-price">Price Modifier ($)</Label>
+                        <Input
+                          id="new-sf-price"
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={newSpecialFilament.priceModifier}
+                          onChange={(e) => handleNewSpecialFilamentChange("priceModifier", Number.parseFloat(e.target.value))}
+                          placeholder="0.00"
+                          disabled={isLoading}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label htmlFor="new-sf-desc">Description</Label>
+                      <Input // Using Input, change to Textarea if preferred
+                        id="new-sf-desc"
+                        value={newSpecialFilament.description}
+                        onChange={(e) => handleNewSpecialFilamentChange("description", e.target.value)}
+                        placeholder="Describe the filament (e.g., color changing, glitter)"
+                        disabled={isLoading}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="new-sf-preview">Preview Image Path</Label>
+                      <Input
+                        id="new-sf-preview"
+                        value={newSpecialFilament.previewImg}
+                        onChange={(e) => handleNewSpecialFilamentChange("previewImg", e.target.value)}
+                        placeholder="/customTextures/your-texture.svg"
+                        disabled={isLoading}
+                      />
+                      <p className="text-xs text-muted-foreground">Path relative to the public folder (e.g., /customTextures/rainbow.svg).</p>
+                    </div>
+                    <Button onClick={handleAddSpecialFilament} disabled={isLoading} className="w-full md:w-auto">
+                      <Plus className="mr-2 h-4 w-4" /> Add Special Filament
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Manage Existing Special Filaments Table */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Manage Existing Special Filaments</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="border rounded-md">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[80px]">Preview</TableHead>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Description</TableHead>
+                          <TableHead>Price Mod.</TableHead>
+                          <TableHead className="text-right w-[100px]">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {specialFilaments.length > 0 ? specialFilaments.map((filament) => (
+                          <TableRow key={filament.id}>
+                            <TableCell>
+                              {editingSpecialFilamentId === filament.id && editSpecialFilamentState ? (
+                                <Input value={editSpecialFilamentState.previewImg} onChange={(e) => handleEditSpecialFilamentChange("previewImg", e.target.value)} placeholder="/img.svg" className="text-xs"/>
+                              ) : (
+                                <img src={filament.previewImg || '/customTextures/placeHolder.svg'} alt={filament.name} className="w-12 h-12 object-cover rounded border bg-gray-100" onError={(e) => (e.currentTarget.src = "/customTextures/placeHolder.svg")}/>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {editingSpecialFilamentId === filament.id && editSpecialFilamentState ? (
+                                <Input value={editSpecialFilamentState.name} onChange={(e) => handleEditSpecialFilamentChange("name", e.target.value)} />
+                              ) : (
+                                filament.name
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {editingSpecialFilamentId === filament.id && editSpecialFilamentState ? (
+                                <Input value={editSpecialFilamentState.description} onChange={(e) => handleEditSpecialFilamentChange("description", e.target.value)} />
+                              ) : (
+                                <p className="text-sm text-muted-foreground line-clamp-2">{filament.description}</p>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {editingSpecialFilamentId === filament.id && editSpecialFilamentState ? (
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  step="0.01"
+                                  value={editSpecialFilamentState.priceModifier}
+                                  onChange={(e) => handleEditSpecialFilamentChange("priceModifier", Number.parseFloat(e.target.value))}
+                                />
+                              ) : (
+                                `$${filament.priceModifier.toFixed(2)}`
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {editingSpecialFilamentId === filament.id ? (
+                                <div className="flex justify-end gap-1">
+                                  <Button variant="ghost" size="icon" onClick={() => handleSaveSpecialFilament(filament.id)} disabled={isLoading}>
+                                    <Save className="h-4 w-4" />
+                                  </Button>
+                                  <Button variant="ghost" size="icon" onClick={handleCancelSpecialFilament} disabled={isLoading}>
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              ) : (
+                                <div className="flex justify-end gap-1">
+                                  <Button variant="ghost" size="icon" onClick={() => handleEditSpecialFilament(filament.id)} disabled={isLoading || !!editingSpecialFilamentId}>
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                  <Button variant="ghost" size="icon" onClick={() => handleDeleteSpecialFilament(filament.id)} disabled={isLoading || !!editingSpecialFilamentId}>
+                                    <Trash2 className="h-4 w-4 text-red-500" />
+                                  </Button>
+                                </div>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        )) : (
+                          <TableRow>
+                            <TableCell colSpan={5} className="text-center text-muted-foreground">
+                              No special filaments found. Add your first one above.
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Materials Tab - Moved */}
           <TabsContent value="materials" className="mt-4">
             <div className="space-y-6">
               {/* Add New Material Form */}
@@ -716,7 +1047,7 @@ export function AdminFilamentsManager() {
                                                             id={`mat-${material.id}-color-${color.id}`}
                                                             checked={(material.availableColorIds || []).includes(color.id)}
                                                             onCheckedChange={() => toggleColorForExistingMaterial(material.id, color.id)}
-                                                            disabled={isLoading}
+                                                            disabled={isLoading || !!editingSpecialFilamentId} // Add disabled state
                                                             className="w-3.5 h-3.5"
                                                         />
                                                         <Label
@@ -733,7 +1064,7 @@ export function AdminFilamentsManager() {
                                             </div>
                                         </TableCell>
                                         <TableCell className="text-right">
-                                            <Button variant="ghost" size="icon" onClick={() => deleteMaterial(material.id)} disabled={isLoading}>
+                                            <Button variant="ghost" size="icon" onClick={() => deleteMaterial(material.id)} disabled={isLoading || !!editingSpecialFilamentId}>
                                                 <Trash2 className="h-4 w-4 text-red-500" />
                                             </Button>
                                         </TableCell>
@@ -752,6 +1083,7 @@ export function AdminFilamentsManager() {
               </Card>
             </div>
           </TabsContent>
+
         </Tabs>
       </CardContent>
     </Card>

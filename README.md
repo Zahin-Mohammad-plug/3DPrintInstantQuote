@@ -252,10 +252,11 @@ Styling
 
 Catalog page:
 * Add pading between footer and end of recommended products.
+/catalog/[id]/
+* The Filters aren't working; comment out temporarily
 
 Product page
-* Fix name styling for review submission. 
-
+* Share and save page is currently unavailble; comment out temporarily
 
 Upload page:
 * Allow .3mf files to be uploaded and quoted
@@ -273,36 +274,36 @@ Customize page:
 
 Quote Page:
 * Ensure that the modifiers and notes for the multi-color print is preserved and saved to be submitted when checking out
-* Save quote and share are missing fucntionality, will integratw save quote later.
-* If cart local + total is below the minimum order price, inform the user. 
+* Save quote and share are missing fucntionality, will integrate later; comment out for now
+* comment out the print details like: "Filament: 
+Est. Time: 
+Volume: "
 
 
 Cart Page:
 * Most Color's in cart is the hex code not the name, it should always use the stored colors name
-* Material name should always be all caps
-* Should havbe a small preview image of the model / the product photo, this may require additional processing (possibly from backend) in order to create the thumbnail.
+* Should havbe a small preview image of the model / the product photo, this may require additional processing (possibly from backend) in order to create the thumbnail; We will implement this later
 
 Checkout page:
 * Colors should be the color name, not the hex code
 * Material should always be all caps so like PLA
 * Should hide navbar
-* The navBar will reappear on thank you page
+* The navBar will reappear on thank you page or going back
 * Fix the checkout page to actually email me and store in the backend. May require additonal backend process to do so.
 
 Admin panel: 
-* Add submitted orders (stored in order.json)
 * Pricing: 
-    * Add ability to adjust time_cost
-    * A minimum order price So when user checksout, this price is automatically applied if quote is below
-    * A rush order fee setting
-    * Does support material even do an
+    * Add ability to adjust time_cost.
+    * Does support material even work?, if not, lets comment out for now
+* In filaments -> colors -> manage exsisting colors, allow the ability to edit current colors, similar button like the one in catalog, Manage Categories
 * Add upload images for categories and products (mapped to new dirs)
 * Set file size and uploaded file types in admin. 
-* In materials, you should be able to pick a special filaments as well.
 
 Features:
 * Update for SEO
 * Ensure uses static export (use client)
+    * A rush order fee setting
+
 
 ## Troubleshooting
 

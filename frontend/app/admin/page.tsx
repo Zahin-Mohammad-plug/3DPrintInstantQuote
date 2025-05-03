@@ -112,15 +112,7 @@ export default function AdminPage() {
             </TabsContent>
 
             <TabsContent value="filaments">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Filament Management</CardTitle>
-                  <CardDescription>Manage colors, materials, and their compatibility</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <AdminFilamentsManager />
-                </CardContent>
-              </Card>
+              <AdminFilamentsManager />
             </TabsContent>
 
             <TabsContent value="pricing">
