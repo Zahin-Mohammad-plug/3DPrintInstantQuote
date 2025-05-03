@@ -1,37 +1,76 @@
 {
+  "global_settings": {
+    "default_fill_density": 0.15,
+    "markup_percentage": 30,
+    "minimum_price": 0.1,
+    "pricing_formula": "(x+1)",
+    "quality_levels": [
+      {
+        "description": "Faster printing with visible layer lines. Good for prototypes and non-visible parts.",
+        "id": "draft",
+        "layer_height": "0.3mm",
+        "name": "Draft",
+        "price_modifier": -5
+      },
+      {
+        "description": "Balanced quality and print time. Suitable for most applications.",
+        "id": "standard",
+        "layer_height": "0.2mm",
+        "name": "Standard",
+        "price_modifier": 0
+      },
+      {
+        "description": "Finer details with less visible layer lines. Recommended for display pieces.",
+        "id": "high",
+        "layer_height": "0.12mm",
+        "name": "High Quality",
+        "price_modifier": 10
+      },
+      {
+        "description": "Maximum detail resolution with minimal layer lines. Best for intricate models.",
+        "id": "ultra",
+        "layer_height": "0.08mm",
+        "name": "Ultra Fine",
+        "price_modifier": 15
+      }
+    ],
+    "rush_order_fee": 15,
+    "support_material_multiplier": 1,
+    "volume_multiplier": 0.15
+  },
   "materials": [
     {
       "base_cost_per_gram": 0.05,
       "colors": [
         {
-          "addon_price": 0,
-          "hex": "#FFFFFF",
-          "id": "white",
-          "name": "White"
-        },
-        {
-          "addon_price": 2.69,
-          "hex": "#000000",
           "id": "black",
-          "name": "Black"
+          "name": "Black",
+          "hex": "#000000",
+          "addon_price": 2.69
         },
         {
-          "addon_price": 5,
-          "hex": "#FF0000",
           "id": "red",
-          "name": "Red"
+          "name": "Red",
+          "hex": "#FF0000",
+          "addon_price": 5
         },
         {
-          "addon_price": 0,
-          "hex": "#0000FF",
           "id": "blue",
-          "name": "Blue"
+          "name": "Blue",
+          "hex": "#0000FF",
+          "addon_price": 0
         },
         {
-          "addon_price": 2.5,
-          "hex": "#b17272",
           "id": "truffle-butter",
-          "name": "Truffle Butter"
+          "name": "Truffle Butter",
+          "hex": "#b17272",
+          "addon_price": 2.5
+        },
+        {
+          "id": "white",
+          "name": "White",
+          "hex": "#FFFFFF",
+          "addon_price": 0
         }
       ],
       "description": "Standard material for decorative prints. Good detail, limited durability.",
@@ -129,44 +168,5 @@
       "previewImg": "/customTextures/marble.svg",
       "priceModifier": 12
     }
-  ],
-  "global_settings": {
-    "default_fill_density": 0.15,
-    "markup_percentage": 30,
-    "minimum_price": 0.1,
-    "pricing_formula": "(x+1)",
-    "quality_levels": [
-      {
-        "description": "Faster printing with visible layer lines. Good for prototypes and non-visible parts.",
-        "id": "draft",
-        "layer_height": "0.3mm",
-        "name": "Draft",
-        "price_modifier": -5
-      },
-      {
-        "description": "Balanced quality and print time. Suitable for most applications.",
-        "id": "standard",
-        "layer_height": "0.2mm",
-        "name": "Standard",
-        "price_modifier": 0
-      },
-      {
-        "description": "Finer details with less visible layer lines. Recommended for display pieces.",
-        "id": "high",
-        "layer_height": "0.12mm",
-        "name": "High Quality",
-        "price_modifier": 10
-      },
-      {
-        "description": "Maximum detail resolution with minimal layer lines. Best for intricate models.",
-        "id": "ultra",
-        "layer_height": "0.08mm",
-        "name": "Ultra Fine",
-        "price_modifier": 15
-      }
-    ],
-    "rush_order_fee": 15,
-    "support_material_multiplier": 1,
-    "volume_multiplier": 0.15
-  }
+  ]
 }

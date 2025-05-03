@@ -79,7 +79,7 @@ interface Material {
   }[];
 }
 
-interface SpecialFilament {
+export interface SpecialFilament { // Added export
   id: string;
   name: string;
   description: string;
@@ -90,7 +90,7 @@ interface SpecialFilament {
 /**
  * Interface for materials response
  */
-interface MaterialsResponse {
+export interface MaterialsResponse { // Added export
   materials: Material[];
   global_settings: {
     support_material_multiplier: number;
@@ -601,14 +601,14 @@ export async function calculateJobPrice(jobId: string, params: PriceCalculationP
 }
 
 // Export Category and Product types
-export interface Category {
+export interface Category { // Added export
   id: string;
   name: string;
   description: string;
   image?: string;
 }
 
-export interface Product {
+export interface Product { // Added export
   id: string;
   name: string;
   category?: string;
