@@ -294,14 +294,67 @@ export function AdminFilamentsManager() {
     if (!editColorState) return
     setEditColorState({ ...editColorState, [field]: value })
   }
-  // Handle save edited color (TODO: implement API update)
+  // Handle save edited color
   const handleSaveColor = async (id: string) => {
-    // TODO: Call updateMaterials API to save edited color across materials
-    console.log('Saving color', editColorState)
-    // After successful save:
-    setEditingColorId(null)
-    setEditColorState(null)
-    loadData()
+    if (!editColorState) return;
+    
+    setError(null);
+    setSuccess(null);
+    setIsLoading(true);
+    
+    try {
+      console.log('Saving color', editColorState);
+      const currentData = await getMaterials();
+      if (!currentData) {
+        throw new Error("Failed to fetch current materials data.");
+      }
+      
+      // Update the color across all materials
+      const updatedMaterials = (currentData.materials || []).map((material: any) => {
+        // Only update materials that have this color
+        if (material.colors && material.colors.some((color: BackendColor) => color.id === id)) {
+          const updatedColors = material.colors.map((color: BackendColor) => {
+            if (color.id === id) {
+              return {
+                ...color,
+                name: editColorState.name,
+                hex: editColorState.hex,
+                addon_price: editColorState.addon_price
+              };
+            }
+            return color;
+          });
+          
+          return {
+            ...material,
+            colors: updatedColors
+          };
+        }
+        return material;
+      });
+      
+      // Construct the full payload
+      const payload: MaterialsResponse = {
+        ...currentData,
+        materials: updatedMaterials,
+        special_filaments: currentData.special_filaments || []
+      };
+      
+      const result = await updateMaterials(payload);
+      
+      if (result.success) {
+        setSuccess(`Color "${editColorState.name}" updated successfully!`);
+        setEditingColorId(null);
+        setEditColorState(null);
+        loadData(); // Refresh data
+      } else {
+        throw new Error(result.message || "Failed to update color.");
+      }
+    } catch (error: any) {
+      console.error("Error updating color:", error);
+      setError(`Failed to update color: ${error.message}`);
+      setIsLoading(false);
+    }
   }
 
   // --- Material Management ---
