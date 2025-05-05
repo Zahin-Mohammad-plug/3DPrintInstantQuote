@@ -201,22 +201,6 @@ The admin panel allows administrators to:
 
 ## Deployment Options
 
-### Local Deployment with Cloudflare Tunnel
-
-For local development or small-scale deployment, you can run the application locally and expose it to the internet using a Cloudflare tunnel:
-
-1. Start the backend and frontend:
-   ```bash
-   ./start-all.sh
-   ```
-
-2. Set up a Cloudflare tunnel to expose your local server to the internet:
-   ```bash
-   cloudflared tunnel create 3dprintquote
-   cloudflared tunnel route dns 3dprintquote your-subdomain.your-domain.com
-   cloudflared tunnel run --url http://localhost:3000 3dprintquote
-   ```
-
 ### Linode Deployment
 
 For production deployment, you can host the application on a Linode server:
@@ -235,74 +219,6 @@ For production deployment, you can host the application on a Linode server:
    ```
 
 4. Configure your domain to point to your Linode server's IP address.
-
-## Recent Updates
-
-### March 2025 Updates
-- Added client-side STL file rendering using Three.js STLLoader
-- Improved model viewer with better error handling and fallback models
-- Fixed cart functionality to handle null/undefined prices
-- Updated UI to hide print details and focus on price information
-- Fixed container styling in Tailwind configuration
-- Improved error handling throughout the application
-
-<!-- TODO! -->
-I am working on my 3d printing service website, this codebase has both the frontend and backend
-Styling
-
-Catalog page:
-* catalog product thumbnails are not formatted into fitting into an aspect ratio
-* Catalog photos are very low quality on front end
-
-* Product page: Implement the share and save later
-
-
-Product page
-* Share and save page is currently unavailble; implement later
-
-Upload page:
-* .3mf files from makerWorld don't work.
-* ALlow .step files to be uploaded and quoted
-* Allow oversize items with complex functionality:
-    * Save file
-    * inform user that this will require custom inquiry for this size of file.
-    * Direct to contact page with file attached.
-
-
-Customize page:
-* When a special filament is selected, you can still pick a material even if not compatible.
-
-
-Quote Page:
-* Save quote and share are missing fucntionality, will integrate later; comment out for now
-
-
-Cart Page:
-* Should havbe a small preview image of the model / the product photo, this may require additional processing (possibly from backend) in order to create the thumbnail; We will implement this later
-* Edit a already quoted item.
-
-Checkout page:
-* Fix the checkout page to actually email me and store in the backend. May require additonal backend process to do so.
-
-Admin panel: 
-* Pricing: 
-    * Add ability to adjust time_cost.
-    * Does support material even work?, if not, lets comment out for now
-* Filaments:
-        * Special Filaments arent selectable in materials, which means they don't respect material selection
-* Catalog:
-    * add logic for product 3d models.
-    * Allow selectable available color models.  
-* Orders:
-    * Be able to download the files uploaded when viewing order details
-
-* Set file size and uploaded file types in admin. 
-
-
-Features:
-* Update for SEO
-* Ensure uses static export (use client)
-    * A rush order fee setting
 
 
 ## Troubleshooting

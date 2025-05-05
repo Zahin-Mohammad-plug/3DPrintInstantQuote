@@ -63,7 +63,7 @@
         "PLA",
         "PETG"
       ],
-      "modelPath": "/assets/3d/tcg.stl",
+      "modelPath": "/assets/3d/TCGFramev10.stl",
       "name": "Custom Card Holder",
       "price": 24.99,
       "relatedProducts": [
@@ -158,7 +158,7 @@
         "PLA",
         "PETG"
       ],
-      "modelPath": "/assets/3d/duck.glb",
+      "modelPath": "/assets/3d/vaseJapan.stl",
       "name": "Decorative Vase",
       "price": 19.99,
       "relatedProducts": [

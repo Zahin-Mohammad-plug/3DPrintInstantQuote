@@ -1,4 +1,5 @@
 "use client"
+// Deprecated: This component is now integrated into the Admin-filaments-manager component.
 
 import { useState, useEffect } from "react"
 import { getMaterials, updateMaterials, MaterialsResponse, SpecialFilament } from "@/services/api"

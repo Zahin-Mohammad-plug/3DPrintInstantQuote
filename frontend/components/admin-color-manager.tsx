@@ -1,4 +1,5 @@
 // admin-color-manager.tsx
+// Deprecated: This component is now integrated into the Admin-filaments-manager component.
 "use client"
 
 import { useState, useEffect } from "react"
