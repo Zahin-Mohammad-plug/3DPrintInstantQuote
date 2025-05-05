@@ -251,12 +251,16 @@ I am working on my 3d printing service website, this codebase has both the front
 Styling
 
 Catalog page:
+* catalog page and frontend/app/catalog/[category]/page.tsx don't load product image formatted. Should default to placeholder.svg if N/A
+
 * Product page: Implement the share and save later
+
 
 Product page
 * Share and save page is currently unavailble; implement later
 
 Upload page:
+* .3mf files from makerWorld don't work.
 * ALlow .step files to be uploaded and quoted
 * Allow oversize items with complex functionality:
     * Save file

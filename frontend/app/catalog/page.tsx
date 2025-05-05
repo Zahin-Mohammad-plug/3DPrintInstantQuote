@@ -116,14 +116,14 @@ export default function CatalogPage() {
                 <Card className="overflow-hidden h-full transition-all hover:shadow-md">
                   <div className="h-48 w-full overflow-hidden">
                     <img
-                      src={product.image || "/placeholder.svg"}
+                      src={product.images && product.images[0] ? product.images[0] : (product.image || "/placeholder.svg")}
                       alt={product.name}
                       className="w-full h-full object-cover"
                     />
                   </div>
                   <CardContent className="p-4">
                     <h3 className="font-medium mb-1">{product.name}</h3>
-                    <p className="text-primary font-bold mb-2">${product.price.toFixed(2)}</p>
+                    <p className="text-primary font-bold mb-2">${(product.price || 0).toFixed(2)}</p>
                   </CardContent>
                 </Card>
               </Link>

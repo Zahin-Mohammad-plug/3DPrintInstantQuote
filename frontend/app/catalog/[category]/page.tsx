@@ -49,13 +49,13 @@ export default function CategoryPage() {
   const products = allProducts.filter(p => p.category === categoryId);
   let filtered = products.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
   if (selectedMaterials.length > 0) {
-    filtered = filtered.filter(p => selectedMaterials.some(m => p.materials.includes(m)));
+    filtered = filtered.filter(p => p.materials && Array.isArray(p.materials) && selectedMaterials.some(m => p.materials!.includes(m)));
   }
   if (selectedColors.length > 0) {
-    filtered = filtered.filter(p => selectedColors.some(c => p.colors.includes(c)));
+    filtered = filtered.filter(p => p.colors && Array.isArray(p.colors) && selectedColors.some(c => p.colors!.includes(c)));
   }
-  if (sortOption === "price-low") filtered.sort((a,b) => a.price - b.price);
-  if (sortOption === "price-high") filtered.sort((a,b) => b.price - a.price);
+  if (sortOption === "price-low") filtered.sort((a,b) => (a.price || 0) - (b.price || 0));
+  if (sortOption === "price-high") filtered.sort((a,b) => (b.price || 0) - (a.price || 0));
   if (sortOption === "name") filtered.sort((a,b) => a.name.localeCompare(b.name));
 
   const toggleMaterial = (mat: string) => setSelectedMaterials(prev => prev.includes(mat) ? prev.filter(m=>m!==mat) : [...prev,mat]);
@@ -218,28 +218,28 @@ export default function CategoryPage() {
                         <Card className="overflow-hidden h-full transition-all hover:shadow-md">
                           <div className="h-48 w-full overflow-hidden">
                             <img
-                              src={product.image || "/placeholder.svg"}
+                              src={product.images && product.images[0] ? product.images[0] : (product.image || "/placeholder.svg")}
                               alt={product.name}
                               className="w-full h-full object-cover"
                             />
                           </div>
                           <CardContent className="p-4">
                             <h3 className="font-medium mb-1">{product.name}</h3>
-                            <p className="text-primary font-bold mb-2">${product.price.toFixed(2)}</p>
+                            <p className="text-primary font-bold mb-2">${(product.price || 0).toFixed(2)}</p>
                             <div className="flex flex-wrap gap-1 mb-2">
-                              {product.colors.slice(0, 3).map((color) => (
+                              {product.colors && product.colors.slice(0, 3).map((color) => (
                                 <span key={color} className="text-xs bg-muted px-2 py-1 rounded">
                                   {color}
                                 </span>
                               ))}
-                              {product.colors.length > 3 && (
+                              {product.colors && product.colors.length > 3 && (
                                 <span className="text-xs bg-muted px-2 py-1 rounded">
                                   +{product.colors.length - 3} more
                                 </span>
                               )}
                             </div>
                             <div className="text-xs text-muted-foreground">
-                              Available in: {product.materials.join(", ")}
+                              Available in: {product.materials ? product.materials.join(", ") : "N/A"}
                             </div>
                           </CardContent>
                         </Card>

@@ -9,9 +9,9 @@ cd frontend
 echo "Checking dependencies..."
 npm install --legacy-peer-deps
 
-# Ensure Tailwind CSS is installed
-echo "Checking Tailwind CSS..."
-npm install tailwindcss postcss autoprefixer
+# # Ensure Tailwind CSS is installed
+# echo "Checking Tailwind CSS..."
+# npm install tailwindcss postcss autoprefixer
 
 # Start the development server
 echo "Starting Next.js development server..."
