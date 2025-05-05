@@ -1,9 +1,176 @@
 {
+  "materials": [
+    {
+      "base_cost_per_gram": 0.05,
+      "colors": [
+        {
+          "addon_price": 0,
+          "hex": "#000000",
+          "id": "black",
+          "name": "Black"
+        },
+        {
+          "addon_price": 1,
+          "hex": "#FF0000",
+          "id": "red",
+          "name": "Red"
+        },
+        {
+          "addon_price": 1,
+          "hex": "#0000FF",
+          "id": "blue",
+          "name": "Blue"
+        },
+        {
+          "addon_price": 1,
+          "hex": "#C0C0C0",
+          "id": "2edebf67-3da5-4290-bdd3-61fb49925266",
+          "name": "Silver"
+        },
+        {
+          "addon_price": 1,
+          "hex": "#FFFF00",
+          "id": "6bcdde49-6c54-49e7-b674-2988ab8db34b",
+          "name": "Yellow"
+        },
+        {
+          "addon_price": 1,
+          "hex": "#FFA500",
+          "id": "8358bbcb-1aa1-459d-a246-f619bc381ac8",
+          "name": "Orange"
+        },
+        {
+          "addon_price": 1,
+          "hex": "#49332b",
+          "id": "7f1e7d98-b131-41d6-95bc-c06be83923ad",
+          "name": "Brown"
+        },
+        {
+          "addon_price": 1.5,
+          "hex": "#FFC5D3",
+          "id": "975605a1-c2e4-4733-bbb0-941be3523494",
+          "name": "Pink"
+        },
+        {
+          "addon_price": 1,
+          "hex": "#008000",
+          "id": "958cd2f8-e8b8-4a8f-93a0-720386243ea7",
+          "name": "Green"
+        },
+        {
+          "addon_price": 2,
+          "hex": "#BE9B7B",
+          "id": "9dd56793-8c9f-49ff-b310-110b1f68b9bb",
+          "name": "Coffee"
+        },
+        {
+          "addon_price": 0.5,
+          "hex": "#FFFFFF",
+          "id": "white",
+          "name": "White"
+        }
+      ],
+      "description": "Standard material for decorative prints. Good detail, limited durability.",
+      "hourly_rate": 2,
+      "id": "pla",
+      "name": "PLA (Decorative)",
+      "properties": [
+        "Simple",
+        "Indoor use"
+      ],
+      "supportsMultiColor": true
+    },
+    {
+      "base_cost_per_gram": 0.07,
+      "colors": [
+        {
+          "addon_price": 0,
+          "hex": "#000000",
+          "id": "black",
+          "name": "Black"
+        },
+        {
+          "addon_price": 1,
+          "hex": "#E0F7FA",
+          "id": "clear",
+          "name": "Translucent White"
+        },
+        {
+          "addon_price": 0.5,
+          "hex": "#FFFFFF",
+          "id": "white",
+          "name": "White"
+        }
+      ],
+      "description": "Weather-resistant material for outdoor applications. Good strength and UV resistance.",
+      "hourly_rate": 2.5,
+      "id": "petg",
+      "name": "PETG (Outdoor Use)",
+      "priceModifier": 15,
+      "properties": [
+        "Durable",
+        "Outdoor",
+        "Water-resistant"
+      ],
+      "supportsMultiColor": true
+    },
+    {
+      "base_cost_per_gram": 0.08,
+      "colors": [
+        {
+          "addon_price": 0,
+          "hex": "#000000",
+          "id": "black",
+          "name": "Black"
+        },
+        {
+          "addon_price": 1,
+          "hex": "#C0C0C0",
+          "id": "2edebf67-3da5-4290-bdd3-61fb49925266",
+          "name": "Silver"
+        }
+      ],
+      "description": "Durable, impact-resistant material for structural components and commercial applications.",
+      "hourly_rate": 3,
+      "id": "abs",
+      "name": "ABS (Commercial Grade)",
+      "priceModifier": 25,
+      "properties": [
+        "Rigid",
+        "Heat-resistant",
+        "Durable"
+      ],
+      "supportsMultiColor": false
+    }
+  ],
+  "special_filaments": [
+    {
+      "description": "Yellow, blue, and green transitions for a vibrant shiny multicolor effect.",
+      "id": "rainbow-pla",
+      "name": "TriColor Silk",
+      "previewImg": "/customTextures/trisilkYBG.svg",
+      "priceModifier": 5
+    },
+    {
+      "description": "Light brown with a subtle grainy texture \u2014 feels similar to real wood when held and finished.",
+      "id": "galaxy-pla",
+      "name": "Wood Pla",
+      "previewImg": "/customTextures/wood.svg",
+      "priceModifier": 10
+    },
+    {
+      "description": "White base with black speckles for a marble stone appearance.",
+      "id": "marble-pla",
+      "name": "Marble PLA",
+      "previewImg": "/customTextures/marble.svg",
+      "priceModifier": 8
+    }
+  ],
   "global_settings": {
     "default_fill_density": 0.15,
     "markup_percentage": 30,
-    "minimum_price": 0.1,
-    "pricing_formula": "(x+1)",
+    "minimum_price": 1,
+    "pricing_formula": "(x*1.5)",
     "quality_levels": [
       {
         "description": "Faster printing with visible layer lines. Good for prototypes and non-visible parts.",
@@ -37,148 +204,5 @@
     "rush_order_fee": 15,
     "support_material_multiplier": 1,
     "volume_multiplier": 0.15
-  },
-  "materials": [
-    {
-      "base_cost_per_gram": 0.05,
-      "colors": [
-        {
-          "addon_price": 2.69,
-          "hex": "#000000",
-          "id": "black",
-          "name": "Black"
-        },
-        {
-          "addon_price": 5,
-          "hex": "#FF0000",
-          "id": "red",
-          "name": "Red"
-        },
-        {
-          "addon_price": 0,
-          "hex": "#0000FF",
-          "id": "blue",
-          "name": "Blue"
-        },
-        {
-          "addon_price": 0,
-          "hex": "#FFFFFF",
-          "id": "white",
-          "name": "White"
-        },
-        {
-          "addon_price": 1,
-          "hex": "#C0C0C0",
-          "id": "2edebf67-3da5-4290-bdd3-61fb49925266",
-          "name": "Silver"
-        }
-      ],
-      "description": "Standard material for decorative prints. Good detail, limited durability.",
-      "hourly_rate": 2,
-      "id": "pla",
-      "name": "PLA (Decorative)",
-      "properties": [
-        "Simple",
-        "Indoor use"
-      ],
-      "supportsMultiColor": true
-    },
-    {
-      "base_cost_per_gram": 0.07,
-      "colors": [
-        {
-          "addon_price": 0,
-          "hex": "#FFFFFF",
-          "id": "white",
-          "name": "White"
-        },
-        {
-          "addon_price": 2.69,
-          "hex": "#000000",
-          "id": "black",
-          "name": "Black"
-        },
-        {
-          "addon_price": 1,
-          "hex": "#E0F7FA",
-          "id": "clear",
-          "name": "Clear"
-        },
-        {
-          "addon_price": 1,
-          "hex": "#C0C0C0",
-          "id": "2edebf67-3da5-4290-bdd3-61fb49925266",
-          "name": "Silver"
-        }
-      ],
-      "description": "Weather-resistant material for outdoor applications. Good strength and UV resistance.",
-      "hourly_rate": 2.5,
-      "id": "petg",
-      "name": "PETG (Outdoor Use)",
-      "priceModifier": 15,
-      "properties": [
-        "Durable",
-        "Outdoor",
-        "Water-resistant"
-      ],
-      "supportsMultiColor": true
-    },
-    {
-      "base_cost_per_gram": 0.08,
-      "colors": [
-        {
-          "addon_price": 0,
-          "hex": "#FFFFFF",
-          "id": "white",
-          "name": "White"
-        },
-        {
-          "addon_price": 2.69,
-          "hex": "#000000",
-          "id": "black",
-          "name": "Black"
-        },
-        {
-          "addon_price": 1,
-          "hex": "#C0C0C0",
-          "id": "2edebf67-3da5-4290-bdd3-61fb49925266",
-          "name": "Silver"
-        }
-      ],
-      "description": "Durable, impact-resistant material for structural components and commercial applications.",
-      "hourly_rate": 3,
-      "id": "abs",
-      "name": "ABS (Commercial Grade)",
-      "priceModifier": 25,
-      "properties": [
-        "Rigid",
-        "Heat-resistant",
-        "Durable"
-      ],
-      "supportsMultiColor": false
-    }
-  ],
-  "special_filaments": [
-    {
-      "description": "Multi-color filament that transitions through the rainbow spectrum.",
-      "id": "rainbow-pla",
-      "name": "Rainbow PLA",
-      "previewImg": "/customTextures/rainbow.svg",
-      "priceModifier": 12
-    },
-    {
-      "description": "Black base with blue, purple, and white speckles for a cosmic effect.",
-      "id": "galaxy-pla",
-      "name": "Galaxy PLA",
-      "previewImg": "/customTextures/galaxy.svg",
-      "priceModifier": 15
-    },
-    {
-      "description": "White base with black speckles for a marble stone appearance.",
-      "id": "marble-pla",
-      "name": "Marble PLA",
-      "previewImg": "/customTextures/marble.svg",
-      "priceModifier": 12
-    }
-  ]
+  }
 }

@@ -251,7 +251,8 @@ I am working on my 3d printing service website, this codebase has both the front
 Styling
 
 Catalog page:
-* catalog page and frontend/app/catalog/[category]/page.tsx don't load product image formatted. Should default to placeholder.svg if N/A
+* catalog product thumbnails are not formatted into fitting into an aspect ratio
+* Catalog photos are very low quality on front end
 
 * Product page: Implement the share and save later
 
