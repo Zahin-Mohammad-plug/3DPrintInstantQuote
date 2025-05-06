@@ -16,7 +16,6 @@ Upload page:
 * .3mf files from makerWorld don't work.
 * Allow .step files to be uploaded and quoted
 * Allow oversize items with complex functionality:
-    * Save file
     * inform user that this will require custom inquiry for this size of file.
     * Direct to contact page with file attached.
 

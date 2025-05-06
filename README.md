@@ -292,4 +292,5 @@ docker-compose up -d
 ```
 
 ## License
-See the LICENSE file for details.
+> ⚠️ **License Notice**: This project is licensed under [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/).  
+> It is provided for educational and portfolio purposes only. **Commercial use, redistribution, or plagiarism is prohibited.**
