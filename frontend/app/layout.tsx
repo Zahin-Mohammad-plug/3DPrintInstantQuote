@@ -58,8 +58,18 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
+    <html lang="en" suppressHydrationWarning>      <head>
+        {/* Google Tag Manager */}
+        <script async src="https://www.googletagmanager.com/gtag/js?id=GTM-5FTLBCLK"></script>
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'GTM-5FTLBCLK', { 'send_page_view': true, 'cookie_domain': 'mapleleaf3d.ca' });
+          `
+        }} />
+        
         {/* Web Vitals & Analytics script */}
         <script 
           defer 

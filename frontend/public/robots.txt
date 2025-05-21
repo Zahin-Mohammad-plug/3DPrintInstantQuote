@@ -13,6 +13,12 @@ Disallow: /checkout
 Disallow: /customize/*
 Disallow: /quote/*
 
+# Disallow error pages
+Disallow: /404
+
+# Disallow error pages
+Disallow: /404
+
 # Allow all other pages
 Allow: /services/
 Allow: /ottawa-3d-printing/
