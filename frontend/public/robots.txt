@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Allow all bots to access the entire site
+Disallow:
+
+# Sitemap location
+Sitemap: https://www.mapleleaf3d.ca/sitemap.xml

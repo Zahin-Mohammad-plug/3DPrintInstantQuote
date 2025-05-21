@@ -1,3 +1,4 @@
+import { Metadata } from "next"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { Button } from "@/components/ui/button"
@@ -5,11 +6,87 @@ import { Card, CardContent } from "@/components/ui/card"
 import { ServiceContactForm } from "@/components/service-contact-form"
 import Link from "next/link"
 
+export const metadata: Metadata = {
+  title: "Print on Demand Services Ottawa | Maple Leaf 3D",
+  description:
+    "Professional print on demand services in Ottawa. We handle your 3D printing production and fulfillment needs, so you can focus on design and sales. Ottawa's trusted 3D printing partner.",
+  keywords:
+    "print on demand Ottawa, 3D print fulfillment Ottawa, 3D printing production Ottawa, 3D printing business services Ottawa, POD services Ottawa, 3D printing partner Ottawa",
+  alternates: {
+    canonical: "https://www.mapleleaf3d.ca/services/print-on-demand",
+  },
+}
+
 export default function PrintOnDemandPage() {
   return (
     <div className="flex flex-col min-h-screen">
       <SiteHeader />
       <main className="flex-1">
+        {/* JSON-LD Schema for LocalBusiness */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "LocalBusiness",
+              "name": "Maple Leaf 3D - Ottawa 3D Printing Services",
+              "description": "Professional 3D printing services in Ottawa, Canada. We provide high-quality prints in various materials including PLA, PETG, and ABS.",
+              "url": "https://www.mapleleaf3d.ca/services/3d-printing",
+              "telephone": "+1-613-608-1430",
+              "email": "contact@mapleleaf3d.ca",
+              "address": {
+                "@type": "PostalAddress",
+                "streetAddress": "1165 Beaverwood Rd",
+                "addressLocality": "Ottawa",
+                "addressRegion": "ON",
+                "postalCode": "K4M 1L6",
+                "addressCountry": "CA"
+              },
+              "geo": {
+                "@type": "GeoCoordinates",
+                "latitude": 45.3200,
+                "longitude": -75.7247
+              },
+              "openingHoursSpecification": [
+                {
+                  "@type": "OpeningHoursSpecification",
+                  "dayOfWeek": [
+                    "Monday",
+                    "Tuesday",
+                    "Wednesday",
+                    "Thursday",
+                    "Friday"
+                  ],
+                  "opens": "09:00",
+                  "closes": "17:00"
+                }
+              ],
+              "priceRange": "$$",
+              "image": "https://www.mapleleaf3d.ca/banner-logo.png",
+              "sameAs": [
+                "https://www.facebook.com/mapleleaf3d",
+                "https://www.instagram.com/mapleleaf3d"
+              ],
+              "serviceArea": {
+                "@type": "GeoCircle",
+                "geoMidpoint": {
+                  "@type": "GeoCoordinates",
+                  "latitude": 45.4215,
+                  "longitude": -75.6972
+                },
+                "geoRadius": "50000"
+              },
+              "makesOffer": {
+                "@type": "Offer",
+                "itemOffered": {
+                  "@type": "Service",
+                  "name": "Print on Demand 3D Printing Services",
+                  "description": "Professional 3D printing production and fulfillment services for businesses in Ottawa."
+                }
+              }
+            })
+          }}
+        />
         <section className="py-12 md:py-16 bg-muted/30">
           <div className="container">
             <div className="text-center mb-8 md:mb-12">
@@ -25,15 +102,14 @@ export default function PrintOnDemandPage() {
         <section className="py-12">
           <div className="container">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <div>
-                <h2 className="text-2xl font-bold mb-4">Streamline Your Production Process</h2>
+              <div>                <h2 className="text-2xl font-bold mb-4">Streamline Your Production Process</h2>
                 <p className="mb-4">
-                  Our Print on Demand service is designed for businesses and creators who need reliable, scalable
+                  Our Ottawa-based Print on Demand service is designed for businesses and creators who need reliable, scalable
                   production without the hassle of managing inventory or equipment.
                 </p>
                 <p className="mb-6">
                   We handle everything from printing to packaging and shipping, allowing you to focus on design,
-                  marketing, and growing your business.
+                  marketing, and growing your business in the Ottawa region and beyond.
                 </p>
                 <div className="space-y-2">
                   <div className="flex items-start">
@@ -95,10 +171,9 @@ export default function PrintOnDemandPage() {
                   </div>
                 </div>
               </div>
-              <div className="rounded-lg overflow-hidden">
-                <img
-                  src="/placeholder.svg?height=400&width=600"
-                  alt="Print on Demand Service"
+              <div className="rounded-lg overflow-hidden">                <img
+                  src="/assets/pod.png?height=400&width=600"
+                  alt="Ottawa Print on Demand Service - 3D Printing Production Services"
                   className="w-full h-auto"
                 />
               </div>
@@ -150,11 +225,98 @@ export default function PrintOnDemandPage() {
                   <p className="text-muted-foreground">We print, package, and ship directly to your customers.</p>
                 </CardContent>
               </Card>
-            </div>
-            <div className="text-center mt-8">
+            </div>            <div className="text-center mt-8">
               <Button asChild size="lg">
                 <Link href="/contact">Get Started</Link>
               </Button>
+            </div>
+          </div>
+        </section>
+
+        <section className="py-12 bg-primary/5">
+          <div className="container">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              <div>
+                <h2 className="text-2xl font-bold mb-4">Ottawa's Premier 3D Print on Demand Service</h2>
+                <p className="mb-4">
+                  Based in the heart of Ottawa, Maple Leaf 3D provides local businesses with reliable, high-quality 3D print on demand services with the convenience of local support and faster delivery times.
+                </p>
+                <p className="mb-6">
+                  Partner with us to reduce shipping costs, support the local economy, and benefit from our personalized service that understands the unique needs of Ottawa businesses.
+                </p>
+                <div className="space-y-2">
+                  <div className="flex items-start">
+                    <div className="rounded-full bg-primary/10 p-1 mr-3 mt-1">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="text-primary"
+                      >
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                    </div>
+                    <p>Local pickup options for Ottawa businesses</p>
+                  </div>
+                  <div className="flex items-start">
+                    <div className="rounded-full bg-primary/10 p-1 mr-3 mt-1">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="text-primary"
+                      >
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                    </div>
+                    <p>Faster delivery within the Ottawa area</p>
+                  </div>
+                  <div className="flex items-start">
+                    <div className="rounded-full bg-primary/10 p-1 mr-3 mt-1">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="text-primary"
+                      >
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                    </div>
+                    <p>Local customer support and consultations</p>
+                  </div>
+                </div>
+              </div>
+              <div className="rounded-lg overflow-hidden">
+                <iframe 
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d179484.57493256403!2d-75.89455232226638!3d45.25019105557196!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4cce05b25f5113af%3A0x8a6a51e131dd15ed!2sOttawa%2C%20ON!5e0!3m2!1sen!2sca!4v1653052855704!5m2!1sen!2sca" 
+                  width="100%" 
+                  height="400" 
+                  style={{ border: 0 }} 
+                  allowFullScreen={true} 
+                  loading="lazy" 
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="Maple Leaf 3D Ottawa Location"
+                  aria-label="Google Maps showing Maple Leaf 3D location in Ottawa"
+                ></iframe>
+              </div>
             </div>
           </div>
         </section>
@@ -252,11 +414,11 @@ export default function PrintOnDemandPage() {
                 <ServiceContactForm service="Print on Demand" />
               </div>
               <div className="space-y-6">
-                <div className="rounded-lg overflow-hidden">
-                  <img
-                    src="/placeholder.svg?height=300&width=500"
-                    alt="Print on Demand Example"
+                <div className="rounded-lg overflow-hidden">                  <img
+                    src="/assets/podcont.png?height=300&width=500"
+                    alt="Phone-shot desk view with shipping labels, 3D printed parts, and form on laptop"
                     className="w-full h-auto"
+                    loading="lazy"
                   />
                 </div>
                 <div className="space-y-4">
@@ -342,9 +504,155 @@ export default function PrintOnDemandPage() {
                 </div>
               </div>
             </div>
-          </div>
-        </section>
+          </div>        </section>
       </main>
+
+      {/* FAQ Section with Structured Data */}
+      <section className="py-12 bg-muted/20">
+        <div className="container">
+          <h2 className="text-2xl font-bold mb-8 text-center">Frequently Asked Questions About Ottawa Print on Demand</h2>
+
+          {/* FAQ Schema */}
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                "mainEntity": [
+                  {
+                    "@type": "Question",
+                    "name": "How does print on demand work in Ottawa?",
+                    "acceptedAnswer": {
+                      "@type": "Answer",
+                      "text": "Our Ottawa-based print on demand service allows businesses to sell 3D printed products without maintaining inventory. When your customer orders, we print, package, and ship the item directly to them. This reduces costs and eliminates inventory risk while providing local, fast service."
+                    }
+                  },
+                  {
+                    "@type": "Question",
+                    "name": "What are the advantages of using a local Ottawa 3D print on demand service?",
+                    "acceptedAnswer": {
+                      "@type": "Answer",
+                      "text": "Working with a local Ottawa 3D printing service provides faster delivery times to local customers, reduced shipping costs, local support and consultation, and the ability to easily check quality in person. It also helps support the local Ottawa economy."
+                    }
+                  },
+                  {
+                    "@type": "Question",
+                    "name": "Do you offer pickup options for Ottawa businesses?",
+                    "acceptedAnswer": {
+                      "@type": "Answer",
+                      "text": "Yes, we offer convenient local pickup options for Ottawa businesses, which can help reduce shipping costs and provide even faster access to your printed products."
+                    }
+                  },
+                  {
+                    "@type": "Question",
+                    "name": "What types of businesses in Ottawa use your print on demand services?",
+                    "acceptedAnswer": {
+                      "@type": "Answer",
+                      "text": "Our print on demand services are used by Ottawa e-commerce businesses, artists and designers, manufacturing companies, architects, educational institutions, and many other organizations that need scalable 3D printing production."
+                    }
+                  }
+                ]
+              })
+            }}
+          />
+
+          <div className="space-y-6 max-w-3xl mx-auto">
+            <div className="bg-background rounded-lg p-6 shadow-sm">
+              <h3 className="text-lg font-medium mb-2">How does print on demand work in Ottawa?</h3>
+              <p className="text-muted-foreground">
+                Our Ottawa-based print on demand service allows businesses to sell 3D printed products without maintaining inventory. When your customer orders, we print, package, and ship the item directly to them. This reduces costs and eliminates inventory risk while providing local, fast service.
+              </p>
+            </div>
+            <div className="bg-background rounded-lg p-6 shadow-sm">
+              <h3 className="text-lg font-medium mb-2">What are the advantages of using a local Ottawa 3D print on demand service?</h3>
+              <p className="text-muted-foreground">
+                Working with a local Ottawa 3D printing service provides faster delivery times to local customers, reduced shipping costs, local support and consultation, and the ability to easily check quality in person. It also helps support the local Ottawa economy.
+              </p>
+            </div>
+            <div className="bg-background rounded-lg p-6 shadow-sm">
+              <h3 className="text-lg font-medium mb-2">Do you offer pickup options for Ottawa businesses?</h3>
+              <p className="text-muted-foreground">
+                Yes, we offer convenient local pickup options for Ottawa businesses, which can help reduce shipping costs and provide even faster access to your printed products.
+              </p>
+            </div>
+            <div className="bg-background rounded-lg p-6 shadow-sm">
+              <h3 className="text-lg font-medium mb-2">What types of businesses in Ottawa use your print on demand services?</h3>
+              <p className="text-muted-foreground">
+                Our print on demand services are used by Ottawa e-commerce businesses, artists and designers, manufacturing companies, architects, educational institutions, and many other organizations that need scalable 3D printing production.
+              </p>
+            </div>          </div>
+        </div>
+      </section>
+      
+      {/* Related Ottawa Services */}
+      <section className="py-12 bg-muted/10">
+        <div className="container">
+          <h2 className="text-2xl font-bold mb-8 text-center">Related Ottawa 3D Services</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="bg-background shadow-sm rounded-lg overflow-hidden border">
+              <div className="aspect-video relative overflow-hidden">
+                <img 
+                  src="/assets/printServ.png??height=250&width=450" 
+                  alt="Ottawa 3D Printing Services" 
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+              </div>
+              <div className="p-6">
+                <h3 className="text-xl font-bold mb-2">3D Printing Services</h3>
+                <p className="text-muted-foreground mb-4">
+                  High-quality 3D printing in Ottawa with multiple materials and finishes for all your project needs.
+                </p>
+                <Button asChild variant="outline" className="w-full">
+                  <Link href="/services/3d-printing">Learn More</Link>
+                </Button>
+              </div>
+            </div>
+            
+            <div className="bg-background shadow-sm rounded-lg overflow-hidden border">
+              <div className="aspect-video relative overflow-hidden">
+                  <img 
+                    src="/assets/printService.png?height=250&width=450" 
+                    alt="Hands using CAD software for 3D modeling in a studio" 
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+              </div>
+              <div className="p-6">
+                <h3 className="text-xl font-bold mb-2">3D Modeling Services</h3>
+                <p className="text-muted-foreground mb-4">
+                  Professional 3D design and modeling services in Ottawa for all your creative and technical needs.
+                </p>
+                <Button asChild variant="outline" className="w-full">
+                  <Link href="/services/3d-modeling">Learn More</Link>
+                </Button>
+              </div>
+            </div>
+            
+            <div className="bg-background shadow-sm rounded-lg overflow-hidden border">
+              <div className="aspect-video relative overflow-hidden">
+                  <img 
+                    src="/assets/ottService.png?height=250&width=450" 
+                    alt="Ottawa Dedicated 3D Printing Services" 
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+              </div>
+              <div className="p-6">
+                <h3 className="text-xl font-bold mb-2">Ottawa 3D Services</h3>
+                <p className="text-muted-foreground mb-4">
+                  Specialized 3D printing and design services tailored for Ottawa businesses and individuals.
+                </p>
+                <Button asChild variant="outline" className="w-full">
+                  <Link href="/ottawa-3d-printing">Explore</Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      
       <SiteFooter />
     </div>
   )

@@ -1,3 +1,4 @@
+import { Metadata } from "next"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { Button } from "@/components/ui/button"
@@ -6,11 +7,87 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ServiceContactForm } from "@/components/service-contact-form"
 import Link from "next/link"
 
+export const metadata: Metadata = {
+  title: "Professional 3D Printing Services Ottawa | Maple Leaf 3D",
+  description:
+    "High-quality 3D printing services in Ottawa with a wide range of materials including PLA, PETG, and ABS. Perfect for prototypes, custom parts, and small production runs.",
+  keywords:
+    "3D printing Ottawa, 3D printing service Ottawa, 3D printer Ottawa, PLA printing Ottawa, PETG printing Ottawa, ABS printing Ottawa, custom 3D prints Ottawa",
+  alternates: {
+    canonical: "https://www.mapleleaf3d.ca/services/3d-printing",
+  },
+}
+
 export default function ThreeDPrintingPage() {
   return (
     <div className="flex flex-col min-h-screen">
       <SiteHeader />
       <main className="flex-1">
+        {/* JSON-LD Schema for LocalBusiness */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "LocalBusiness",
+              "name": "Maple Leaf 3D - Ottawa 3D Printing Services",
+              "description": "Professional 3D printing services in Ottawa, Canada. We provide high-quality prints in various materials including PLA, PETG, and ABS.",
+              "url": "https://www.mapleleaf3d.ca/services/3d-printing",
+              "telephone": "+1-613-608-1430",
+              "email": "contact@mapleleaf3d.ca",
+              "address": {
+                "@type": "PostalAddress",
+                "streetAddress": "1165 Beaverwood Rd",
+                "addressLocality": "Ottawa",
+                "addressRegion": "ON",
+                "postalCode": "K4M 1L6",
+                "addressCountry": "CA"
+              },
+              "geo": {
+                "@type": "GeoCoordinates",
+                "latitude": 45.3200,
+                "longitude": -75.7247
+              },
+              "openingHoursSpecification": [
+                {
+                  "@type": "OpeningHoursSpecification",
+                  "dayOfWeek": [
+                    "Monday",
+                    "Tuesday",
+                    "Wednesday",
+                    "Thursday",
+                    "Friday"
+                  ],
+                  "opens": "09:00",
+                  "closes": "17:00"
+                }
+              ],
+              "priceRange": "$$",
+              "image": "https://www.mapleleaf3d.ca/banner-logo.png",
+              "sameAs": [
+                "https://www.facebook.com/mapleleaf3d",
+                "https://www.instagram.com/mapleleaf3d"
+              ],
+              "serviceArea": {
+                "@type": "GeoCircle",
+                "geoMidpoint": {
+                  "@type": "GeoCoordinates",
+                  "latitude": 45.4215,
+                  "longitude": -75.6972
+                },
+                "geoRadius": "50000"
+              },
+              "makesOffer": {
+                "@type": "Offer",
+                "itemOffered": {
+                  "@type": "Service",
+                  "name": "3D Printing Services",
+                  "description": "Professional 3D printing services using PLA, PETG, ABS and specialty materials in Ottawa."
+                }
+              }
+            })
+          }}
+        />
         <section className="py-12 md:py-16 bg-muted/30">
           <div className="container">
             <div className="text-center mb-8 md:mb-12">
@@ -96,9 +173,8 @@ export default function ThreeDPrintingPage() {
                     <p>Fast turnaround times and competitive pricing</p>
                   </div>
                 </div>
-              </div>
-              <div className="rounded-lg overflow-hidden">
-                <img src="/placeholder.svg?height=400&width=600" alt="3D Printing Service" className="w-full h-auto" />
+              </div>              <div className="rounded-lg overflow-hidden">
+                <img src="/assets/X1Carbon-1.jpg?height=400&width=600" alt="3D Printing Service in Ottawa" className="w-full h-auto" loading = "lazy" />
               </div>
             </div>
           </div>
@@ -181,10 +257,9 @@ export default function ThreeDPrintingPage() {
                       Teal, Gold, and Silver.
                     </p>
                   </div>
-                  <div className="rounded-lg overflow-hidden">
-                    <img
-                      src="/placeholder.svg?height=300&width=500"
-                      alt="PLA 3D Printing Material"
+                  <div className="rounded-lg overflow-hidden">                    <img
+                      src="/assets/pla.png?height=300&width=500"
+                      alt="PLA 3D Printing Material Ottawa"
                       className="w-full h-auto"
                     />
                   </div>
@@ -208,14 +283,14 @@ export default function ThreeDPrintingPage() {
                       </ul>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      Available in 7 colors including White, Black, Red, Blue, Green, Yellow, and Orange.
+                      Available in multiple colors.
                     </p>
                   </div>
-                  <div className="rounded-lg overflow-hidden">
-                    <img
-                      src="/placeholder.svg?height=300&width=500"
-                      alt="PETG 3D Printing Material"
+                  <div className="rounded-lg overflow-hidden">                    <img
+                      src="/assets/petg.png?height=300&width=500"
+                      alt="3D-printed multi-color PETG gear assembly on concrete in Ottawa"
                       className="w-full h-auto"
+                      loading="lazy"
                     />
                   </div>
                 </div>
@@ -243,9 +318,10 @@ export default function ThreeDPrintingPage() {
                   </div>
                   <div className="rounded-lg overflow-hidden">
                     <img
-                      src="/placeholder.svg?height=300&width=500"
-                      alt="ABS 3D Printing Material"
+                      src="/assets/abs.png?height=300&width=500"
+                      alt="ABS 3D-printed engine bracket installed inside car engine bay in Ottawa"
                       className="w-full h-auto"
+                      loading="lazy"
                     />
                   </div>
                 </div>
@@ -268,8 +344,8 @@ export default function ThreeDPrintingPage() {
               <div className="space-y-6">
                 <div className="rounded-lg overflow-hidden">
                   <img
-                    src="/placeholder.svg?height=300&width=500"
-                    alt="3D Printing Example"
+                    src="/assets/printer.png?height=300&width=500"
+                    alt="Ottawa 3D Printing Process - Professional Printing Results"
                     className="w-full h-auto"
                   />
                 </div>
@@ -353,6 +429,72 @@ export default function ThreeDPrintingPage() {
                       <p>Fast turnaround times with rush options available</p>
                     </div>
                   </div>
+                </div>
+              </div>            </div>
+          </div>
+        </section>
+
+        <section className="py-12 bg-muted/10">
+          <div className="container">
+            <h2 className="text-2xl font-bold mb-8 text-center">Related Ottawa 3D Services</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="bg-background shadow-sm rounded-lg overflow-hidden border">
+                <div className="aspect-video relative overflow-hidden">
+                  <img 
+                    src="/assets/printService.png?height=250&width=450" 
+                    alt="Hands using CAD software for 3D modeling in a studio" 
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                </div>
+                <div className="p-6">
+                  <h3 className="text-xl font-bold mb-2">3D Modeling Services</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Professional 3D design and modeling services in Ottawa for all your creative and technical needs.
+                  </p>
+                  <Button asChild variant="outline" className="w-full">
+                    <Link href="/services/3d-modeling">Learn More</Link>
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="bg-background shadow-sm rounded-lg overflow-hidden border">
+                <div className="aspect-video relative overflow-hidden">
+                  <img 
+                    src="/assets/podService.png?height=250&width=450" 
+                    alt="Ottawa 3D printed parts packaged in clear bags for print on demand" 
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                </div>
+                <div className="p-6">
+                  <h3 className="text-xl font-bold mb-2">Print on Demand</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Scalable production services for Ottawa businesses, with local support and fast delivery.
+                  </p>
+                  <Button asChild variant="outline" className="w-full">
+                    <Link href="/services/print-on-demand">Learn More</Link>
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="bg-background shadow-sm rounded-lg overflow-hidden border">
+                <div className="aspect-video relative overflow-hidden">
+                  <img 
+                    src="/assets/ottService.png?height=250&width=450" 
+                    alt="Ottawa Dedicated 3D Printing Services" 
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                </div>
+                <div className="p-6">
+                  <h3 className="text-xl font-bold mb-2">Ottawa 3D Services</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Specialized 3D printing and design services tailored for Ottawa businesses and individuals.
+                  </p>
+                  <Button asChild variant="outline" className="w-full">
+                    <Link href="/ottawa-3d-printing">Explore</Link>
+                  </Button>
                 </div>
               </div>
             </div>

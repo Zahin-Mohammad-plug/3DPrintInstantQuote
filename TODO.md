@@ -19,6 +19,8 @@ Upload page:
     * inform user that this will require custom inquiry for this size of file.
     * Direct to contact page with file attached.
 
+frontend\app\services\3d-modeling\page.tsx
+* Update content
 
 Customize page:
 *Feat: ALlow ability to scale model
