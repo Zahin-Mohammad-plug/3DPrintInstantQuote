@@ -12,11 +12,13 @@ const nextConfig = {
   },
   typescript: {
     ignoreBuildErrors: true,
-  },  images: {
+  },
+  images: {
     unoptimized: true,
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 31536000, // Cache for one year (in seconds)
-  },  experimental: {
+  },
+  experimental: {
     webpackBuildWorker: true,
     parallelServerBuildTraces: true,
     parallelServerCompiles: true,
@@ -25,8 +27,11 @@ const nextConfig = {
       fontLoaders: true,
     },
     scrollRestoration: true,
-  },  // Add compression for better performance
+  },
+  // Add compression for better performance
   compress: true,
+  // Ensure we're using App Router error handling patterns correctly
+  output: 'standalone',
 }
 
 mergeConfig(nextConfig, userConfig)
