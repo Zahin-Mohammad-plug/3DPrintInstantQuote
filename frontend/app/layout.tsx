@@ -7,8 +7,11 @@ import { ThemeProvider } from "@/components/theme-provider"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "3D Printing Service Ottawa",
-  description: "Get instant quotes for your 3D printing projects",
+  title: {
+    default: "Maple Leaf 3D - 3D Printing & Design Services",
+    template: "%s | Maple Leaf 3D",
+  },
+  description: "Maple Leaf 3D provides high-quality 3D printing, modeling, and on-demand print services in Ottawa and beyond.",
   manifest: "/favicon/site.webmanifest", // Link to the manifest file
   icons: {
     icon: "/favicon/favicon.ico", // Standard favicon

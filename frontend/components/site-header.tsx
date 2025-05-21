@@ -83,11 +83,11 @@ export function SiteHeader() {
       <div className="container flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center gap-2 font-bold text-xl group">
           {/* Replace Printer3d icon with Image component */}
-          <span className="bg-primary text-primary-foreground p-1 rounded flex items-center justify-center group-hover:scale-110 transition-transform">
-            <Image src="/logo.png" alt="Print3D Ottawa Logo" width={20} height={20} className="h-5 w-5" />
+          <span className=" text-primary-foreground p-1 rounded flex items-center justify-center group-hover:scale-110 transition-transform">
+            <Image src="/logo.png" alt="Maple Leaf 3D Logo" width={20} height={20} className="h-8 w-8" />
           </span>
-          <span className="text-primary group-hover:text-primary/80 transition-colors">Print3D</span>
-          <span className="group-hover:text-primary transition-colors">Ottawa</span>
+          <span className="text-primary group-hover:text-primary/80 transition-colors">Maple Leaf</span>
+          <span className="group-hover:text-primary transition-colors">3D</span>
         </Link>
 
         {/* Desktop Navigation */}
