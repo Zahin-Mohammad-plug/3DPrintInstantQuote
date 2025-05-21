@@ -1,8 +1,23 @@
 User-agent: *
 Allow: /
 
-# Allow all bots to access the entire site
-Disallow:
+# Disallow admin areas
+Disallow: /admin/
+Disallow: /admin/*
+Disallow: /api/
+Disallow: /api/*
+
+# Disallow checkout process pages
+Disallow: /cart
+Disallow: /checkout
+Disallow: /customize/*
+Disallow: /quote/*
+
+# Allow all other pages
+Allow: /services/
+Allow: /ottawa-3d-printing/
+Allow: /blog/
+Allow: /google-business/
 
 # Sitemap location
 Sitemap: https://www.mapleleaf3d.ca/sitemap.xml

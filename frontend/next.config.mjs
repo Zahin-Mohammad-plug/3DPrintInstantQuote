@@ -12,15 +12,22 @@ const nextConfig = {
   },
   typescript: {
     ignoreBuildErrors: true,
-  },
-  images: {
+  },  images: {
     unoptimized: true,
+    formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 31536000, // Cache for one year (in seconds)
   },
   experimental: {
     webpackBuildWorker: true,
     parallelServerBuildTraces: true,
     parallelServerCompiles: true,
+    optimizeCss: true,
+    scrollRestoration: true,
   },
+  // Add compression for better performance
+  compress: true,
+  // Add modern JavaScript optimization
+  swcMinify: true,
 }
 
 mergeConfig(nextConfig, userConfig)

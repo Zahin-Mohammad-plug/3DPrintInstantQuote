@@ -1,48 +1,100 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+                            http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
   <url>
     <loc>https://www.mapleleaf3d.ca/</loc>
+    <lastmod>2025-05-21T12:00:00+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://www.mapleleaf3d.ca/banner-logo.png</image:loc>
+      <image:title>Maple Leaf 3D - Ottawa 3D Printing Services</image:title>
+    </image:image>
   </url>
   <url>
     <loc>https://www.mapleleaf3d.ca/ottawa-3d-printing</loc>
+    <lastmod>2025-05-21T12:00:00+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://www.mapleleaf3d.ca/assets/x1c.png</image:loc>
+      <image:title>3D Printing Service in Ottawa</image:title>
+    </image:image>
   </url>
   <url>
     <loc>https://www.mapleleaf3d.ca/services/3d-printing</loc>
+    <lastmod>2025-05-21T12:00:00+00:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
-  </url>
-  <url>
+    <image:image>
+      <image:loc>https://www.mapleleaf3d.ca/assets/petg.png</image:loc>
+      <image:title>3D-printed multi-color PETG gear assembly in Ottawa</image:title>
+    </image:image>
+  </url>  <url>
     <loc>https://www.mapleleaf3d.ca/services/3d-modeling</loc>
+    <lastmod>2025-05-21T12:00:00+00:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.mapleleaf3d.ca/assets/modelService.png</image:loc>
+      <image:title>Ottawa 3D Modeling Service - Professional 3D Design</image:title>
+    </image:image>
   </url>
   <url>
     <loc>https://www.mapleleaf3d.ca/services/print-on-demand</loc>
+    <lastmod>2025-05-21T12:00:00+00:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.mapleleaf3d.ca/assets/podService.png</image:loc>
+      <image:title>Ottawa Print on Demand Services</image:title>
+    </image:image>
   </url>
   <url>
     <loc>https://www.mapleleaf3d.ca/upload</loc>
+    <lastmod>2025-05-21T12:00:00+00:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-  </url>
-  <url>
+  </url>  <url>
     <loc>https://www.mapleleaf3d.ca/catalog</loc>
+    <lastmod>2025-05-21T12:00:00+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.mapleleaf3d.ca/about</loc>
+    <lastmod>2025-05-21T12:00:00+00:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.mapleleaf3d.ca/assets/printer.png</image:loc>
+      <image:title>MapleLeaf3D printer in action in Ottawa</image:title>
+    </image:image>
   </url>
   <url>
     <loc>https://www.mapleleaf3d.ca/contact</loc>
-    <changefreq>monthly</changefreq>
+    <lastmod>2025-05-21T12:00:00+00:00</lastmod>
+    <changefreq>monthly</changefreq>    
     <priority>0.7</priority>
+  </url>  
+  <url>
+    <loc>https://www.mapleleaf3d.ca/google-business</loc>
+    <lastmod>2025-05-21T12:00:00+00:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.mapleleaf3d.ca/blog</loc>
+    <lastmod>2025-05-21T12:00:00+00:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://www.mapleleaf3d.ca/assets/blog/trends.jpg</image:loc>
+      <image:title>Ottawa 3D Printing Blog</image:title>
+    </image:image>
   </url>
 </urlset>

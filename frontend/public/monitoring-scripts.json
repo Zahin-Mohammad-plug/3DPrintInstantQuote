@@ -1,0 +1,27 @@
+{
+  "scripts": [
+    {
+      "name": "Web Vitals Monitoring",
+      "script": "https://static.cloudflareinsights.com/beacon.min.js",
+      "attrs": {
+        "data-cf-beacon": "{\"token\": \"364601feec634747bd09b78bd5779978\"}"
+      },
+      "defer": true
+    },
+    {
+      "name": "Google Analytics 4",
+      "script": "https://www.googletagmanager.com/gtag/js?id=GTM-5FTLBCLK",
+      "async": true,
+      "inline": "window.dataLayer = window.dataLayer || [];\nfunction gtag(){dataLayer.push(arguments);}\ngtag('js', new Date());\ngtag('config', 'GTM-5FTLBCLK', { 'send_page_view': true, 'cookie_domain': 'mapleleaf3d.ca' });"
+    },
+    {
+      "name": "Microsoft Clarity",
+      "inline": "(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src=\"https://www.clarity.ms/tag/\"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window, document, \"clarity\", \"script\", \"xxxxxxxx\");"
+    },
+    {
+      "name": "Local Business Structured Data",
+      "type": "application/ld+json",
+      "inline": "{\"@context\":\"https://schema.org\",\"@type\":\"LocalBusiness\",\"name\":\"Maple Leaf 3D\",\"image\":\"https://www.mapleleaf3d.ca/logo.png\",\"@id\":\"https://www.mapleleaf3d.ca\",\"url\":\"https://www.mapleleaf3d.ca\",\"telephone\":\"+1-613-608-1430\",\"priceRange\":\"$$\",\"address\":{\"@type\":\"PostalAddress\",\"streetAddress\":\"1165 Beaverwood Rd\",\"addressLocality\":\"Ottawa\",\"addressRegion\":\"ON\",\"postalCode\":\"K4M 1L6\",\"addressCountry\":\"CA\"},\"geo\":{\"@type\":\"GeoCoordinates\",\"latitude\":45.3200,\"longitude\":-75.7247},\"openingHoursSpecification\":[{\"@type\":\"OpeningHoursSpecification\",\"dayOfWeek\":[\"Monday\",\"Tuesday\",\"Wednesday\",\"Thursday\",\"Friday\"],\"opens\":\"09:00\",\"closes\":\"18:00\"},{\"@type\":\"OpeningHoursSpecification\",\"dayOfWeek\":\"Saturday\",\"opens\":\"10:00\",\"closes\":\"16:00\"}]}"
+    }
+  ]
+}

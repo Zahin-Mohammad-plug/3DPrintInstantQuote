@@ -23,6 +23,73 @@ export default function ThreeDModelingPage() {
     <div className="flex flex-col min-h-screen">
       <SiteHeader />
       <main className="flex-1">
+        {/* JSON-LD Schema for LocalBusiness */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "LocalBusiness",
+              "name": "Maple Leaf 3D - Ottawa 3D Modeling Services",
+              "description":
+                "Professional 3D modeling and design services in Ottawa, Canada. We transform your ideas into high-quality, printable 3D models for any application.",
+              "url": "https://www.mapleleaf3d.ca/services/3d-modeling",
+              "telephone": "+1-613-608-1430",
+              "email": "info@mapleleaf3d.ca",
+              "address": {
+                "@type": "PostalAddress",
+                "streetAddress": "1165 Beaverwood Rd",
+                "addressLocality": "Ottawa",
+                "addressRegion": "ON",
+                "postalCode": "K4M 1L6",
+                "addressCountry": "CA",
+              },
+              "geo": {
+                "@type": "GeoCoordinates",
+                "latitude": 45.3200,
+                "longitude": -75.7247,
+              },
+              "openingHoursSpecification": [
+                {
+                  "@type": "OpeningHoursSpecification",
+                  "dayOfWeek": [
+                    "Monday",
+                    "Tuesday",
+                    "Wednesday",
+                    "Thursday",
+                    "Friday",
+                  ],
+                  "opens": "09:00",
+                  "closes": "17:00",
+                },
+              ],
+              "priceRange": "$$",
+              "image": "https://www.mapleleaf3d.ca/banner-logo.png",
+              "sameAs": [
+                "https://www.facebook.com/mapleleaf3d",
+                "https://www.instagram.com/mapleleaf3d",
+              ],
+              "serviceArea": {
+                "@type": "GeoCircle",
+                "geoMidpoint": {
+                  "@type": "GeoCoordinates",
+                  "latitude": 45.4215,
+                  "longitude": -75.6972,
+                },
+                "geoRadius": "50000",
+              },
+              "makesOffer": {
+                "@type": "Offer",
+                "itemOffered": {
+                  "@type": "Service",
+                  "name": "3D Modeling Services",
+                  "description":
+                    "Professional 3D modeling and design services in Ottawa for custom products, prototypes, artistic pieces, and technical parts.",
+                },
+              },
+            }),
+          }}
+        />
         <section className="py-12 md:py-16 bg-muted/30">
           <div className="container">
             <div className="text-center mb-8 md:mb-12">
@@ -427,6 +494,104 @@ export default function ThreeDModelingPage() {
           </div>
         </section>
       </main>
+
+      {/* FAQ Section with Structured Data */}
+      <section className="py-12 bg-muted/20">
+        <div className="container">
+          <h2 className="text-2xl font-bold mb-8 text-center">Frequently Asked Questions About 3D Modeling in Ottawa</h2>
+
+          {/* FAQ Schema */}
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                "mainEntity": [
+                  {
+                    "@type": "Question",
+                    "name": "What 3D modeling services do you offer in Ottawa?",
+                    "acceptedAnswer": {
+                      "@type": "Answer",
+                      "text": "Our Ottawa-based 3D modeling services include custom character design, mechanical parts modeling, architectural visualization, product prototyping, jewelry design, and technical CAD modeling. We cater to both creative and functional projects, with expertise in creating print-ready 3D models for any application."
+                    }
+                  },
+                  {
+                    "@type": "Question",
+                    "name": "How much does 3D modeling cost in Ottawa?",
+                    "acceptedAnswer": {
+                      "@type": "Answer",
+                      "text": "3D modeling costs in Ottawa typically range from $50-$150 per hour depending on complexity, detail level, and technical requirements. We provide custom quotes based on your specific project needs, and our Ottawa team works efficiently to deliver high-quality models at competitive rates."
+                    }
+                  },
+                  {
+                    "@type": "Question",
+                    "name": "Do I need to have a design ready for 3D modeling in Ottawa?",
+                    "acceptedAnswer": {
+                      "@type": "Answer",
+                      "text": "No, you don't need a finished design. Our Ottawa 3D modeling team can work from concept sketches, reference images, verbal descriptions, or even rough ideas. We guide you through the entire process, from concept to finished 3D model, providing consultations to understand your vision and requirements."
+                    }
+                  },
+                  {
+                    "@type": "Question",
+                    "name": "How long does 3D modeling take in Ottawa?",
+                    "acceptedAnswer": {
+                      "@type": "Answer",
+                      "text": "Typical turnaround times for 3D modeling in Ottawa range from 2-7 business days, depending on complexity and detail level. Simple projects may be completed faster, while highly detailed or technical models may require more time. Our Ottawa team can provide a specific timeline estimate after understanding your project scope."
+                    }
+                  },
+                  {
+                    "@type": "Question",
+                    "name": "Which file formats do you deliver for 3D models in Ottawa?",
+                    "acceptedAnswer": {
+                      "@type": "Answer",
+                      "text": "We deliver 3D models in any format you need, including STL, OBJ, 3MF, STEP, FBX, and BLEND. For Ottawa clients requiring multiple formats for different applications, we provide all necessary conversions with your order. Our team ensures that files are optimized for your specific use case, whether for 3D printing, animation, or manufacturing."
+                    }
+                  }
+                ]
+              })
+            }}
+          />
+
+          <div className="space-y-6 max-w-3xl mx-auto">
+            <div className="bg-background rounded-lg p-6 shadow-sm">
+              <h3 className="text-lg font-bold mb-2">What 3D modeling services do you offer in Ottawa?</h3>
+              <p className="text-muted-foreground">
+                Our Ottawa-based 3D modeling services include custom character design, mechanical parts modeling, architectural visualization, product prototyping, jewelry design, and technical CAD modeling. We cater to both creative and functional projects, with expertise in creating print-ready 3D models for any application.
+              </p>
+            </div>
+
+            <div className="bg-background rounded-lg p-6 shadow-sm">
+              <h3 className="text-lg font-bold mb-2">How much does 3D modeling cost in Ottawa?</h3>
+              <p className="text-muted-foreground">
+                3D modeling costs in Ottawa typically range from $50-$150 per hour depending on complexity, detail level, and technical requirements. We provide custom quotes based on your specific project needs, and our Ottawa team works efficiently to deliver high-quality models at competitive rates.
+              </p>
+            </div>
+
+            <div className="bg-background rounded-lg p-6 shadow-sm">
+              <h3 className="text-lg font-bold mb-2">Do I need to have a design ready for 3D modeling in Ottawa?</h3>
+              <p className="text-muted-foreground">
+                No, you don't need a finished design. Our Ottawa 3D modeling team can work from concept sketches, reference images, verbal descriptions, or even rough ideas. We guide you through the entire process, from concept to finished 3D model, providing consultations to understand your vision and requirements.
+              </p>
+            </div>
+
+            <div className="bg-background rounded-lg p-6 shadow-sm">
+              <h3 className="text-lg font-bold mb-2">How long does 3D modeling take in Ottawa?</h3>
+              <p className="text-muted-foreground">
+                Typical turnaround times for 3D modeling in Ottawa range from 2-7 business days, depending on complexity and detail level. Simple projects may be completed faster, while highly detailed or technical models may require more time. Our Ottawa team can provide a specific timeline estimate after understanding your project scope.
+              </p>
+            </div>
+
+            <div className="bg-background rounded-lg p-6 shadow-sm">
+              <h3 className="text-lg font-bold mb-2">Which file formats do you deliver for 3D models in Ottawa?</h3>
+              <p className="text-muted-foreground">
+                We deliver 3D models in any format you need, including STL, OBJ, 3MF, STEP, FBX, and BLEND. For Ottawa clients requiring multiple formats for different applications, we provide all necessary conversions with your order. Our team ensures that files are optimized for your specific use case, whether for 3D printing, animation, or manufacturing.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <SiteFooter />
     </div>
   )

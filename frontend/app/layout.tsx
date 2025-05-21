@@ -12,12 +12,10 @@ export const metadata: Metadata = {
     template: "%s | Ottawa 3D Printing - Maple Leaf 3D",
   },
   description: "Professional 3D printing services in Ottawa. Fast, high-quality prints for prototypes, custom parts, and production runs. Local service with city-wide delivery.",
-  manifest: "/favicon/site.webmanifest", // Link to the manifest file
+  manifest: "/favicon/site.webmanifest",
   icons: {
-    icon: "/favicon/favicon.ico", // Standard favicon
-    apple: "/favicon/apple-touch-icon.png", // Apple touch icon
-    // You can add other sizes or types here if needed
-    // shortcut: '/favicon/favicon-16x16.png', // Example for specific sizes
+    icon: "/favicon/favicon.ico",
+    apple: "/favicon/apple-touch-icon.png",
   },
   keywords: "3D printing Ottawa, Ottawa 3D printing service, custom 3D prints Ottawa, 3D printed prototypes Ottawa, rapid prototyping Ottawa, 3D model printing, PLA printing Ottawa, PETG printing Ottawa, ABS printing, local 3D printing service Ottawa",
   openGraph: {
@@ -35,15 +33,22 @@ export const metadata: Metadata = {
         alt: "Maple Leaf 3D - Ottawa 3D Printing Services",
       },
     ],
+    countryName: "Canada",
   },
   twitter: {
     card: "summary_large_image",
     title: "Ottawa 3D Printing Services | Maple Leaf 3D",
     description: "Professional 3D printing services in Ottawa. Fast, high-quality prints for prototypes, custom parts, and production runs.",
     images: ["https://www.mapleleaf3d.ca/banner-logo.png"],
+    creator: "@mapleleaf3d",
+    site: "@mapleleaf3d",
   },
   alternates: {
     canonical: "https://www.mapleleaf3d.ca/",
+    languages: {
+      'en': 'https://www.mapleleaf3d.ca/',
+      'fr-CA': 'https://www.mapleleaf3d.ca/fr/',
+    },
   }
 }
 
@@ -54,13 +59,56 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Web Vitals & Analytics script */}
+        <script 
+          defer 
+          src="https://static.cloudflareinsights.com/beacon.min.js" 
+          data-cf-beacon='{"token": "364601feec634747bd09b78bd5779978"}'
+        />
+
+        {/* Organization Schema for All Pages */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              "name": "Maple Leaf 3D",
+              "url": "https://www.mapleleaf3d.ca",
+              "logo": "https://www.mapleleaf3d.ca/logo.png",
+              "slogan": "Ottawa's Premier 3D Printing Service",
+              "description": "Professional 3D printing services in Ottawa, Canada. We provide high-quality prints, 3D modeling, and print-on-demand services for businesses and individuals in the Ottawa region.",
+              "address": {
+                "@type": "PostalAddress",
+                "streetAddress": "1165 Beaverwood Rd",
+                "addressLocality": "Ottawa",
+                "addressRegion": "ON",
+                "postalCode": "K4M 1L6",
+                "addressCountry": "CA"
+              },
+              "contactPoint": {
+                "@type": "ContactPoint",
+                "telephone": "+1-613-608-1430",
+                "contactType": "customer service",
+                "areaServed": "Ottawa",
+                "availableLanguage": ["English", "French"]
+              },
+              "sameAs": [
+                "https://www.facebook.com/mapleleaf3d",
+                "https://www.instagram.com/mapleleaf3d",
+                "https://twitter.com/mapleleaf3d"
+              ]
+            })
+          }}
+        />
+      </head>
+      
       <body className={inter.className}>
-        <ThemeProvider defaultTheme="system" enableSystem>
+        <ThemeProvider defaultTheme="system">
           {children}
         </ThemeProvider>
       </body>
     </html>
   )
 }
-
-import './globals.css'

@@ -501,6 +501,104 @@ export default function ThreeDPrintingPage() {
           </div>
         </section>
       </main>
+
+      {/* FAQ Section with Structured Data */}
+      <section className="py-12 bg-muted/20">
+        <div className="container">
+          <h2 className="text-2xl font-bold mb-8 text-center">Frequently Asked Questions About 3D Printing in Ottawa</h2>
+
+          {/* FAQ Schema */}
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                "mainEntity": [
+                  {
+                    "@type": "Question",
+                    "name": "What materials do you offer for 3D printing in Ottawa?",
+                    "acceptedAnswer": {
+                      "@type": "Answer",
+                      "text": "We offer a wide range of materials for 3D printing in Ottawa, including PLA (for decorative prints), PETG (for outdoor and functional parts), and ABS (for durable components). Each material has unique properties suitable for different applications, and our Ottawa team can help you select the right one for your project."
+                    }
+                  },
+                  {
+                    "@type": "Question",
+                    "name": "How long does 3D printing take in Ottawa?",
+                    "acceptedAnswer": {
+                      "@type": "Answer",
+                      "text": "Typical turnaround times for 3D printing in Ottawa range from 1-3 business days for standard orders, depending on complexity and size. We also offer expedited printing services for urgent projects, with same-day or next-day options available for Ottawa customers."
+                    }
+                  },
+                  {
+                    "@type": "Question",
+                    "name": "What is the printing resolution you offer in Ottawa?",
+                    "acceptedAnswer": {
+                      "@type": "Answer",
+                      "text": "We offer multiple printing resolutions in Ottawa: Standard (0.2mm layer height), High (0.1mm layer height), and Ultra (0.05mm layer height). The finer the resolution, the smoother the surface finish, though print time increases. Our Ottawa experts can recommend the best resolution for your specific project needs."
+                    }
+                  },
+                  {
+                    "@type": "Question",
+                    "name": "Do you offer color 3D printing in Ottawa?",
+                    "acceptedAnswer": {
+                      "@type": "Answer",
+                      "text": "Yes, we offer a wide variety of colors for 3D printing in Ottawa. We stock many popular colors and can also handle multi-color prints through various techniques. For businesses in Ottawa requiring specific brand colors, we can match or closely approximate your color requirements."
+                    }
+                  },
+                  {
+                    "@type": "Question",
+                    "name": "Can you help with 3D model design in Ottawa?",
+                    "acceptedAnswer": {
+                      "@type": "Answer",
+                      "text": "Absolutely! Our Ottawa team includes experienced 3D designers who can help create, modify, or optimize your 3D models. Whether you have a rough sketch, a concept, or need modifications to an existing file, our Ottawa-based design team can assist with professional 3D modeling services."
+                    }
+                  }
+                ]
+              })
+            }}
+          />
+
+          <div className="space-y-6 max-w-3xl mx-auto">
+            <div className="bg-background rounded-lg p-6 shadow-sm">
+              <h3 className="text-lg font-bold mb-2">What materials do you offer for 3D printing in Ottawa?</h3>
+              <p className="text-muted-foreground">
+                We offer a wide range of materials for 3D printing in Ottawa, including PLA (for decorative prints), PETG (for outdoor and functional parts), and ABS (for durable components). Each material has unique properties suitable for different applications, and our Ottawa team can help you select the right one for your project.
+              </p>
+            </div>
+
+            <div className="bg-background rounded-lg p-6 shadow-sm">
+              <h3 className="text-lg font-bold mb-2">How long does 3D printing take in Ottawa?</h3>
+              <p className="text-muted-foreground">
+                Typical turnaround times for 3D printing in Ottawa range from 1-3 business days for standard orders, depending on complexity and size. We also offer expedited printing services for urgent projects, with same-day or next-day options available for Ottawa customers.
+              </p>
+            </div>
+
+            <div className="bg-background rounded-lg p-6 shadow-sm">
+              <h3 className="text-lg font-bold mb-2">What is the printing resolution you offer in Ottawa?</h3>
+              <p className="text-muted-foreground">
+                We offer multiple printing resolutions in Ottawa: Standard (0.2mm layer height), High (0.1mm layer height), and Ultra (0.05mm layer height). The finer the resolution, the smoother the surface finish, though print time increases. Our Ottawa experts can recommend the best resolution for your specific project needs.
+              </p>
+            </div>
+
+            <div className="bg-background rounded-lg p-6 shadow-sm">
+              <h3 className="text-lg font-bold mb-2">Do you offer color 3D printing in Ottawa?</h3>
+              <p className="text-muted-foreground">
+                Yes, we offer a wide variety of colors for 3D printing in Ottawa. We stock many popular colors and can also handle multi-color prints through various techniques. For businesses in Ottawa requiring specific brand colors, we can match or closely approximate your color requirements.
+              </p>
+            </div>
+
+            <div className="bg-background rounded-lg p-6 shadow-sm">
+              <h3 className="text-lg font-bold mb-2">Can you help with 3D model design in Ottawa?</h3>
+              <p className="text-muted-foreground">
+                Absolutely! Our Ottawa team includes experienced 3D designers who can help create, modify, or optimize your 3D models. Whether you have a rough sketch, a concept, or need modifications to an existing file, our Ottawa-based design team can assist with professional 3D modeling services.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <SiteFooter />
     </div>
   )
