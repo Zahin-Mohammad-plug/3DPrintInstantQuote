@@ -16,18 +16,17 @@ const nextConfig = {
     unoptimized: true,
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 31536000, // Cache for one year (in seconds)
-  },
-  experimental: {
+  },  experimental: {
     webpackBuildWorker: true,
     parallelServerBuildTraces: true,
     parallelServerCompiles: true,
-    optimizeCss: true,
+    optimizeCss: {
+      cssModules: true,
+      fontLoaders: true,
+    },
     scrollRestoration: true,
-  },
-  // Add compression for better performance
+  },  // Add compression for better performance
   compress: true,
-  // Add modern JavaScript optimization
-  swcMinify: true,
 }
 
 mergeConfig(nextConfig, userConfig)
